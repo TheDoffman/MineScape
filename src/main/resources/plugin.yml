@@ -1,0 +1,5 @@
+name: MineScape
+version: '0.1'
+author: HoffmanTV
+main: org.hoffmantv.minescape.MineScape
+api-version: '1.20'
