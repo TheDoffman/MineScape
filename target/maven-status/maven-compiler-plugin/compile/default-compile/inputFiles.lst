@@ -1,3 +1,4 @@
-/Users/danielhoffman/Documents/GitHub/MineScape/src/main/java/org/hoffmantv/minescape/skills/Mining.java
-/Users/danielhoffman/Documents/GitHub/MineScape/src/main/java/org/hoffmantv/minescape/skills/WoodCutting.java
-/Users/danielhoffman/Documents/GitHub/MineScape/src/main/java/org/hoffmantv/minescape/MineScape.java
+/Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/commands/SaveSkillsCommand.java
+/Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/skills/WoodcuttingSkill.java
+/Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/managers/SkillManager.java
+/Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/MineScape.java
