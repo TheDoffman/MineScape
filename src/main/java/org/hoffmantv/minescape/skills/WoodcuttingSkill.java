@@ -1,24 +1,19 @@
 package org.hoffmantv.minescape.skills;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.managers.SkillManager;
 
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 public class WoodcuttingSkill implements Listener {
 
@@ -99,6 +94,41 @@ public class WoodcuttingSkill implements Listener {
             return null;
         }
     }
+
+    public enum AxeType {
+        WOODEN(Material.WOODEN_AXE, 1),
+        STONE(Material.STONE_AXE, 10),
+        IRON(Material.IRON_AXE, 15),
+        GOLDEN(Material.GOLDEN_AXE, 25),
+        DIAMOND(Material.DIAMOND_AXE, 35),
+        NETHERITE(Material.NETHERITE_AXE, 50);
+
+        private final Material material;
+        private final int requiredLevel;
+
+        AxeType(Material material, int requiredLevel) {
+            this.material = material;
+            this.requiredLevel = requiredLevel;
+        }
+
+        public Material getMaterial() {
+            return material;
+        }
+
+        public int getRequiredLevel() {
+            return requiredLevel;
+        }
+
+        public static AxeType fromMaterial(Material material) {
+            for (AxeType type : values()) {
+                if (type.getMaterial() == material) {
+                    return type;
+                }
+            }
+            return null;
+        }
+    }
+
     private boolean isPlantableBase(Material material) {
         return material == Material.DIRT || material == Material.GRASS_BLOCK;
     }
@@ -157,45 +187,117 @@ public class WoodcuttingSkill implements Listener {
                 if (current.getLocation().getY() < stumpLocation.getY()) {
                     stumpLocation = current.getLocation();
                 }
-                for (BlockFace face : BlockFace.values()) {
-                    Block neighbor = current.getRelative(face);
-                    if (!visited.contains(neighbor)) {
-                        if (isLeaf(neighbor.getType())) {
-                            neighbor.breakNaturally();
-                        } else if (isLog(neighbor.getType())) {
-                            queue.add(neighbor);
+            }
+
+            // We're considering all six faces (up, down, north, south, east, west) for both logs and leaves.
+            for (BlockFace face : BlockFace.values()) {
+                Block neighbor = current.getRelative(face);
+
+                if (!visited.contains(neighbor)) {
+                    if (isLeaf(neighbor.getType())) {
+                        neighbor.breakNaturally();
+                        queue.add(neighbor); // Add the leaf to the queue to ensure all attached leaves are removed.
+                    } else if (isLog(neighbor.getType())) {
+                        queue.add(neighbor);
+                    }
+                }
+            }
+
+            // We'll break the current block after processing its neighbors.
+            // This ensures both logs and leaves are broken.
+            current.breakNaturally();
+        }
+
+        return stumpLocation; // Return the stump's location
+    }
+
+    public void growNiceTree(Location location, Material logMaterial, Material leavesMaterial) {
+        World world = location.getWorld();
+
+        // Random height between 5 to 7 for some variety
+        int height = new Random().nextInt(3) + 5;
+
+        // Base log of the tree
+        for (int y = 0; y < height; y++) {
+            world.getBlockAt(location.getBlockX(), location.getBlockY() + y, location.getBlockZ()).setType(logMaterial);
+        }
+
+        // Leaves, a combination of loops and conditions for a more natural shape
+        for (int x = -3; x <= 3; x++) {
+            for (int y = height - 3; y <= height; y++) {
+                for (int z = -3; z <= 3; z++) {
+                    // Condition for the general shape of the leaves
+                    if (Math.abs(x) + Math.abs(y - (height - 1.5)) * 2 + Math.abs(z) < 3.5) {
+                        Block block = world.getBlockAt(location.getBlockX() + x, location.getBlockY() + y, location.getBlockZ() + z);
+                        if(block.getType() == Material.AIR) {
+                            block.setType(leavesMaterial);
+                        }
+                    }
+                    // Adding some randomness for leaves so they don't form a perfect shape
+                    if (new Random().nextInt(3) == 0 && Math.abs(x) < 2 && Math.abs(z) < 2 && y == height - 3) {
+                        Block block = world.getBlockAt(location.getBlockX() + x, location.getBlockY() + y, location.getBlockZ() + z);
+                        if(block.getType() == Material.AIR) {
+                            block.setType(leavesMaterial);
                         }
                     }
                 }
-                current.breakNaturally();
             }
         }
-        return stumpLocation; // Return the stump's location
+    }
+
+    public void growNiceOakTree(Location location) {
+        growNiceTree(location, Material.OAK_LOG, Material.OAK_LEAVES);
+    }
+
+    public void growNiceDarkOakTree(Location location) {
+        growNiceTree(location, Material.DARK_OAK_LOG, Material.DARK_OAK_LEAVES);
+    }
+
+    public void growNiceBirchTree(Location location) {
+        growNiceTree(location, Material.BIRCH_LOG, Material.BIRCH_LEAVES);
+    }
+
+    public void growNiceSpruceTree(Location location) {
+        growNiceTree(location, Material.SPRUCE_LOG, Material.SPRUCE_LEAVES);
+    }
+
+    public void growNiceJungleTree(Location location) {
+        growNiceTree(location, Material.JUNGLE_LOG, Material.JUNGLE_LEAVES);
+    }
+
+    public void growNiceAcaciaTree(Location location) {
+        growNiceTree(location, Material.ACACIA_LOG, Material.ACACIA_LEAVES);
     }
 
     private void scheduleTreeGrowth(Location location, TreeType treeType) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
             @Override
             public void run() {
-                // Ensure that the block at the location is still the expected sapling
                 if (location.getBlock().getType() == treeType.getSapling()) {
-
-                    // Directly use the bukkit tree type defined in the TreeType enum
-                    org.bukkit.TreeType bukkitTreeType = treeType.getBukkitTreeType();
-
-                    if (bukkitTreeType != null) {
-                        boolean success = location.getWorld().generateTree(location, bukkitTreeType);
-                        if (!success) {
-                            plugin.getLogger().info("Tree growth was unsuccessful for " + treeType.name() + " at " + location);
-                        }
+                    if (treeType == TreeType.OAK) {
+                        growNiceOakTree(location);
                     }
-                } else {
-                    plugin.getLogger().info("Scheduled tree growth failed: Expected sapling not found. Current block type: " + location.getBlock().getType());
+                    else if (treeType == TreeType.DARK_OAK) {
+                        growNiceDarkOakTree(location);
+                    }
+                    else if (treeType == TreeType.BIRCH) {
+                        growNiceBirchTree(location);
+                    }
+                    else if (treeType == TreeType.SPRUCE) {
+                        growNiceSpruceTree(location);
+                    }
+                    else if (treeType == TreeType.SPRUCE) {
+                        growNiceSpruceTree(location);
+                    }
+                    else if (treeType == TreeType.JUNGLE) {
+                        growNiceJungleTree(location);
+                    } else if (treeType == TreeType.ACACIA) {
+                        growNiceAcaciaTree(location);
+                    }
                 }
             }
         }, treeType.getGrowthDelayTicks());
     }
-
 
     private boolean isLog(Material material) {
         return TreeType.fromMaterial(material) != null;
@@ -249,7 +351,7 @@ public class WoodcuttingSkill implements Listener {
             // Ensure the player is using an axe
             if (!isAxe(heldItem.getType())) {
                 event.setCancelled(true);
-                player.sendMessage(ChatColor.RED + "Use an axe to chop down trees!");
+                player.sendMessage(ChatColor.RED + "You must use an axe to chop a tree down!");
                 return;
             }
 
@@ -257,13 +359,36 @@ public class WoodcuttingSkill implements Listener {
 
             // If it's a type of tree we're tracking and the player's level isn't high enough, cancel the event
             if (treeType != null && skillManager.getSkillLevel(player, SkillManager.Skill.WOODCUTTING) < treeType.getRequiredLevel()) {
-                player.sendMessage(ChatColor.RED + "You need a higher woodcutting level to chop this tree!");
+                player.sendMessage(ChatColor.RED + "You need to be level " + treeType.getRequiredLevel() + " to chop " + treeType.name().toLowerCase() + "!");
                 event.setCancelled(true);
                 return;
             }
+            // If the item is an axe, check the player's level
+            AxeType axeType = AxeType.fromMaterial(heldItem.getType());
+            if (axeType != null && skillManager.getSkillLevel(player, SkillManager.Skill.WOODCUTTING) < axeType.getRequiredLevel()) {
+                player.sendMessage(ChatColor.RED + "You need a woodcutting level of " + axeType.getRequiredLevel() + " to use this " + axeType.name().toLowerCase().replace("_", " ") + " axe.");
+                event.setCancelled(true);
+                return;
+            }
+
 
             // Logic to remove the entire tree but keep the stump and remove leaves
             handleTreeRemoval(player, block, treeType);
         }
     }
+    @EventHandler
+    public void onEntityDamage(EntityDamageByEntityEvent event) {
+        // Check if the damager is a player
+        if (event.getDamager() instanceof Player) {
+            Player player = (Player) event.getDamager();
+            ItemStack heldItem = player.getInventory().getItemInMainHand();
+
+            // If the player is using an axe, cancel the damage event and inform them
+            if (isAxe(heldItem.getType())) {
+                event.setCancelled(true);
+                player.sendMessage(ChatColor.RED + "Axes can only be used for woodcutting!");
+            }
+        }
+    }
+
 }
