@@ -3,26 +3,35 @@ package org.hoffmantv.minescape;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.SaveSkillsCommand;
 import org.hoffmantv.minescape.managers.SkillManager;
+import org.hoffmantv.minescape.skills.MiningSkill;
 import org.hoffmantv.minescape.skills.WoodcuttingSkill;
+
 
 
 public class MineScape extends JavaPlugin {
 
+    private SkillManager skillManager;
 
     // This method is called when the plugin is enabled (on server startup)
     @Override
     public void onEnable() {
         getLogger().info("MineScape has been enabled!");
 
+        int pluginId = 19471; // <-- Replace with the id of your plugin!
+        Metrics metrics = new Metrics(this, pluginId);
+
         this.saveDefaultConfig();
 
         SkillManager skillManager = new SkillManager(this);
+
         getServer().getPluginManager().registerEvents(skillManager, this);
         getCommand("saveskills").setExecutor(new SaveSkillsCommand(skillManager));
 
         WoodcuttingSkill woodcuttingSkill = new WoodcuttingSkill(skillManager, this);
         getServer().getPluginManager().registerEvents(woodcuttingSkill, this);
 
+        MiningSkill miningSkill = new MiningSkill(skillManager, this);
+        getServer().getPluginManager().registerEvents(miningSkill, this);
 
     }
 

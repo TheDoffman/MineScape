@@ -136,29 +136,17 @@ public class WoodcuttingSkill implements Listener {
         // Capture the stump location
         Location stump = removeTree(block);
 
-        // Logging for debugging
-        plugin.getLogger().info("Stump Location: " + stump.toString());
-
         // Check if the block below is dirt or grass
         Material blockBelowType = stump.getBlock().getRelative(BlockFace.DOWN).getType();
-        plugin.getLogger().info("Block below stump: " + blockBelowType.name());
 
         if (isPlantableBase(blockBelowType)) {
-            // Logging for debugging
-            plugin.getLogger().info("Trying to plant sapling for tree type: " + treeType.name());
 
             // Plant the sapling at the stump location
             if (treeType != null) {
                 stump.getBlock().setType(treeType.getSapling());
 
-                // Logging for debugging
-                plugin.getLogger().info("Sapling should be planted at: " + stump.toString());
-                plugin.getLogger().info("Actual block type after attempt: " + stump.getBlock().getType().name());
-
                 scheduleTreeGrowth(stump, treeType);
             }
-        } else {
-            plugin.getLogger().info("The block below is not suitable for planting a sapling.");
         }
 
         // Provide XP to the player
@@ -170,8 +158,6 @@ public class WoodcuttingSkill implements Listener {
             player.sendMessage(ChatColor.GREEN + "You cut down a " + treeType.name().toLowerCase() + " tree and received " + xpValue + " XP!");
         }
     }
-
-
     private Location removeTree(Block startBlock) {
         Set<Block> visited = new HashSet<>();
         Queue<Block> queue = new LinkedList<>();
@@ -210,7 +196,6 @@ public class WoodcuttingSkill implements Listener {
 
         return stumpLocation; // Return the stump's location
     }
-
     public void growNiceTree(Location location, Material logMaterial, Material leavesMaterial) {
         World world = location.getWorld();
 
@@ -341,6 +326,7 @@ public class WoodcuttingSkill implements Listener {
         }
     }
 
+
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -374,7 +360,10 @@ public class WoodcuttingSkill implements Listener {
 
             // Logic to remove the entire tree but keep the stump and remove leaves
             handleTreeRemoval(player, block, treeType);
+            skillManager.saveSkillsToConfig();
+            skillManager.loadSkillsFromConfig();
         }
+
     }
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) {

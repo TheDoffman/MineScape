@@ -12,9 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,15 +66,6 @@ public class SkillManager implements Listener {
         }
     }
 
-    public void testFileWrite() {
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(configFile, true));
-            writer.append("\n# Test Write");
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
     public void loadSkillsFromConfig() {
         for (String uuidString : config.getKeys(false)) {
             UUID uuid = UUID.fromString(uuidString);
@@ -103,7 +92,7 @@ public class SkillManager implements Listener {
     }
 
     // Add experience to a skill
-    public void addXP(Player player, Skill skill, double xp) {
+    public boolean addXP(Player player, Skill skill, double xp) {
         System.out.println("DEBUG: Adding XP. Player: " + player.getName() + ", Skill: " + skill.name() + ", XP: " + xp);  // DEBUG: XP addition
 
         double currentXP = getXP(player, skill);
@@ -115,12 +104,18 @@ public class SkillManager implements Listener {
             newXP -= xpRequiredForLevelUp(currentLevel);
             currentLevel++;
 
+            // Notify the player about the level up
+            player.sendMessage(ChatColor.GOLD + "Congratulations! You've reached level " + currentLevel + " in " + skill.name() + "!");
+            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);  // Play a level-up sound
+
             playerLevels.get(player.getUniqueId()).put(skill, currentLevel);
             playerXP.get(player.getUniqueId()).put(skill, newXP);
+
 
             // Save the updated XP and skill levels to the configuration file
             saveSkillsToConfig();
         }
+
 
         // If we've hit MAX_LEVEL, any excess XP should be discarded
         if (currentLevel == MAX_LEVEL) {
@@ -129,6 +124,7 @@ public class SkillManager implements Listener {
 
         playerLevels.get(player.getUniqueId()).put(skill, currentLevel);
         playerXP.get(player.getUniqueId()).put(skill, newXP);
+        return false;
     }
     public void saveSkillsToConfig() {
         System.out.println("DEBUG: Saving skills to config...");  // DEBUG: Starting save
@@ -153,7 +149,6 @@ public class SkillManager implements Listener {
     public double getXP(Player player, Skill skill) {
         return playerXP.getOrDefault(player.getUniqueId(), Collections.emptyMap()).getOrDefault(skill, 0.0);
     }
-
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
