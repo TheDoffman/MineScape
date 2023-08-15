@@ -1,7 +1,5 @@
 package org.hoffmantv.minescape.managers;
 
-
-
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;

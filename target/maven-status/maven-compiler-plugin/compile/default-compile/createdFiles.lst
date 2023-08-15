@@ -9,6 +9,7 @@ org/hoffmantv/minescape/managers/SkillManager.class
 org/hoffmantv/minescape/Metrics$AdvancedBarChart.class
 org/hoffmantv/minescape/Metrics$JsonObjectBuilder$JsonObject.class
 org/hoffmantv/minescape/commands/SaveSkillsCommand.class
+org/hoffmantv/minescape/skills/SmithingSkill$1.class
 org/hoffmantv/minescape/skills/MiningSkill$OreData.class
 org/hoffmantv/minescape/Metrics$MultiLineChart.class
 org/hoffmantv/minescape/MineScape.class
@@ -16,6 +17,7 @@ org/hoffmantv/minescape/skills/MiningSkill$1.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill$TreeType.class
 org/hoffmantv/minescape/Metrics$SimpleBarChart.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill$1.class
+org/hoffmantv/minescape/skills/SmithingSkill.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill$AxeType.class
 org/hoffmantv/minescape/Metrics$DrilldownPie.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill.class

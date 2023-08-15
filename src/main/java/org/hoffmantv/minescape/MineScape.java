@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.SaveSkillsCommand;
 import org.hoffmantv.minescape.managers.SkillManager;
 import org.hoffmantv.minescape.skills.MiningSkill;
+import org.hoffmantv.minescape.skills.SmithingSkill;
 import org.hoffmantv.minescape.skills.WoodcuttingSkill;
 
 
@@ -11,6 +12,8 @@ import org.hoffmantv.minescape.skills.WoodcuttingSkill;
 public class MineScape extends JavaPlugin {
 
     private SkillManager skillManager;
+
+    private static MineScape instance;
 
     // This method is called when the plugin is enabled (on server startup)
     @Override
@@ -33,6 +36,9 @@ public class MineScape extends JavaPlugin {
         MiningSkill miningSkill = new MiningSkill(skillManager, this);
         getServer().getPluginManager().registerEvents(miningSkill, this);
 
+        SmithingSkill smithingSkill = new SmithingSkill(skillManager);
+        getServer().getPluginManager().registerEvents(smithingSkill, this);
+
     }
 
     // This method is called when the plugin is disabled (on server shutdown)
@@ -43,6 +49,8 @@ public class MineScape extends JavaPlugin {
         // Save data, release resources, etc.
 
     }
-
+    public static MineScape getInstance() {
+        return instance;
+    }
     // Add any additional methods and functionalities for your plugin here
 }
