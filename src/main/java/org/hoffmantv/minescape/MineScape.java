@@ -10,15 +10,10 @@ import org.hoffmantv.minescape.skills.WoodcuttingSkill;
 
 
 public class MineScape extends JavaPlugin {
-
-    private SkillManager skillManager;
-
-    private static MineScape instance;
-
     // This method is called when the plugin is enabled (on server startup)
     @Override
     public void onEnable() {
-        getLogger().info("MineScape has been enabled!");
+        getLogger().info("MineScape" + getServer().getVersion() +  "has been enabled!");
 
         int pluginId = 19471; // <-- Replace with the id of your plugin!
         Metrics metrics = new Metrics(this, pluginId);
@@ -37,7 +32,9 @@ public class MineScape extends JavaPlugin {
         getServer().getPluginManager().registerEvents(miningSkill, this);
 
         SmithingSkill smithingSkill = new SmithingSkill(skillManager);
-        getServer().getPluginManager().registerEvents(smithingSkill, this);
+        getServer().getPluginManager().registerEvents(new SmithingSkill(skillManager), this);
+
+
 
     }
 
@@ -48,9 +45,6 @@ public class MineScape extends JavaPlugin {
         // Add any cleanup code here
         // Save data, release resources, etc.
 
-    }
-    public static MineScape getInstance() {
-        return instance;
     }
     // Add any additional methods and functionalities for your plugin here
 }

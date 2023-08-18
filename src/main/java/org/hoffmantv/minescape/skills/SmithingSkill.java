@@ -1,17 +1,27 @@
 package org.hoffmantv.minescape.skills;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.hoffmantv.minescape.MineScape;
 import org.hoffmantv.minescape.managers.SkillManager;
 
 public class SmithingSkill implements Listener {
 
-    private SkillManager skillManager;
+    private final SkillManager skillManager;
 
     public SmithingSkill(SkillManager skillManager) {
         this.skillManager = skillManager;
@@ -19,6 +29,25 @@ public class SmithingSkill implements Listener {
 
     public int getSmithingLevel(Player player) {
         return skillManager.getSkillLevel(player, SkillManager.Skill.SMITHING);
+    }
+    private int getRequiredSmeltingLevel(Material ore) {
+        switch (ore) {
+            case IRON_ORE:
+                return 15;
+            case GOLD_ORE:
+                return 20;
+            case ANCIENT_DEBRIS: // For Netherite
+                return 40;
+            // ... Add any other ores and their requirements here ...
+            default:
+                return 0;
+        }
+    }
+
+    private boolean hasRequiredLevel(Player player, Material material) {
+        int playerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.SMITHING);
+        int requiredLevel = getRequiredSmeltingLevel(material); // Corrected here
+        return playerLevel >= requiredLevel;
     }
 
     @EventHandler
@@ -47,6 +76,148 @@ public class SmithingSkill implements Listener {
         }
     }
 
+    @EventHandler
+    public void onFurnaceSmelt(FurnaceSmeltEvent event) {
+        Material sourceOre = event.getSource().getType();
+        if (isOreRestricted(sourceOre)) {
+            Player player = (Player) event.getBlock().getWorld().getNearbyEntities(event.getBlock().getLocation(), 5, 5, 5).stream().filter(entity -> entity instanceof Player).findFirst().orElse(null);
+            if (player != null) {
+                int requiredLevel = getRequiredSmeltingLevel(sourceOre);
+                if (getSmithingLevel(player) < requiredLevel) {
+                    event.setCancelled(true);
+                    player.sendMessage("You need a Smithing level of " + requiredLevel + " to smelt this ore.");
+                    player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1f, 1f); // Play a sound to indicate the action was denied
+                }
+            }
+        }
+    }
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        Action action = event.getAction();
+        ItemStack handItem = player.getInventory().getItemInMainHand();
+
+        if (handItem.getType() == Material.AIR) {
+            return; // Check for null or air in hand
+        }
+
+        if (action == Action.RIGHT_CLICK_BLOCK) {
+            Block clickedBlock = event.getClickedBlock();
+
+            if (clickedBlock != null && clickedBlock.getType() == Material.FURNACE) {
+                Material materialToSmelt = handItem.getType();
+
+                // Check for smithing level requirements
+                if (!hasRequiredLevel(player, materialToSmelt)) {
+                    event.setCancelled(true);
+                    return;
+                }
+
+                // Check for available inventory space
+                if (player.getInventory().firstEmpty() == -1) {
+                    player.sendMessage(ChatColor.RED + "You don't have enough space in your inventory!");
+                    event.setCancelled(true);
+                    return;
+                }
+
+                Material smeltedResult = getSmeltedResult(materialToSmelt);
+                if (smeltedResult != null) {
+                    event.setCancelled(true); // Prevents the furnace UI from showing
+
+                    player.playSound(player.getLocation(), Sound.BLOCK_FURNACE_FIRE_CRACKLE, 1.0f, 1.0f);
+                    player.spawnParticle(Particle.SMOKE_LARGE, clickedBlock.getLocation().add(0.5, 1, 0.5), 10);
+
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            ItemStack resultItem = makeNonStackable(smeltedResult);
+                            player.getInventory().removeItem(new ItemStack(materialToSmelt, 1));
+                            player.getInventory().addItem(resultItem);
+
+                            player.sendMessage(ChatColor.GREEN + "You've smelted the " + materialToSmelt.toString().toLowerCase() + "!");
+                            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
+
+                        }
+                    }.runTaskLater(JavaPlugin.getPlugin(MineScape.class), 60L);
+                }
+            }
+        }
+    }
+    @EventHandler
+    public void onPlayerRightClickFurnace(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+
+        Block block = event.getClickedBlock();
+        Player player = event.getPlayer();
+        if (block == null) return;
+        if (block.getType() != Material.FURNACE && block.getType() != Material.BLAST_FURNACE) return;
+
+        ItemStack handItem = player.getInventory().getItemInMainHand();
+        if (handItem.getType() == Material.IRON_ORE || handItem.getType() == Material.GOLD_ORE || handItem.getType() == Material.ANCIENT_DEBRIS) {
+
+            int requiredLevel = 0;
+            switch(handItem.getType()) {
+                case IRON_ORE:
+                    requiredLevel = 15;
+                    break;
+                case GOLD_ORE:
+                    requiredLevel = 20;
+                    break;
+                case ANCIENT_DEBRIS:
+                    requiredLevel = 40;
+                    break;
+            }
+
+            int playerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.SMITHING);
+            if (playerLevel < requiredLevel) {
+                player.sendMessage(ChatColor.RED + "You need Smithing level " + requiredLevel + " to smelt this ore!");
+                player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0f, 1.0f);
+                return;
+            }
+            // Remove the item from the player's hand
+            if (handItem.getAmount() > 1) {
+                handItem.setAmount(handItem.getAmount() - 1);
+            } else {
+                player.getInventory().setItemInMainHand(null);
+            }
+        }
+    }
+
+    private Material getSmeltedResult(Material material) {
+        switch (material) {
+            case IRON_ORE:
+                return Material.IRON_INGOT;
+            case GOLD_ORE:
+                return Material.GOLD_INGOT;
+            case ANCIENT_DEBRIS:
+                return Material.NETHERITE_SCRAP;
+            default:
+                return null;
+        }
+    }
+
+    private ItemStack makeNonStackable(Material material) {
+        ItemStack item = new ItemStack(material, 1);
+        ItemMeta meta = item.getItemMeta();
+
+        // Set some custom model data to make it unique
+        meta.setCustomModelData((int) (Math.random() * Integer.MAX_VALUE));
+
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private boolean isOreRestricted(Material ore) {
+        switch (ore) {
+            case IRON_ORE:
+            case GOLD_ORE:
+            case ANCIENT_DEBRIS:
+                // ... Add other restricted ores here ...
+                return true;
+            default:
+                return false;
+        }
+    }
 
     private int giveSmithingXP(Player player, ItemStack item) {
         int xp = 0; // Default XP
@@ -59,7 +230,7 @@ public class SmithingSkill implements Listener {
             case WOODEN_SHOVEL:
             case WOODEN_HOE:
             case WOODEN_SWORD:
-                xp = 5; // Example XP
+                xp = 5;
                 break;
 
             // Stone tools
