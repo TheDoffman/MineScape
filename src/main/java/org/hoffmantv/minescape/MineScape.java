@@ -1,5 +1,6 @@
 package org.hoffmantv.minescape;
 
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.HelpCommand;
 import org.hoffmantv.minescape.commands.SaveSkillsCommand;
@@ -24,6 +25,8 @@ public class MineScape extends JavaPlugin {
 
         SkillManager skillManager = new SkillManager(this);
 
+        getCommand("help").setExecutor(new HelpCommand(this));
+
         getServer().getPluginManager().registerEvents(skillManager, this);
 
         WoodcuttingSkill woodcuttingSkill = new WoodcuttingSkill(skillManager, this);
@@ -35,7 +38,9 @@ public class MineScape extends JavaPlugin {
         SmithingSkill smithingSkill = new SmithingSkill(skillManager);
         getServer().getPluginManager().registerEvents(new SmithingSkill(skillManager), this);
 
-        getCommand("help").setExecutor(new HelpCommand(this));
+        getServer().getPluginManager().registerEvents(new FishingSkill(this), this);
+        FishingSkill fishingSkill = new FishingSkill(this);
+        getCommand("setfishingspot").setExecutor((CommandExecutor) new FishingSkill(fishingSkill));
 
 
     }

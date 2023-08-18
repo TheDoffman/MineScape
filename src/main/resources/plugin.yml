@@ -7,8 +7,14 @@ commands:
   help:
     description: Gives the player a list of available commands.
     usage: /help
+  setfishingspot:
+    description: Allows a user to set the location of a fishing spot.
+    usage: /setfishingspot [Fish Type]
 
 permissions:
   minescape.help:
     description: Gives the player a list of available commands.
+    default: op
+  minescape.setfishingspot:
+    description: Allows a user to set the location of a fishing spot.
     default: op
