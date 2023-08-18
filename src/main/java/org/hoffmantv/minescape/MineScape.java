@@ -40,7 +40,7 @@ public class MineScape extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new FishingSkill(this), this);
         FishingSkill fishingSkill = new FishingSkill(this);
-        getCommand("setfishingspot").setExecutor((CommandExecutor) new FishingSkill(fishingSkill));
+        getCommand("setfishingspot").setExecutor(new FishingSkill(), this);
 
 
     }

@@ -1,6 +1,7 @@
 org/hoffmantv/minescape/skills/MiningSkill.class
 org/hoffmantv/minescape/Metrics$MetricsBase.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill$2.class
+org/hoffmantv/minescape/skills/FishingSkill$FishType.class
 org/hoffmantv/minescape/Metrics$SingleLineChart.class
 org/hoffmantv/minescape/Metrics$JsonObjectBuilder.class
 org/hoffmantv/minescape/Metrics.class
@@ -18,8 +19,10 @@ org/hoffmantv/minescape/skills/WoodcuttingSkill$TreeType.class
 org/hoffmantv/minescape/Metrics$SimpleBarChart.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill$1.class
 org/hoffmantv/minescape/skills/SmithingSkill.class
+org/hoffmantv/minescape/commands/HelpCommand.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill$AxeType.class
 org/hoffmantv/minescape/Metrics$DrilldownPie.class
+org/hoffmantv/minescape/skills/FishingSkill.class
 org/hoffmantv/minescape/skills/SmithingSkill$2.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill.class
 org/hoffmantv/minescape/managers/SkillManager$Skill.class
