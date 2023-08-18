@@ -4,11 +4,11 @@ author: HoffmanTV
 main: org.hoffmantv.minescape.MineScape
 api-version: '1.20'
 commands:
-  saveskills:
-    description: Saves skills to the config.
-    usage: /saveskills
+  help:
+    description: Gives the player a list of available commands.
+    usage: /help
 
 permissions:
-  minescape.saveskills:
-    description: Allows saving of skills to the config.
+  minescape.help:
+    description: Gives the player a list of available commands.
     default: op
