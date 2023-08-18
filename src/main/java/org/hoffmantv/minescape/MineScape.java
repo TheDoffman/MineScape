@@ -37,11 +37,7 @@ public class MineScape extends JavaPlugin {
 
         SmithingSkill smithingSkill = new SmithingSkill(skillManager);
         getServer().getPluginManager().registerEvents(new SmithingSkill(skillManager), this);
-
-        getServer().getPluginManager().registerEvents(new FishingSkill(this), this);
-        FishingSkill fishingSkill = new FishingSkill(this);
-        getCommand("setfishingspot").setExecutor(new FishingSkill(), this);
-
+        
 
     }
 
