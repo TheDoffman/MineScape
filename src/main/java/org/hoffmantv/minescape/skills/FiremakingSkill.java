@@ -31,7 +31,7 @@ public class FiremakingSkill implements Listener {
         LogProperties logProperties = LogProperties.fromMaterial(logType);
 
         if (logProperties == null) {
-            return;  // Not a recognized log type
+            return;
         }
 
         int requiredLevel = logProperties.getRequiredLevel();
@@ -75,7 +75,7 @@ public class FiremakingSkill implements Listener {
         grantXp(player, logProperties.getXpValue());
 
         // Place the bonfire
-        placeBonfire(blockAbove, logType, player);
+        placeBonfire(blockAbove, player);
 
         // Remove the log from player's hand
         handItem.setAmount(handItem.getAmount() - 1);
@@ -151,7 +151,7 @@ public class FiremakingSkill implements Listener {
         }
     }
 
-    private void placeBonfire(Block block, Material logType, Player player) {
+    private void placeBonfire(Block block, Player player) {
         block.setType(Material.CAMPFIRE);
         block.getWorld().spawnParticle(Particle.SMOKE_LARGE, block.getLocation().add(0.5, 0.5, 0.5), 30, 0.5, 0.5, 0.5, 0.05);
         player.playSound(player.getLocation(), Sound.BLOCK_FIRE_AMBIENT, 1.0f, 1.0f);
@@ -159,7 +159,7 @@ public class FiremakingSkill implements Listener {
 
     private void grantXp(Player player, int xpAmount) {
         if (xpAmount <= 0) {
-            return; // if the xpAmount is 0 or less, simply return without doing anything.
+            return;
         }
         skillManager.addXP(player, SkillManager.Skill.FIREMAKING, xpAmount);
         skillManager.saveSkillsToConfig();
