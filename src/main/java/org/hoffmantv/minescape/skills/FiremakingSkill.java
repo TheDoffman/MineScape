@@ -64,16 +64,14 @@ public class FiremakingSkill implements Listener {
             return;
         }
 
-        // Now, we can safely assume all conditions have been met, and we can grant XP and create the bonfire
-
-        // Place the bonfire
-        placeBonfire(blockAbove, logType);
-
         // Give the player XP
         int xpValue = getFiremakingXp(logType);
         if (xpValue > 0) {
             grantXp(player, xpValue);
         }
+
+        // Place the bonfire
+        placeBonfire(blockAbove, logType);
 
         // Remove the log from player's hand
         handItem.setAmount(handItem.getAmount() - 1);
@@ -86,22 +84,6 @@ public class FiremakingSkill implements Listener {
             }
         }.runTaskLater(plugin, 20 * 20);
     }
-
-    @EventHandler
-    public void onPlayerCreateBonfire(PlayerInteractEvent event) {
-        Material logType = event.getItem().getType();
-        int requiredLevel = getRequiredLevel(logType);
-
-        int playerLevel = skillManager.getSkillLevel(event.getPlayer(), SkillManager.Skill.FIREMAKING);
-
-        if (playerLevel >= requiredLevel) {
-            int xpValue = getFiremakingXp(logType);
-            grantXp(event.getPlayer(), xpValue);
-            // ... Code to start the bonfire ...
-
-        }
-    }
-
     private boolean isLogType(Material material) {
         switch (material) {
             case OAK_LOG:
