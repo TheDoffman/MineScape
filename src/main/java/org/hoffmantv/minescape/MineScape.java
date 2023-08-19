@@ -1,31 +1,31 @@
 package org.hoffmantv.minescape;
 
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.entity.Fish;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.HelpCommand;
 import org.hoffmantv.minescape.commands.SaveSkillsCommand;
 import org.hoffmantv.minescape.managers.SkillManager;
-import org.hoffmantv.minescape.skills.FishingSkill;
-import org.hoffmantv.minescape.skills.MiningSkill;
-import org.hoffmantv.minescape.skills.SmithingSkill;
-import org.hoffmantv.minescape.skills.WoodcuttingSkill;
-
+import org.hoffmantv.minescape.skills.*;
 
 
 public class MineScape extends JavaPlugin {
-    // This method is called when the plugin is enabled (on server startup)
+    private SkillManager skillManager; // Make sure you have this
+    private FiremakingSkill firemakingSkill;
+
     @Override
     public void onEnable() {
-        getLogger().info("MineScape" + getServer().getVersion() +  "has been enabled!");
+        getLogger().info("MineScape has been enabled!");
 
         int pluginId = 19471; // <-- Replace with the id of your plugin!
         Metrics metrics = new Metrics(this, pluginId);
 
         this.saveDefaultConfig();
 
-        SkillManager skillManager = new SkillManager(this);
+        skillManager = new SkillManager(this);
 
-        getCommand("help").setExecutor(new HelpCommand(this));
+        this.getCommand("help").setExecutor(new HelpCommand(this));
+        this.getCommand("setfishingspot").setExecutor(new FishingSkill(skillManager, this));
 
         getServer().getPluginManager().registerEvents(skillManager, this);
 
@@ -37,7 +37,12 @@ public class MineScape extends JavaPlugin {
 
         SmithingSkill smithingSkill = new SmithingSkill(skillManager);
         getServer().getPluginManager().registerEvents(new SmithingSkill(skillManager), this);
-        
+
+        firemakingSkill = new FiremakingSkill(skillManager, this);
+
+        // Register the FiremakingSkill as a listener
+        getServer().getPluginManager().registerEvents(firemakingSkill, this);
+
 
     }
 

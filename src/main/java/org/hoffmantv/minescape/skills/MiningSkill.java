@@ -26,7 +26,7 @@ import java.util.Random;
 
     public class MiningSkill implements Listener {
 
-        private final SkillManager skillManager;
+        public final SkillManager skillManager;
         private final EnumMap<Material, OreData> oreDataMap = new EnumMap<>(Material.class);
         private final BukkitScheduler scheduler = Bukkit.getScheduler();
         private final Plugin plugin;
