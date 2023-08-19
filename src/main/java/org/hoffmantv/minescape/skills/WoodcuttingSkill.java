@@ -156,6 +156,7 @@ public class WoodcuttingSkill implements Listener {
 
             // Send a message to the player about the tree they cut and the XP they received
             player.sendMessage(ChatColor.GREEN + "You cut down a " + treeType.name().toLowerCase() + " tree and received " + xpValue + " XP!");
+            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
         }
     }
     private Location removeTree(Block startBlock) {
@@ -338,6 +339,7 @@ public class WoodcuttingSkill implements Listener {
             if (!isAxe(heldItem.getType())) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You must use an axe to chop a tree down!");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 return;
             }
 
@@ -346,6 +348,7 @@ public class WoodcuttingSkill implements Listener {
             // If it's a type of tree we're tracking and the player's level isn't high enough, cancel the event
             if (treeType != null && skillManager.getSkillLevel(player, SkillManager.Skill.WOODCUTTING) < treeType.getRequiredLevel()) {
                 player.sendMessage(ChatColor.RED + "You need to be level " + treeType.getRequiredLevel() + " to chop " + treeType.name().toLowerCase() + "!");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 event.setCancelled(true);
                 return;
             }
@@ -353,6 +356,7 @@ public class WoodcuttingSkill implements Listener {
             AxeType axeType = AxeType.fromMaterial(heldItem.getType());
             if (axeType != null && skillManager.getSkillLevel(player, SkillManager.Skill.WOODCUTTING) < axeType.getRequiredLevel()) {
                 player.sendMessage(ChatColor.RED + "You need a woodcutting level of " + axeType.getRequiredLevel() + " to use this " + axeType.name().toLowerCase().replace("_", " ") + " axe.");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 event.setCancelled(true);
                 return;
             }
@@ -376,6 +380,7 @@ public class WoodcuttingSkill implements Listener {
             if (isAxe(heldItem.getType())) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "Axes can only be used for woodcutting!");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
         }
     }

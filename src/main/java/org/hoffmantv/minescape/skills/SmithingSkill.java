@@ -64,7 +64,7 @@ public class SmithingSkill implements Listener {
                 // If they don't have the required level, cancel crafting and notify the player
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You need a Smithing level of " + requiredLevel + " to craft this item.");
-                player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0F, 1.0F);
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             } else {
                 // If they have the required level, award XP and play sound
                 int earnedXP = giveSmithingXP(player, item);
@@ -86,7 +86,7 @@ public class SmithingSkill implements Listener {
                 if (getSmithingLevel(player) < requiredLevel) {
                     event.setCancelled(true);
                     player.sendMessage("You need a Smithing level of " + requiredLevel + " to smelt this ore.");
-                    player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1f, 1f); // Play a sound to indicate the action was denied
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 }
             }
         }
@@ -116,6 +116,7 @@ public class SmithingSkill implements Listener {
                 // Check for available inventory space
                 if (player.getInventory().firstEmpty() == -1) {
                     player.sendMessage(ChatColor.RED + "You don't have enough space in your inventory!");
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                     event.setCancelled(true);
                     return;
                 }
@@ -171,7 +172,7 @@ public class SmithingSkill implements Listener {
             int playerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.SMITHING);
             if (playerLevel < requiredLevel) {
                 player.sendMessage(ChatColor.RED + "You need Smithing level " + requiredLevel + " to smelt this ore!");
-                player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0f, 1.0f);
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 return;
             }
             // Remove the item from the player's hand

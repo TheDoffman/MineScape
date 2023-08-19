@@ -55,6 +55,7 @@ import java.util.Random;
                 if (!isPickaxe(itemInHand)) {
                     event.setCancelled(true);
                     player.sendMessage(ChatColor.RED + "You need a pickaxe to mine this ore.");
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                     return;
                 }
 
@@ -97,6 +98,7 @@ import java.util.Random;
             if (isPickaxe(itemInHand) && oreData == null) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
             skillManager.saveSkillsToConfig();
         }
@@ -139,6 +141,7 @@ import java.util.Random;
 
                     if (playerLevel < requiredLevel) {
                         player.sendMessage(ChatColor.RED + "You need level " + requiredLevel + " in mining to mine this ore.");
+                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                         return;
                     }
 
@@ -146,6 +149,7 @@ import java.util.Random;
                         int requiredPickaxeLevel = getRequiredLevelForPickaxe(itemInHand.getType());
                         if (playerLevel < requiredPickaxeLevel) {
                             player.sendMessage(ChatColor.RED + "You need level " + requiredPickaxeLevel + " in mining to use this pickaxe.");
+                            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                             event.setCancelled(true);
                             return;
                         }
@@ -172,6 +176,7 @@ import java.util.Random;
                         }, randomStage * 4L);  // 4 ticks per stage, for randomStage stages
                     } else {
                         player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
+                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                     }
                 }
             }
@@ -209,6 +214,7 @@ import java.util.Random;
                 if (isPickaxe(itemInHand)) {
                     event.setCancelled(true);
                     player.sendMessage(ChatColor.RED + "You cannot use a pickaxe to attack!");
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 }
             }
         }

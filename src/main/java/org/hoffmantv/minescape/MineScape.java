@@ -17,7 +17,7 @@ public class MineScape extends JavaPlugin {
     public void onEnable() {
         getLogger().info("MineScape has been enabled!");
 
-        int pluginId = 19471; // <-- Replace with the id of your plugin!
+        int pluginId = 19471;
         Metrics metrics = new Metrics(this, pluginId);
 
         this.saveDefaultConfig();
@@ -25,7 +25,6 @@ public class MineScape extends JavaPlugin {
         skillManager = new SkillManager(this);
 
         this.getCommand("help").setExecutor(new HelpCommand(this));
-        this.getCommand("setfishingspot").setExecutor(new FishingSkill(skillManager, this));
 
         getServer().getPluginManager().registerEvents(skillManager, this);
 
