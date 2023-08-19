@@ -25,6 +25,7 @@ public class MineScape extends JavaPlugin {
         skillManager = new SkillManager(this);
 
         this.getCommand("help").setExecutor(new HelpCommand(this));
+        this.getCommand("saveskills").setExecutor(new SaveSkillsCommand(skillManager));
 
         getServer().getPluginManager().registerEvents(skillManager, this);
 
