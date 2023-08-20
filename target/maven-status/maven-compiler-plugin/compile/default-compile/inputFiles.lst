@@ -1,9 +1,12 @@
 /Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/skills/MiningSkill.java
 /Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/commands/SaveSkillsCommand.java
 /Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/skills/WoodcuttingSkill.java
+/Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/skills/HitpointsSkill.java
 /Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/managers/SkillManager.java
 /Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/commands/HelpCommand.java
+/Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/listeners/WaterListener.java
 /Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/Metrics.java
 /Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/MineScape.java
-/Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/skills/FishingSkill.java
+/Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/skills/PrayerSkill.java
+/Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/skills/FiremakingSkill.java
 /Users/danielhoffman/Documents/IdeaProjects/MineScape/src/main/java/org/hoffmantv/minescape/skills/SmithingSkill.java

@@ -3,13 +3,11 @@ package org.hoffmantv.minescape.skills;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -214,7 +212,7 @@ public class WoodcuttingSkill implements Listener {
                             block.setType(leavesMaterial);
                         }
                     }
-                    // Adding some randomness for leaves so they don't form a perfect shape
+                    // Adding some randomness for leaves, so they don't form a perfect shape
                     if (new Random().nextInt(3) == 0 && Math.abs(x) < 2 && Math.abs(z) < 2 && y == height - 3) {
                         Block block = world.getBlockAt(location.getBlockX() + x, location.getBlockY() + y, location.getBlockZ() + z);
                         if(block.getType() == Material.AIR) {
@@ -244,30 +242,24 @@ public class WoodcuttingSkill implements Listener {
         growNiceTree(location, Material.ACACIA_LOG, Material.ACACIA_LEAVES);
     }
     private void scheduleTreeGrowth(Location location, TreeType treeType) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-            @Override
-            public void run() {
-                if (location.getBlock().getType() == treeType.getSapling()) {
-                    if (treeType == TreeType.OAK) {
-                        growNiceOakTree(location);
-                    }
-                    else if (treeType == TreeType.DARK_OAK) {
-                        growNiceDarkOakTree(location);
-                    }
-                    else if (treeType == TreeType.BIRCH) {
-                        growNiceBirchTree(location);
-                    }
-                    else if (treeType == TreeType.SPRUCE) {
-                        growNiceSpruceTree(location);
-                    }
-                    else if (treeType == TreeType.SPRUCE) {
-                        growNiceSpruceTree(location);
-                    }
-                    else if (treeType == TreeType.JUNGLE) {
-                        growNiceJungleTree(location);
-                    } else if (treeType == TreeType.ACACIA) {
-                        growNiceAcaciaTree(location);
-                    }
+        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+            if (location.getBlock().getType() == treeType.getSapling()) {
+                if (treeType == TreeType.OAK) {
+                    growNiceOakTree(location);
+                }
+                else if (treeType == TreeType.DARK_OAK) {
+                    growNiceDarkOakTree(location);
+                }
+                else if (treeType == TreeType.BIRCH) {
+                    growNiceBirchTree(location);
+                }
+                else if (treeType == TreeType.SPRUCE) {
+                    growNiceSpruceTree(location);
+                }
+                else if (treeType == TreeType.JUNGLE) {
+                    growNiceJungleTree(location);
+                } else if (treeType == TreeType.ACACIA) {
+                    growNiceAcaciaTree(location);
                 }
             }
         }, treeType.getGrowthDelayTicks());

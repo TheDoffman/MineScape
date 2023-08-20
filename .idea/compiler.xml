@@ -9,8 +9,5 @@
         <module name="MineScape" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="MineScape" target="1.8" />
-    </bytecodeTargetLevel>
   </component>
 </project>
