@@ -33,3 +33,4 @@ org/hoffmantv/minescape/managers/SkillManager$Skill.class
 org/hoffmantv/minescape/Metrics$SimplePie.class
 org/hoffmantv/minescape/Metrics$AdvancedPie.class
 org/hoffmantv/minescape/Metrics$1.class
+org/hoffmantv/minescape/listeners/WaterListener.class

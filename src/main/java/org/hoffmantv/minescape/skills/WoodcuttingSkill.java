@@ -3,6 +3,7 @@ package org.hoffmantv.minescape.skills;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -155,7 +156,7 @@ public class WoodcuttingSkill implements Listener {
             skillManager.addXP(player, SkillManager.Skill.WOODCUTTING, xpValue);
 
             // Send a message to the player about the tree they cut and the XP they received
-            player.sendActionBar(ChatColor.GOLD + "WoodCutting +" + xpValue);
+            player.sendActionBar(ChatColor.GOLD + "Woodcutting +" + xpValue);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
         }
     }
@@ -384,5 +385,39 @@ public class WoodcuttingSkill implements Listener {
             }
         }
     }
+    private List<Block> detectTreeBlocks(Block start) {
+        List<Block> detectedBlocks = new ArrayList<>();
+        Queue<Block> toCheck = new LinkedList<>();
+        Set<Block> checked = new HashSet<>();
 
+        toCheck.add(start);
+
+        while (!toCheck.isEmpty()) {
+            Block current = toCheck.poll();
+
+            if ((isLog(current.getType()) || isLeaf(current.getType())) && !checked.contains(current)) {
+                detectedBlocks.add(current);
+                checked.add(current);
+
+                for (BlockFace face : BlockFace.values()) {
+                    Block neighbor = current.getRelative(face);
+                    if (!checked.contains(neighbor)) {
+                        toCheck.add(neighbor);
+                    }
+                }
+            }
+        }
+        return detectedBlocks;
+    }
+    private void spawnFallingBlock(Block block, Material originalType) {
+        if (block == null || originalType == Material.AIR) return;
+
+        FallingBlock fallingBlock = block.getWorld().spawnFallingBlock(block.getLocation().add(0.5, 0.0, 0.5), Bukkit.createBlockData(originalType));
+        fallingBlock.setDropItem(false);
+
+        long despawnTime = isLeaf(originalType) ? 20L : 40L;  // If it's a leaf, despawn after 1 second (20 ticks), else 2 seconds for logs
+
+        // Schedule the removal of the falling block
+        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> fallingBlock.remove(), despawnTime);
+    }
 }
