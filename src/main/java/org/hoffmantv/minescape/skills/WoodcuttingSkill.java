@@ -9,7 +9,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.managers.SkillManager;
 
@@ -49,24 +51,6 @@ public class WoodcuttingSkill implements Listener {
             this.xpValue = xpValue;
             this.sapling = sapling;
             this.growthDelayTicks = growthDelayTicks;
-        }
-        public org.bukkit.TreeType getBukkitTreeType() {
-            switch(this) {
-                case OAK:
-                    return org.bukkit.TreeType.TREE;
-                case DARK_OAK:
-                    return org.bukkit.TreeType.DARK_OAK;
-                case BIRCH:
-                    return org.bukkit.TreeType.BIRCH;
-                case SPRUCE:
-                    return org.bukkit.TreeType.TALL_REDWOOD;
-                case JUNGLE:
-                    return org.bukkit.TreeType.SMALL_JUNGLE;
-                case ACACIA:
-                    return org.bukkit.TreeType.ACACIA;
-                default:
-                    return null;
-            }
         }
         public Material getMaterial() {
             return material;
@@ -111,7 +95,6 @@ public class WoodcuttingSkill implements Listener {
             this.material = material;
             this.requiredLevel = requiredLevel;
         }
-
         public Material getMaterial() {
             return material;
         }
@@ -129,7 +112,6 @@ public class WoodcuttingSkill implements Listener {
             return null;
         }
     }
-
     private boolean isPlantableBase(Material material) {
         return material == Material.DIRT || material == Material.GRASS_BLOCK;
     }
@@ -141,11 +123,9 @@ public class WoodcuttingSkill implements Listener {
         Material blockBelowType = stump.getBlock().getRelative(BlockFace.DOWN).getType();
 
         if (isPlantableBase(blockBelowType)) {
-
             // Plant the sapling at the stump location
             if (treeType != null) {
                 stump.getBlock().setType(treeType.getSapling());
-
                 scheduleTreeGrowth(stump, treeType);
             }
         }
@@ -156,7 +136,7 @@ public class WoodcuttingSkill implements Listener {
             skillManager.addXP(player, SkillManager.Skill.WOODCUTTING, xpValue);
 
             // Send a message to the player about the tree they cut and the XP they received
-            player.sendActionBar(ChatColor.GOLD + "Woodcutting +" + xpValue);
+            player.sendActionBar(ChatColor.GOLD + "WoodCutting +" + xpValue);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
         }
     }
@@ -183,7 +163,7 @@ public class WoodcuttingSkill implements Listener {
 
                 if (!visited.contains(neighbor)) {
                     if (isLeaf(neighbor.getType())) {
-                        neighbor.breakNaturally();
+                        neighbor.setType(Material.AIR);
                         queue.add(neighbor); // Add the leaf to the queue to ensure all attached leaves are removed.
                     } else if (isLog(neighbor.getType())) {
                         queue.add(neighbor);
@@ -191,12 +171,26 @@ public class WoodcuttingSkill implements Listener {
                 }
             }
 
-            // We'll break the current block after processing its neighbors.
-            // This ensures both logs and leaves are broken.
-            current.breakNaturally();
+            // We'll change the block type to AIR after processing its neighbors.
+            // This ensures both logs and leaves are removed without any drops.
+            current.setType(Material.AIR);
         }
 
         return stumpLocation; // Return the stump's location
+    }
+    private void removeTreeAndGiveLog(Player player, Block brokenBlock) {
+        // Remove other parts of the tree...
+
+        // Give player a non-stackable log
+        ItemStack log = new ItemStack(brokenBlock.getType(), 1); // Only one log
+        ItemMeta meta = log.getItemMeta();
+
+        if (meta != null) {
+            meta.setDisplayName(UUID.randomUUID().toString()); // A unique name to prevent stacking
+            log.setItemMeta(meta);
+        }
+
+        player.getInventory().addItem(log);
     }
     public void growNiceTree(Location location, Material logMaterial, Material leavesMaterial) {
         World world = location.getWorld();
@@ -231,31 +225,24 @@ public class WoodcuttingSkill implements Listener {
             }
         }
     }
-
     public void growNiceOakTree(Location location) {
         growNiceTree(location, Material.OAK_LOG, Material.OAK_LEAVES);
     }
-
     public void growNiceDarkOakTree(Location location) {
         growNiceTree(location, Material.DARK_OAK_LOG, Material.DARK_OAK_LEAVES);
     }
-
     public void growNiceBirchTree(Location location) {
         growNiceTree(location, Material.BIRCH_LOG, Material.BIRCH_LEAVES);
     }
-
     public void growNiceSpruceTree(Location location) {
         growNiceTree(location, Material.SPRUCE_LOG, Material.SPRUCE_LEAVES);
     }
-
     public void growNiceJungleTree(Location location) {
         growNiceTree(location, Material.JUNGLE_LOG, Material.JUNGLE_LEAVES);
     }
-
     public void growNiceAcaciaTree(Location location) {
         growNiceTree(location, Material.ACACIA_LOG, Material.ACACIA_LEAVES);
     }
-
     private void scheduleTreeGrowth(Location location, TreeType treeType) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
             @Override
@@ -285,7 +272,6 @@ public class WoodcuttingSkill implements Listener {
             }
         }, treeType.getGrowthDelayTicks());
     }
-
     private boolean isLog(Material material) {
         return TreeType.fromMaterial(material) != null;
     }
@@ -298,7 +284,6 @@ public class WoodcuttingSkill implements Listener {
                 material == Material.ACACIA_LEAVES ||
                 material == Material.DARK_OAK_LEAVES;
     }
-
     private boolean isAxe(Material material) {
         return material == Material.WOODEN_AXE ||
                 material == Material.STONE_AXE ||
@@ -307,28 +292,6 @@ public class WoodcuttingSkill implements Listener {
                 material == Material.DIAMOND_AXE ||
                 material == Material.NETHERITE_AXE;
     }
-
-    private void removeLeavesBFS(Block startBlock) {
-        Set<Block> visited = new HashSet<>();
-        Queue<Block> queue = new LinkedList<>();
-
-        queue.add(startBlock);
-
-        while (!queue.isEmpty()) {
-            Block current = queue.poll();
-            visited.add(current);
-
-            for (BlockFace face : BlockFace.values()) {
-                Block neighbor = current.getRelative(face);
-                if (!visited.contains(neighbor) && isLeaf(neighbor.getType())) {
-                    neighbor.breakNaturally();
-                    queue.add(neighbor);
-                }
-            }
-        }
-    }
-
-
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -361,9 +324,8 @@ public class WoodcuttingSkill implements Listener {
                 event.setCancelled(true);
                 return;
             }
-
-
             // Logic to remove the entire tree but keep the stump and remove leaves
+            removeTreeAndGiveLog(player, block);
             handleTreeRemoval(player, block, treeType);
             skillManager.saveSkillsToConfig();
             skillManager.loadSkillsFromConfig();
@@ -384,40 +346,5 @@ public class WoodcuttingSkill implements Listener {
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
         }
-    }
-    private List<Block> detectTreeBlocks(Block start) {
-        List<Block> detectedBlocks = new ArrayList<>();
-        Queue<Block> toCheck = new LinkedList<>();
-        Set<Block> checked = new HashSet<>();
-
-        toCheck.add(start);
-
-        while (!toCheck.isEmpty()) {
-            Block current = toCheck.poll();
-
-            if ((isLog(current.getType()) || isLeaf(current.getType())) && !checked.contains(current)) {
-                detectedBlocks.add(current);
-                checked.add(current);
-
-                for (BlockFace face : BlockFace.values()) {
-                    Block neighbor = current.getRelative(face);
-                    if (!checked.contains(neighbor)) {
-                        toCheck.add(neighbor);
-                    }
-                }
-            }
-        }
-        return detectedBlocks;
-    }
-    private void spawnFallingBlock(Block block, Material originalType) {
-        if (block == null || originalType == Material.AIR) return;
-
-        FallingBlock fallingBlock = block.getWorld().spawnFallingBlock(block.getLocation().add(0.5, 0.0, 0.5), Bukkit.createBlockData(originalType));
-        fallingBlock.setDropItem(false);
-
-        long despawnTime = isLeaf(originalType) ? 20L : 40L;  // If it's a leaf, despawn after 1 second (20 ticks), else 2 seconds for logs
-
-        // Schedule the removal of the falling block
-        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> fallingBlock.remove(), despawnTime);
     }
 }

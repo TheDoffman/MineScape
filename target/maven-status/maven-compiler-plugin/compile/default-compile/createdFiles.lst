@@ -1,7 +1,6 @@
 org/hoffmantv/minescape/skills/MiningSkill.class
 org/hoffmantv/minescape/skills/FiremakingSkill$1.class
 org/hoffmantv/minescape/Metrics$MetricsBase.class
-org/hoffmantv/minescape/skills/WoodcuttingSkill$2.class
 org/hoffmantv/minescape/Metrics$SingleLineChart.class
 org/hoffmantv/minescape/Metrics$JsonObjectBuilder.class
 org/hoffmantv/minescape/Metrics.class

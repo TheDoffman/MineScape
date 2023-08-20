@@ -153,7 +153,6 @@ import java.util.Random;
                             event.setCancelled(true);
                             return;
                         }
-
                         event.setCancelled(true);
 
                         // Play the block cracking animation
