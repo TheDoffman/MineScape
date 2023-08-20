@@ -71,7 +71,7 @@ public class SmithingSkill implements Listener {
                 skillManager.addXP(player, SkillManager.Skill.MINING, earnedXP);
                 skillManager.saveSkillsToConfig();
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
-                player.sendMessage(ChatColor.GREEN + "You earned " + earnedXP + " Smithing XP!");
+                player.sendActionBar(ChatColor.GOLD + "Smithing +" + earnedXP);
             }
         }
     }

@@ -155,7 +155,7 @@ public class WoodcuttingSkill implements Listener {
             skillManager.addXP(player, SkillManager.Skill.WOODCUTTING, xpValue);
 
             // Send a message to the player about the tree they cut and the XP they received
-            player.sendMessage(ChatColor.GREEN + "You cut down a " + treeType.name().toLowerCase() + " tree and received " + xpValue + " XP!");
+            player.sendActionBar(ChatColor.GOLD + "WoodCutting +" + xpValue);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
         }
     }

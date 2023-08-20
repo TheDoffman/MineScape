@@ -1,7 +1,5 @@
 package org.hoffmantv.minescape;
 
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.entity.Fish;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.HelpCommand;
 import org.hoffmantv.minescape.commands.SaveSkillsCommand;
@@ -39,20 +37,19 @@ public class MineScape extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SmithingSkill(skillManager), this);
 
         firemakingSkill = new FiremakingSkill(skillManager, this);
-
-        // Register the FiremakingSkill as a listener
         getServer().getPluginManager().registerEvents(firemakingSkill, this);
 
+        getServer().getPluginManager().registerEvents(new HitpointsSkill(skillManager, this), this);
 
+        getServer().getPluginManager().registerEvents(new PrayerSkill(skillManager, this), this);
     }
 
     // This method is called when the plugin is disabled (on server shutdown)
     @Override
     public void onDisable() {
         getLogger().info("MineScape has been disabled!");
-        // Add any cleanup code here
-        // Save data, release resources, etc.
+        skillManager.saveSkillsToConfig();
 
     }
-    // Add any additional methods and functionalities for your plugin here
+
 }

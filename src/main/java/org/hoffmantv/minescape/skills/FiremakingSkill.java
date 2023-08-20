@@ -163,7 +163,7 @@ public class FiremakingSkill implements Listener {
         }
         skillManager.addXP(player, SkillManager.Skill.FIREMAKING, xpAmount);
         skillManager.saveSkillsToConfig();
-        player.sendMessage(ChatColor.GREEN + "You gained " + xpAmount + " firemaking XP!");
+        player.sendActionBar(ChatColor.GOLD + "FireMaking +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
     }
 }

@@ -70,7 +70,7 @@ import java.util.Random;
                 double xpEarned = oreData.getXpValue();
                 skillManager.addXP(player, SkillManager.Skill.MINING, xpEarned);
                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
-                player.sendMessage(ChatColor.GREEN + "You earned " + xpEarned + " Mining XP!");
+                player.sendActionBar(ChatColor.GOLD + "Mining +" + xpEarned);
                 event.setDropItems(false);
 
 // Save the updated XP value to the player's skill data
