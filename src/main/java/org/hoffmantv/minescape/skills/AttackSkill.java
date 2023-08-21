@@ -48,5 +48,4 @@ public class AttackSkill implements Listener {
         // This formula can be adjusted to your liking
         return 10 + mobLevel * 5;
     }
-
 }
