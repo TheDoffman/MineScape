@@ -104,7 +104,12 @@ public class SkillManager implements Listener {
             currentLevel++;
 
             // Notify the player about the level up
-            player.sendMessage(ChatColor.GOLD + "Congratulations! You've reached level " + currentLevel + " in " + skill.name() + "!");
+            String title = ChatColor.GOLD + "Level Up!";
+            String subtitle = ChatColor.YELLOW + "You've reached level " + currentLevel + " in " + skill.name() + "!";
+            int fadeIn = 10; // time in ticks (20 ticks = 1 second)
+            int stay = 70;
+            int fadeOut = 20;
+            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
             launchFirework(player.getLocation());
 
