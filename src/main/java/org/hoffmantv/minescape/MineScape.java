@@ -3,6 +3,7 @@ package org.hoffmantv.minescape;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.HelpCommand;
 import org.hoffmantv.minescape.commands.SaveSkillsCommand;
+import org.hoffmantv.minescape.commands.SkillsMenuCommand;
 import org.hoffmantv.minescape.listeners.WaterListener;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
 import org.hoffmantv.minescape.managers.SkillManager;
@@ -27,6 +28,7 @@ public class MineScape extends JavaPlugin {
 
         Objects.requireNonNull(this.getCommand("help")).setExecutor(new HelpCommand(this));
         Objects.requireNonNull(this.getCommand("saveskills")).setExecutor(new SaveSkillsCommand(skillManager));
+        getCommand("skills").setExecutor(new SkillsMenuCommand(skillManager));
 
         WaterListener waterListener = new WaterListener(this);
         getServer().getPluginManager().registerEvents(waterListener, this);

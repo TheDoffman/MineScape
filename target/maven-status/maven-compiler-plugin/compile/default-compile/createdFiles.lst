@@ -9,6 +9,7 @@ org/hoffmantv/minescape/Metrics$CustomChart.class
 org/hoffmantv/minescape/managers/SkillManager.class
 org/hoffmantv/minescape/skills/FiremakingSkill$LogProperties.class
 org/hoffmantv/minescape/Metrics$AdvancedBarChart.class
+org/hoffmantv/minescape/commands/SkillsMenuCommand.class
 org/hoffmantv/minescape/Metrics$JsonObjectBuilder$JsonObject.class
 org/hoffmantv/minescape/skills/PrayerSkill.class
 org/hoffmantv/minescape/commands/SaveSkillsCommand.class
@@ -19,6 +20,7 @@ org/hoffmantv/minescape/MineScape.class
 org/hoffmantv/minescape/skills/MiningSkill$1.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill$TreeType.class
 org/hoffmantv/minescape/Metrics$SimpleBarChart.class
+org/hoffmantv/minescape/managers/SkillsMenu.class
 org/hoffmantv/minescape/skills/FiremakingSkill.class
 org/hoffmantv/minescape/skills/FiremakingSkill$2.class
 org/hoffmantv/minescape/managers/CombatLevelSystem.class

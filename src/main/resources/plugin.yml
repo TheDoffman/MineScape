@@ -10,6 +10,9 @@ commands:
   saveskills:
     description: Force saves all player skills.
     usage: /saveskills
+  skills:
+    description: Open the skills menu.
+    usage: /skills
 
 permissions:
   minescape.help:
@@ -18,3 +21,6 @@ permissions:
   minescape.saveskills:
     description: Force saves all player skills.
     default: op
+  minescape.skills:
+    description: Opens the skills menu.
+    default: not op
