@@ -15,7 +15,7 @@ RuneCraft is a comprehensive Minecraft server plugin that brings the rich and en
 ## Installation
 
 1. Ensure you have [Spigot](https://www.spigotmc.org/) or [PaperMC](https://papermc.io/) installed for your Minecraft server.
-2. Download the latest release of RuneCraft from the [releases page](LINK_TO_RELEASES_PAGE).
+2. Download the latest release of RuneCraft from the [releases page](https://dev.bukkit.org/projects/essentialspro/files).
 3. Place the downloaded `.jar` file into your server's `plugins` directory.
 4. Restart your server.
 
@@ -46,4 +46,4 @@ RuneCraft is licensed under the MIT License. Check out the `LICENSE` file for mo
 
 ---
 
-Project maintained by [YOUR_GITHUB_USERNAME](YOUR_GITHUB_PROFILE_LINK). Give us a ⭐ if you like the project!
+Project maintained by [TheDoffman](https://github.com/TheDoffman). Give us a ⭐ if you like the project!
