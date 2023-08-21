@@ -38,15 +38,15 @@ public class StrengthSkill implements Listener {
         int xpAmount = calculateXpReward(mobLevel);
 
         // Add the XP reward to the player's ATTACK skill using the SkillManager
-        skillManager.addXP(player, SkillManager.Skill.ATTACK, xpAmount);
+        skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
 
         // Optional: Notify the player about the XP gained
-        player.sendActionBar(ChatColor.GOLD + "Prayer +" + xpAmount);
+        player.sendActionBar(ChatColor.GOLD + "Strenght +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }
     private int calculateXpReward(int mobLevel) {
         // This formula can be adjusted to your liking
-        return (int) (10 + mobLevel * 1.3);
+        return (int) (10 + mobLevel * 1.1);
     }
     private boolean doesPlayerMissAttack(int playerLevel, int mobLevel) {
         int baseMissChance = 20;  // 20% base chance to miss
