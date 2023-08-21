@@ -9,7 +9,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -101,49 +100,6 @@ public class CombatLevelSystem implements Listener {
         if (levelDifference >= -2) return "&e";    // Yellow for mobs at similar level
         if (levelDifference >= -4) return "&a";    // Green for weaker mobs
         return "&2";                               // Dark green for much weaker mobs
-    }
-    @EventHandler
-    public void onEntityDamage(EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof LivingEntity && event.getDamager() instanceof Player) {
-            LivingEntity mob = (LivingEntity) event.getEntity();
-
-            // Cancel any existing removal tasks for this entity
-            if (mob.hasMetadata("healthBarRemovalTask")) {
-                int taskId = mob.getMetadata("healthBarRemovalTask").get(0).asInt();
-                Bukkit.getScheduler().cancelTask(taskId);
-                mob.removeMetadata("healthBarRemovalTask", plugin);
-            }
-
-            // Calculate the percentage of health after damage is taken
-            double healthPercentage = (mob.getHealth() - event.getFinalDamage()) / mob.getMaxHealth();
-            updateHealthDisplay(mob, healthPercentage);
-
-            // Schedule the health bar to be removed after 10 seconds and revert to level display
-            int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                assignMobLevel(mob);
-            }, 200L);  // 200 ticks = 10 seconds
-
-            mob.setMetadata("healthBarRemovalTask", new FixedMetadataValue(plugin, taskId));
-        }
-    }
-
-    private void updateHealthDisplay(LivingEntity entity, double healthPercentage) {
-        int barLength = (int) (HEALTH_BAR_LENGTH * healthPercentage);
-
-        String healthBar = ChatColor.GREEN.toString();
-        for (int i = 0; i < barLength; i++) {
-            healthBar += "|";
-        }
-
-        if (barLength < HEALTH_BAR_LENGTH) {
-            healthBar += ChatColor.RED.toString();
-            for (int i = barLength; i < HEALTH_BAR_LENGTH; i++) {
-                healthBar += "|";
-            }
-        }
-
-        entity.setCustomNameVisible(true);
-        entity.setCustomName(healthBar);
     }
     public static Integer extractMobLevelFromName(LivingEntity mob) {
         String customName = mob.getCustomName();

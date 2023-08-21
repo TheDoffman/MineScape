@@ -12,11 +12,11 @@ import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.Random;
 
-public class AttackSkill implements Listener {
+public class StrengthSkill implements Listener {
 
     private final SkillManager skillManager;
 
-    public AttackSkill(SkillManager skillManager) {
+    public StrengthSkill(SkillManager skillManager) {
         this.skillManager = skillManager;
     }
 
@@ -34,23 +34,14 @@ public class AttackSkill implements Listener {
             return;
         }
 
-        int playerAttackLevel = skillManager.getSkillLevel(player, SkillManager.Skill.ATTACK);
-
-        // Check if player misses the attack
-        if (doesPlayerMissAttack(playerAttackLevel, mobLevel)) {
-            event.setCancelled(true);
-            player.sendActionBar(ChatColor.RED + "Missed Attack");
-            return;
-        }
-
         // Calculate XP reward based on the mob's level
         int xpAmount = calculateXpReward(mobLevel);
 
         // Add the XP reward to the player's ATTACK skill using the SkillManager
-        skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
+        skillManager.addXP(player, SkillManager.Skill.ATTACK, xpAmount);
 
         // Optional: Notify the player about the XP gained
-        player.sendActionBar(ChatColor.GOLD + "Attack +" + xpAmount);
+        player.sendActionBar(ChatColor.GOLD + "Prayer +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }
     private int calculateXpReward(int mobLevel) {
