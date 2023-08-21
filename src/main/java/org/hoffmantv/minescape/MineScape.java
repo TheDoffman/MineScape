@@ -4,32 +4,37 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.HelpCommand;
 import org.hoffmantv.minescape.commands.SaveSkillsCommand;
 import org.hoffmantv.minescape.listeners.WaterListener;
+import org.hoffmantv.minescape.managers.CombatLevelSystem;
 import org.hoffmantv.minescape.managers.SkillManager;
 import org.hoffmantv.minescape.skills.*;
 
+import java.util.Objects;
+
 
 public class MineScape extends JavaPlugin {
-    private SkillManager skillManager;
-    private FiremakingSkill firemakingSkill;
 
     @Override
     public void onEnable() {
         getLogger().info("MineScape has been enabled!");
 
         int pluginId = 19471;
-        Metrics metrics = new Metrics(this, pluginId);
+
+        new Metrics(this, pluginId);
 
         this.saveDefaultConfig();
 
-        skillManager = new SkillManager(this);
+        SkillManager skillManager = new SkillManager(this);
 
-        this.getCommand("help").setExecutor(new HelpCommand(this));
-        this.getCommand("saveskills").setExecutor(new SaveSkillsCommand(skillManager));
+        Objects.requireNonNull(this.getCommand("help")).setExecutor(new HelpCommand(this));
+        Objects.requireNonNull(this.getCommand("saveskills")).setExecutor(new SaveSkillsCommand(skillManager));
 
         WaterListener waterListener = new WaterListener(this);
         getServer().getPluginManager().registerEvents(waterListener, this);
 
         getServer().getPluginManager().registerEvents(skillManager, this);
+
+        CombatLevelSystem combatLevelSystem = new CombatLevelSystem(this);
+        getServer().getPluginManager().registerEvents(combatLevelSystem, this);
 
         WoodcuttingSkill woodcuttingSkill = new WoodcuttingSkill(skillManager, this);
         getServer().getPluginManager().registerEvents(woodcuttingSkill, this);
@@ -37,15 +42,19 @@ public class MineScape extends JavaPlugin {
         MiningSkill miningSkill = new MiningSkill(skillManager, this);
         getServer().getPluginManager().registerEvents(miningSkill, this);
 
-        SmithingSkill smithingSkill = new SmithingSkill(skillManager);
         getServer().getPluginManager().registerEvents(new SmithingSkill(skillManager), this);
 
-        firemakingSkill = new FiremakingSkill(skillManager, this);
+        FiremakingSkill firemakingSkill = new FiremakingSkill(skillManager, this);
         getServer().getPluginManager().registerEvents(firemakingSkill, this);
 
-        getServer().getPluginManager().registerEvents(new HitpointsSkill(skillManager, this), this);
+        HitpointsSkill hitpointsSkill = new HitpointsSkill(skillManager, this);
+        getServer().getPluginManager().registerEvents(hitpointsSkill, this);
 
-        getServer().getPluginManager().registerEvents(new PrayerSkill(skillManager, this), this);
+        PrayerSkill prayerSkill = new PrayerSkill(skillManager, this);
+        getServer().getPluginManager().registerEvents(prayerSkill, this);
+
+        AttackSkill attackSkill = new AttackSkill(skillManager);
+        getServer().getPluginManager().registerEvents (attackSkill, this);
 
     }
 
