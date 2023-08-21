@@ -28,8 +28,9 @@ public class AttackSkill implements Listener {
 
         Player player = (Player) event.getDamager();
         LivingEntity mob = (LivingEntity) event.getEntity();
-
+        System.out.println("Mob's custom name: " + mob.getCustomName());
         Integer mobLevel = CombatLevelSystem.extractMobLevelFromName(mob);
+        System.out.println("Extracted mob level: " + mobLevel);
         if (mobLevel == null) {
             return;
         }
