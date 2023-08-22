@@ -15,12 +15,10 @@ import java.util.Random;
 public class StrengthSkill implements Listener {
 
     private final SkillManager skillManager;
-    private final CombatLevel combatLevel;
     private final AttackSkill attackSkill;
 
-    public StrengthSkill(SkillManager skillManager, CombatLevel combatLevel, AttackSkill attackSkill) {
+    public StrengthSkill(SkillManager skillManager, AttackSkill attackSkill) {
         this.skillManager = skillManager;
-        this.combatLevel = combatLevel;
         this.attackSkill = attackSkill;
     }
 
@@ -51,34 +49,11 @@ public class StrengthSkill implements Listener {
         skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
 
         // Notify the player about the XP gained
-        player.sendActionBar(ChatColor.GOLD + "Strenght +" + xpAmount);
+        player.sendActionBar(ChatColor.GOLD + "Strength +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }
     private int calculateXpReward(int mobLevel) {
         // This formula can be adjusted to your liking
-        return (int) (10 + mobLevel * 1.1);
+        return (3 + mobLevel);
     }
-    private boolean doesPlayerMissAttack(int playerLevel, int mobLevel) {
-        int baseMissChance = 20;  // 20% base chance to miss
-
-        // Level difference adjustment. For each level the mob is higher, increase miss chance by 1%.
-        int levelDifference = mobLevel - playerLevel;
-        int levelDifferenceModifier = Math.max(0, levelDifference);  // ensure this is not negative
-
-        // Player skill modifier. For every 10 levels in attack, reduce miss chance by 1%.
-        int playerSkillModifier = playerLevel / 10;
-
-        // Total miss chance
-        int totalMissChance = baseMissChance + levelDifferenceModifier - playerSkillModifier;
-
-        // Ensure miss chance stays within reasonable bounds
-        totalMissChance = Math.max(5, totalMissChance);  // No lower than 5%
-        totalMissChance = Math.min(95, totalMissChance);  // No higher than 95%
-
-        Random random = new Random();
-        int roll = random.nextInt(100);
-
-        return roll < totalMissChance;
-    }
-
 }

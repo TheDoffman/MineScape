@@ -53,9 +53,6 @@ public class DefenseSkill implements Listener {
 
         // Add the XP to the player's defense skill using your SkillManager
         skillManager.addXP(player, SkillManager.Skill.DEFENCE, xpAmount);
-        combatLevel.updateCombatLevel(player, player);
-        combatLevel.updatePlayerHeadDisplay(player);
-        combatLevel.updatePlayerNametag(player);
 
         player.sendActionBar(ChatColor.GOLD + "Defence +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);

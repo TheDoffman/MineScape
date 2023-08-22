@@ -63,7 +63,7 @@ public class MineScape extends JavaPlugin {
         AttackSkill attackSkill = new AttackSkill(skillManager, combatLevel);
         getServer().getPluginManager().registerEvents(attackSkill, this);
 
-        StrengthSkill strengthSkill = new StrengthSkill(skillManager, combatLevel, attackSkill);
+        StrengthSkill strengthSkill = new StrengthSkill(skillManager, attackSkill);
         getServer().getPluginManager().registerEvents(strengthSkill, this);
 
         DefenseSkill defenseSkill = new DefenseSkill(skillManager, combatLevel, attackSkill);

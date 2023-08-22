@@ -77,8 +77,9 @@ public class SkillManager implements Listener {
             UUID uuid = UUID.fromString(uuidString);
 
             for (Skill skill : Skill.values()) {
-                int level = config.getInt(uuidString + "." + skill.name() + ".level", 1); // default to 1
-                double xp = config.getDouble(uuidString + "." + skill.name() + ".xp", 0.0); // default to 0.0
+                int defaultLevel = (skill == Skill.COMBAT) ? 3 : 1; // set default combat level to 3
+                int level = config.getInt(uuidString + "." + skill.name() + ".level", defaultLevel);
+                double xp = config.getDouble(uuidString + "." + skill.name() + ".xp", 0.0);
 
                 playerLevels.computeIfAbsent(uuid, k -> new HashMap<>()).put(skill, level);
                 playerXP.computeIfAbsent(uuid, k -> new HashMap<>()).put(skill, xp);
@@ -118,11 +119,7 @@ public class SkillManager implements Listener {
             player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
             launchFirework(player.getLocation());
-            combatLevel.calculateCombatLevel(player);
             combatLevel.updateCombatLevel(player, player);
-            combatLevel.updatePlayerNametag(player);
-            combatLevel.updatePlayerHeadDisplay(player);
-
 
             playerLevels.get(player.getUniqueId()).put(skill, currentLevel);
             playerXP.get(player.getUniqueId()).put(skill, newXP);
@@ -169,8 +166,6 @@ public class SkillManager implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
-        Integer combatLevel = this.combatLevel.calculateCombatLevel(player);
-
 
         // Check if the player already has an entry in skills.yml
         if (!config.contains(playerUUID.toString())) {
@@ -178,12 +173,17 @@ public class SkillManager implements Listener {
 
             // Create default skill entries for the player
             for (Skill skill : Skill.values()) {
-                config.set(playerUUID.toString() + "." + skill.name() + ".level", 1);
+                if(skill == Skill.COMBAT) {
+                    config.set(playerUUID.toString() + "." + skill.name() + ".level", 3);
+                } else {
+                    config.set(playerUUID.toString() + "." + skill.name() + ".level", 1);
+                }
                 config.set(playerUUID.toString() + "." + skill.name() + ".xp", 0.0);
-                saveSkillsToConfig();
-                loadSkillsFromConfig();
             }
+            saveSkillsToConfig();
+            loadSkillsFromConfig();
         }
+        Integer combatLevel = this.combatLevel.calculateCombatLevel(player);
         this.combatLevel.updatePlayerNametag(player);
         this.combatLevel.updatePlayerHeadDisplay(player);
     }
