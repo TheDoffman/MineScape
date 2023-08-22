@@ -15,9 +15,13 @@ import java.util.Random;
 public class StrengthSkill implements Listener {
 
     private final SkillManager skillManager;
+    private final CombatLevel combatLevel;
+    private final AttackSkill attackSkill;
 
-    public StrengthSkill(SkillManager skillManager) {
+    public StrengthSkill(SkillManager skillManager, CombatLevel combatLevel, AttackSkill attackSkill) {
         this.skillManager = skillManager;
+        this.combatLevel = combatLevel;
+        this.attackSkill = attackSkill;
     }
 
     @EventHandler
@@ -33,14 +37,21 @@ public class StrengthSkill implements Listener {
         if (mobLevel == null) {
             return;
         }
+        int playerAttackLevel = skillManager.getSkillLevel(player, SkillManager.Skill.ATTACK);
 
+        // Check if player misses the attack
+        if (attackSkill.doesPlayerMissAttack(playerAttackLevel, mobLevel)) {
+            event.setCancelled(true);
+            return;
+        }
         // Calculate XP reward based on the mob's level
         int xpAmount = calculateXpReward(mobLevel);
 
         // Add the XP reward to the player's ATTACK skill using the SkillManager
         skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
+        combatLevel.updateCombatLevel(player, player);
 
-        // Optional: Notify the player about the XP gained
+        // Notify the player about the XP gained
         player.sendActionBar(ChatColor.GOLD + "Strenght +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }

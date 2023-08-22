@@ -44,7 +44,8 @@ public class SkillManager implements Listener {
         WOODCUTTING, MINING, SMITHING, FISHING, ATTACK, DEFENCE,
         STRENGTH, RANGE, HITPOINTS, PRAYER, MAGIC, COOKING,
         FLETCHING, FIREMAKING, CRAFTING, HERBLORE, AGILITY,
-        THEVING, SLAYER, FARMING, RUNECRAFTING, HUNTER, CONSTRUCTION // Removed the trailing comma
+        THEVING, SLAYER, FARMING, RUNECRAFTING, HUNTER, CONSTRUCTION,
+        COMBAT// Removed the trailing comma
     }
 
     private double xpRequiredForLevelUp(int currentLevel) {
@@ -191,5 +192,4 @@ public class SkillManager implements Listener {
 
         firework.setFireworkMeta(fireworkMeta);
     }
-
 }

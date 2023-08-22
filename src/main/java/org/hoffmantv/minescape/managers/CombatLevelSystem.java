@@ -1,6 +1,5 @@
 package org.hoffmantv.minescape.managers;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
@@ -8,9 +7,9 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.hoffmantv.minescape.skills.CombatLevel;
 
 import java.util.Random;
 
@@ -19,9 +18,11 @@ public class CombatLevelSystem implements Listener {
     private final JavaPlugin plugin;
     private final Random random = new Random();
     private final int HEALTH_BAR_LENGTH = 10;
+    private final CombatLevel combatLevel;
 
-    public CombatLevelSystem(JavaPlugin plugin) {
+    public CombatLevelSystem(JavaPlugin plugin, CombatLevel combatLevel) {
         this.plugin = plugin;
+        this.combatLevel = combatLevel;
         this.plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
         // Assign levels to existing mobs
@@ -37,21 +38,26 @@ public class CombatLevelSystem implements Listener {
     private void assignMobLevel(LivingEntity mob) {
         Player closestPlayer = findClosestPlayer(mob);
 
-
         if (closestPlayer != null) {
-            int playerLevel = closestPlayer.getLevel();
-            int mobLevel = playerLevel + random.nextInt(11) - 5;  // Range: player level +/- 5
+            int playerCombatLevel = combatLevel.calculateCombatLevel(
+                    closestPlayer
+            ); // use CombatLevel class here
+
+            int mobLevel = playerCombatLevel + random.nextInt(11) - 5; // Range: player combat level +/- 5
 
             String mobName = mob.getType().toString().replace("_", " ").toLowerCase();
             // Capitalize the first letter
             mobName = Character.toUpperCase(mobName.charAt(0)) + mobName.substring(1);
 
             mob.setCustomNameVisible(true);
-            mob.setCustomName(ChatColor.translateAlternateColorCodes('&', getColorBasedOnDifficulty(playerLevel, mobLevel) + mobName + ": LvL " + mobLevel));
+            mob.setCustomName(ChatColor.translateAlternateColorCodes('&',
+                    getColorBasedOnDifficulty(playerCombatLevel, mobLevel) + mobName + ": LvL " + mobLevel
+            ));
 
             adjustMobAttributes(mob, mobLevel);
         }
     }
+
 
     // Adjust the attributes of the mob based on its level
     private void adjustMobAttributes(LivingEntity mob, int mobLevel) {
@@ -118,5 +124,9 @@ public class CombatLevelSystem implements Listener {
             return null;
         }
     }
-
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        combatLevel.updateCombatLevel(player, player);
+    }
 }

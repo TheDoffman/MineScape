@@ -15,9 +15,11 @@ import java.util.Random;
 public class AttackSkill implements Listener {
 
     private final SkillManager skillManager;
+    private final CombatLevel combatLevel;
 
-    public AttackSkill(SkillManager skillManager) {
+    public AttackSkill(SkillManager skillManager, CombatLevel combatLevel){
         this.skillManager = skillManager;
+        this.combatLevel = combatLevel;
     }
 
     @EventHandler
@@ -48,6 +50,7 @@ public class AttackSkill implements Listener {
 
         // Add the XP reward to the player's ATTACK skill using the SkillManager
         skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
+        combatLevel.updateCombatLevel(player, player);
 
         // Optional: Notify the player about the XP gained
         player.sendActionBar(ChatColor.GOLD + "Attack +" + xpAmount);
@@ -57,7 +60,7 @@ public class AttackSkill implements Listener {
         // This formula can be adjusted to your liking
         return (int) (10 + mobLevel * 1.3);
     }
-    private boolean doesPlayerMissAttack(int playerLevel, int mobLevel) {
+    public boolean doesPlayerMissAttack(int playerLevel, int mobLevel) {
         int baseMissChance = 20;  // 20% base chance to miss
 
         // Level difference adjustment. For each level the mob is higher, increase miss chance by 1%.

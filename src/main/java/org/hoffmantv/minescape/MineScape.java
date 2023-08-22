@@ -15,12 +15,6 @@ import java.util.Objects;
 
 public class MineScape extends JavaPlugin {
 
-    private final SkillManager skillManager;
-
-    public MineScape(SkillManager skillManager) {
-        this.skillManager = skillManager;
-    }
-
     @Override
     public void onEnable() {
         getLogger().info("MineScape has been enabled!");
@@ -32,6 +26,7 @@ public class MineScape extends JavaPlugin {
         this.saveDefaultConfig();
 
         SkillManager skillManager = new SkillManager(this);
+        CombatLevel combatLevel = new CombatLevel(skillManager);
 
         Objects.requireNonNull(this.getCommand("help")).setExecutor(new HelpCommand(this));
         Objects.requireNonNull(this.getCommand("saveskills")).setExecutor(new SaveSkillsCommand(skillManager));
@@ -42,7 +37,7 @@ public class MineScape extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(skillManager, this);
 
-        CombatLevelSystem combatLevelSystem = new CombatLevelSystem(this);
+        CombatLevelSystem combatLevelSystem = new CombatLevelSystem(this, combatLevel);
         getServer().getPluginManager().registerEvents(combatLevelSystem, this);
 
         WoodcuttingSkill woodcuttingSkill = new WoodcuttingSkill(skillManager, this);
@@ -62,8 +57,14 @@ public class MineScape extends JavaPlugin {
         PrayerSkill prayerSkill = new PrayerSkill(skillManager, this);
         getServer().getPluginManager().registerEvents(prayerSkill, this);
 
-        AttackSkill attackSkill = new AttackSkill(skillManager);
-        getServer().getPluginManager().registerEvents (attackSkill, this);
+        AttackSkill attackSkill = new AttackSkill(skillManager, combatLevel);
+        getServer().getPluginManager().registerEvents(attackSkill, this);
+
+        StrengthSkill strengthSkill = new StrengthSkill(skillManager, combatLevel, attackSkill);
+        getServer().getPluginManager().registerEvents(strengthSkill, this);
+
+        DefenseSkill defenseSkill = new DefenseSkill(skillManager, combatLevel, attackSkill);
+        getServer().getPluginManager().registerEvents(defenseSkill, this);
 
         getServer().getPluginManager().registerEvents(new MobListener(), this);
 
@@ -72,10 +73,6 @@ public class MineScape extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info("MineScape has been disabled!");
-        saveDefaultConfig();
-        skillManager.saveSkillsToConfig();
-        getLogger().info("Saved all Configs!");
-
         // Add any cleanup code here
         // Save data, release resources, etc.
 
