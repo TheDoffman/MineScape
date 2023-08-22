@@ -11,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.hoffmantv.minescape.skills.CombatLevel;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class SkillManager implements Listener {
     private final JavaPlugin plugin;
     private File configFile;
     private FileConfiguration config;
+    private CombatLevel combatLevel;
 
     private static final int MAX_LEVEL = 99;
 
@@ -31,8 +33,9 @@ public class SkillManager implements Listener {
     private Map<UUID, Map<Skill, Integer>> playerLevels = new HashMap<>();
     private Map<UUID, Map<Skill, Double>> playerXP = new HashMap<>();
 
-    public SkillManager(JavaPlugin plugin) {
+    public SkillManager(JavaPlugin plugin, CombatLevel combatLevel) {
         this.plugin = plugin;
+        this.combatLevel = combatLevel;
 
         // Create and load the config when SkillManager is instantiated
         createConfig();
@@ -172,6 +175,10 @@ public class SkillManager implements Listener {
             }
             // Save the config after creating the entries
             saveSkillsToConfig();
+            loadSkillsFromConfig();
+            combatLevel.updateCombatLevel(player, player);
+            combatLevel.updatePlayerNametag(player);
+            combatLevel.updatePlayerHeadDisplay(player);
         }
     }
     public void launchFirework(Location location) {

@@ -1,14 +1,11 @@
 package org.hoffmantv.minescape;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import org.hoffmantv.minescape.commands.HelpCommand;
-import org.hoffmantv.minescape.commands.SaveSkillsCommand;
-import org.hoffmantv.minescape.commands.SkillsMenuCommand;
-import org.hoffmantv.minescape.listeners.MobListener;
-import org.hoffmantv.minescape.listeners.WaterListener;
-import org.hoffmantv.minescape.managers.CombatLevelSystem;
-import org.hoffmantv.minescape.managers.SkillManager;
+import org.hoffmantv.minescape.commands.*;
+import org.hoffmantv.minescape.listeners.*;
+import org.hoffmantv.minescape.managers.*;
 import org.hoffmantv.minescape.skills.*;
+
 
 import java.util.Objects;
 
@@ -25,8 +22,11 @@ public class MineScape extends JavaPlugin {
 
         this.saveDefaultConfig();
 
-        SkillManager skillManager = new SkillManager(this);
-        CombatLevel combatLevel = new CombatLevel(skillManager);
+
+        CombatLevel combatLevel = null;
+        SkillManager skillManager = new SkillManager(this, combatLevel);
+
+        combatLevel = new CombatLevel(skillManager);
 
         Objects.requireNonNull(this.getCommand("help")).setExecutor(new HelpCommand(this));
         Objects.requireNonNull(this.getCommand("saveskills")).setExecutor(new SaveSkillsCommand(skillManager));
@@ -73,6 +73,7 @@ public class MineScape extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info("MineScape has been disabled!");
+
         // Add any cleanup code here
         // Save data, release resources, etc.
 

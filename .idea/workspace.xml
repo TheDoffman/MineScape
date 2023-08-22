@@ -9,15 +9,9 @@
       <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/MineScape.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/MineScape.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/managers/CombatLevelSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/managers/CombatLevelSystem.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/managers/SkillManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/managers/SkillManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/managers/SkillsMenu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/managers/SkillsMenu.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/AttackSkill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/AttackSkill.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/DefenseSkill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/DefenseSkill.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/StrengthSkill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/StrengthSkill.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/MineScape-1.0-SNAPSHOT.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/org/hoffmantv/minescape/MineScape.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/hoffmantv/minescape/MineScape.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/hoffmantv/minescape/managers/SkillsMenu.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/hoffmantv/minescape/managers/SkillsMenu.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/hoffmantv/minescape/skills/AttackSkill.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/hoffmantv/minescape/skills/AttackSkill.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/org/hoffmantv/minescape/managers/CombatLevelSystem.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/hoffmantv/minescape/managers/CombatLevelSystem.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/original-MineScape-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/original-MineScape-1.0-SNAPSHOT.jar" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

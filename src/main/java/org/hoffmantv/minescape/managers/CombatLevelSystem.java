@@ -17,7 +17,6 @@ public class CombatLevelSystem implements Listener {
 
     private final JavaPlugin plugin;
     private final Random random = new Random();
-    private final int HEALTH_BAR_LENGTH = 10;
     private final CombatLevel combatLevel;
 
     public CombatLevelSystem(JavaPlugin plugin, CombatLevel combatLevel) {
@@ -123,10 +122,5 @@ public class CombatLevelSystem implements Listener {
         } catch (NumberFormatException e) {
             return null;
         }
-    }
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        combatLevel.updateCombatLevel(player, player);
     }
 }
