@@ -1,5 +1,7 @@
 package org.hoffmantv.minescape.skills;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,11 +26,13 @@ public class DefenseSkill implements Listener {
 
         // Calculate XP based on damage taken.
         // We assume 2 damage = 1 heart, hence we multiply by 0.5 to get hearts
-        int xpToGive = (int) (event.getFinalDamage() * 0.5);
+        int xpAmount = (int) (event.getFinalDamage() * 0.5);
 
         // Give the XP to the player's defense skill
-        skillManager.addXP(player, SkillManager.Skill.DEFENCE, xpToGive);
+        skillManager.addXP(player, SkillManager.Skill.DEFENCE, xpAmount);
 
         // You can optionally inform the player about XP gain here.
+        player.sendActionBar(ChatColor.GOLD + "Defence +" + xpAmount);
+        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }
 }
