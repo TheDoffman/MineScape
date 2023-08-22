@@ -22,9 +22,15 @@ public class MineScape extends JavaPlugin {
 
         this.saveDefaultConfig();
 
+// Initialize SkillManager without combatLevel
+        SkillManager skillManager = new SkillManager(this);
 
-        CombatLevel combatLevel = null;
-        SkillManager skillManager = new SkillManager(this, combatLevel);
+// Initialize combatLevel with skillManager
+        CombatLevel combatLevel = new CombatLevel(skillManager);
+
+// Update combatLevel reference in skillManager
+        skillManager.setCombatLevel(combatLevel);
+
 
         combatLevel = new CombatLevel(skillManager);
 

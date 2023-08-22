@@ -33,9 +33,8 @@ public class SkillManager implements Listener {
     private Map<UUID, Map<Skill, Integer>> playerLevels = new HashMap<>();
     private Map<UUID, Map<Skill, Double>> playerXP = new HashMap<>();
 
-    public SkillManager(JavaPlugin plugin, CombatLevel combatLevel) {
+    public SkillManager(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.combatLevel = combatLevel;
 
         // Create and load the config when SkillManager is instantiated
         createConfig();
@@ -198,5 +197,8 @@ public class SkillManager implements Listener {
         fireworkMeta.setPower(1);
 
         firework.setFireworkMeta(fireworkMeta);
+    }
+    public void setCombatLevel(CombatLevel combatLevel) {
+        this.combatLevel = combatLevel;
     }
 }
