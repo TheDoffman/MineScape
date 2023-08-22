@@ -4,6 +4,7 @@ org/hoffmantv/minescape/skills/StrengthSkill.class
 org/hoffmantv/minescape/Metrics$MetricsBase.class
 org/hoffmantv/minescape/Metrics$SingleLineChart.class
 org/hoffmantv/minescape/Metrics$JsonObjectBuilder.class
+org/hoffmantv/minescape/skills/DefenseSkill.class
 org/hoffmantv/minescape/Metrics.class
 org/hoffmantv/minescape/Metrics$CustomChart.class
 org/hoffmantv/minescape/managers/SkillManager.class
@@ -32,6 +33,7 @@ org/hoffmantv/minescape/skills/SmithingSkill$2.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill.class
 org/hoffmantv/minescape/skills/AttackSkill.class
 org/hoffmantv/minescape/skills/HitpointsSkill.class
+org/hoffmantv/minescape/listeners/MobListener.class
 org/hoffmantv/minescape/managers/SkillManager$Skill.class
 org/hoffmantv/minescape/Metrics$SimplePie.class
 org/hoffmantv/minescape/Metrics$AdvancedPie.class

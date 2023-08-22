@@ -2,10 +2,11 @@ package org.hoffmantv.minescape.skills;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.hoffmantv.minescape.managers.SkillManager;
 
 public class DefenseSkill implements Listener {
@@ -17,22 +18,30 @@ public class DefenseSkill implements Listener {
     }
 
     @EventHandler
-    public void onPlayerTakeDamage(EntityDamageEvent event) {
+    public void onPlayerDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player)) {
-            return; // Exit if the entity taking damage isn't a player
+            return;  // Return if the damaged entity isn't a player
         }
 
         Player player = (Player) event.getEntity();
 
-        // Calculate XP based on damage taken.
-        // We assume 2 damage = 1 heart, hence we multiply by 0.5 to get hearts
-        int xpAmount = (int) (event.getFinalDamage() * 0.5);
+        // Ensure the damage is coming from a living entity (e.g., a mob)
+        if (!(event.getDamager() instanceof LivingEntity)) {
+            return;
+        }
 
-        // Give the XP to the player's defense skill
+        // Calculate XP based on the damage taken (adjust this formula as you see fit)
+        int xpAmount = calculateXpReward(event.getFinalDamage());
+
+        // Add the XP to the player's defense skill using your SkillManager
         skillManager.addXP(player, SkillManager.Skill.DEFENCE, xpAmount);
 
-        // You can optionally inform the player about XP gain here.
-        player.sendActionBar(ChatColor.GOLD + "Defence +" + xpAmount);
+        player.sendActionBar(ChatColor.GOLD + "Attack +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
+    }
+
+    private int calculateXpReward(double damageTaken) {
+        // For example, you can give 10 XP per heart of damage taken.
+        return (int) (damageTaken * 10);
     }
 }
