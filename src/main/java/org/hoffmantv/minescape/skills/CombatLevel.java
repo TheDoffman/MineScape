@@ -9,14 +9,16 @@ import org.hoffmantv.minescape.managers.SkillManager;
 
 public class CombatLevel {
 
-    private SkillManager skillManager;  // Assuming SkillManager is the class that contains the enums and the methods related to player skills
+    private final SkillManager skillManager;
 
     public CombatLevel(SkillManager skillManager) {
+        if(skillManager == null) {
+            throw new IllegalArgumentException("SkillManager cannot be null");
+        }
         this.skillManager = skillManager;
     }
 
     public enum Skill {
-        // ... your other skills ...
         COMBAT
     }
 
@@ -25,12 +27,14 @@ public class CombatLevel {
         int attack = skillManager.getSkillLevel(player, SkillManager.Skill.ATTACK);
         int defence = skillManager.getSkillLevel(player, SkillManager.Skill.DEFENCE);
 
-        return (strength + attack + defence) / 3;
+        return (strength + attack + defence);
     }
 
     public void updateCombatLevel(Player player, Player opponent) {
-        String coloredCombatLevel = getColoredCombatLevel(player, opponent);
+        int playerCombatLevel = calculateCombatLevel(player);
+        String coloredCombatLevel = getColoredCombatLevel(playerCombatLevel, calculateCombatLevel(opponent));
         String nameTag = player.getName() + " " + coloredCombatLevel;
+        skillManager.setSkillLevel(player, SkillManager.Skill.COMBAT, playerCombatLevel);
         player.setCustomName(nameTag);
         player.setCustomNameVisible(true);
     }
@@ -39,7 +43,7 @@ public class CombatLevel {
         int combatLevel = skillManager.getSkillLevel(player, SkillManager.Skill.COMBAT);
         String nameTag = ChatColor.GRAY + "[" + combatLevel + "] " + ChatColor.RESET + player.getName();
         player.setDisplayName(nameTag);
-        player.setPlayerListName(nameTag);  // This is for the player list in the tab menu
+        player.setPlayerListName(nameTag);
     }
 
     public void updatePlayerHeadDisplay(Player player) {
@@ -56,21 +60,15 @@ public class CombatLevel {
 
         player.setScoreboard(scoreboard);
     }
-    public String getColoredCombatLevel(Player player, Player opponent) {
-        int playerCombatLevel = calculateCombatLevel(player);
-        int opponentCombatLevel = calculateCombatLevel(opponent);
+
+    public String getColoredCombatLevel(int playerCombatLevel, int opponentCombatLevel) {
         int difference = playerCombatLevel - opponentCombatLevel;
 
-        // Close to each other
         if (Math.abs(difference) <= 5) {
             return ChatColor.GREEN + String.valueOf(playerCombatLevel);
-        }
-        // Player's combat level is higher
-        else if (difference > 5) {
+        } else if (difference > 5) {
             return ChatColor.RED + String.valueOf(playerCombatLevel);
-        }
-        // Player's combat level is lower
-        else {
+        } else {
             return ChatColor.BLUE + String.valueOf(playerCombatLevel);
         }
     }

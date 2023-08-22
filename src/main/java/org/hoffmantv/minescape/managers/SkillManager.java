@@ -36,6 +36,9 @@ public class SkillManager implements Listener {
     public SkillManager(JavaPlugin plugin) {
         this.plugin = plugin;
 
+        this.combatLevel = new CombatLevel(this);
+
+
         // Create and load the config when SkillManager is instantiated
         createConfig();
         loadSkillsFromConfig();
@@ -115,6 +118,10 @@ public class SkillManager implements Listener {
             player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
             launchFirework(player.getLocation());
+            combatLevel.calculateCombatLevel(player);
+            combatLevel.updateCombatLevel(player, player);
+            combatLevel.updatePlayerNametag(player);
+            combatLevel.updatePlayerHeadDisplay(player);
 
 
             playerLevels.get(player.getUniqueId()).put(skill, currentLevel);
@@ -162,6 +169,8 @@ public class SkillManager implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
+        Integer combatLevel = this.combatLevel.calculateCombatLevel(player);
+
 
         // Check if the player already has an entry in skills.yml
         if (!config.contains(playerUUID.toString())) {
@@ -171,14 +180,12 @@ public class SkillManager implements Listener {
             for (Skill skill : Skill.values()) {
                 config.set(playerUUID.toString() + "." + skill.name() + ".level", 1);
                 config.set(playerUUID.toString() + "." + skill.name() + ".xp", 0.0);
+                saveSkillsToConfig();
+                loadSkillsFromConfig();
             }
-            // Save the config after creating the entries
-            saveSkillsToConfig();
-            loadSkillsFromConfig();
-            combatLevel.updateCombatLevel(player, player);
-            combatLevel.updatePlayerNametag(player);
-            combatLevel.updatePlayerHeadDisplay(player);
         }
+        this.combatLevel.updatePlayerNametag(player);
+        this.combatLevel.updatePlayerHeadDisplay(player);
     }
     public void launchFirework(Location location) {
         Firework firework = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
@@ -197,8 +204,5 @@ public class SkillManager implements Listener {
         fireworkMeta.setPower(1);
 
         firework.setFireworkMeta(fireworkMeta);
-    }
-    public void setCombatLevel(CombatLevel combatLevel) {
-        this.combatLevel = combatLevel;
     }
 }
