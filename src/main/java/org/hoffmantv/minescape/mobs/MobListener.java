@@ -29,8 +29,6 @@ public class MobListener implements Listener {
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        // Clear drops
-        event.getDrops().clear();
         // Set experience to 0 to prevent dropping experience orbs
         event.setDroppedExp(0);
     }

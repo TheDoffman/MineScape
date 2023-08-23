@@ -78,28 +78,4 @@ public class PrayerSkill implements Listener {
         player.sendActionBar(ChatColor.GOLD + "Prayer +" + xpAmount);
 
     }
-
-    @EventHandler
-    public void onEntityDeath(EntityDeathEvent event) {
-        LivingEntity entity = event.getEntity();
-
-        // We only want this behavior for certain entities
-        if (entity instanceof Monster || entity instanceof Animals) {
-            ItemStack bone = new ItemStack(Material.BONE);
-            ItemMeta meta = bone.getItemMeta();
-
-            // Setting the bone's name to the name of the entity
-            meta.setDisplayName(entity.getType().toString() + " Bone");
-
-            // Make the bone non-stackable
-            AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), "nonStackable", 0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND);
-            meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, modifier);
-
-            bone.setItemMeta(meta);
-
-            // Adding the bone to the entity's drops
-            event.getDrops().add(bone);
-        }
-    }
-
 }
