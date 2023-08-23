@@ -30,6 +30,19 @@ public class StrengthSkill implements Listener {
         Player player = (Player) event.getDamager();
         LivingEntity mob = (LivingEntity) event.getEntity();
 
+        // Check if the player is holding a sword
+        switch (player.getInventory().getItemInMainHand().getType()) {
+            case DIAMOND_SWORD:
+            case GOLDEN_SWORD:
+            case IRON_SWORD:
+            case STONE_SWORD:
+            case WOODEN_SWORD:
+            case NETHERITE_SWORD:
+                break; // If they are holding a sword, continue to the logic below.
+            default:
+                return; // If not, exit out of the event.
+        }
+
         // Placeholder check to exclude certain mobs (you should define this properly)
         if (isExcludedMob(mob)) {
             return;
@@ -40,16 +53,8 @@ public class StrengthSkill implements Listener {
             // Make sure to review how CombatLevelSystem works!
             return;
         }
-
-        int playerAttackLevel = skillManager.getSkillLevel(player, SkillManager.Skill.ATTACK);
-
-        // Check if player misses the attack
-        if (attackSkill.doesPlayerMissAttack(playerAttackLevel, mobLevel)) {
-            event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You missed your attack!");
-            return;
-        }
     }
+
 
     @EventHandler
     public void onMobDeath(EntityDeathEvent event) {

@@ -7,6 +7,7 @@ org/hoffmantv/minescape/Metrics$JsonObjectBuilder$JsonObject.class
 org/hoffmantv/minescape/skills/PrayerSkill.class
 org/hoffmantv/minescape/mobs/ZombieListener.class
 org/hoffmantv/minescape/skills/MiningSkill$1.class
+org/hoffmantv/minescape/skills/StrengthSkill$1.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill$TreeType.class
 org/hoffmantv/minescape/skills/CombatLevel.class
 org/hoffmantv/minescape/skills/FiremakingSkill.class
