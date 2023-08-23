@@ -23,7 +23,9 @@ org/hoffmantv/minescape/skills/StrengthSkill.class
 org/hoffmantv/minescape/Metrics$MetricsBase.class
 org/hoffmantv/minescape/Metrics$SingleLineChart.class
 org/hoffmantv/minescape/skills/DefenseSkill.class
+org/hoffmantv/minescape/mobs/MobListener.class
 org/hoffmantv/minescape/Metrics.class
+org/hoffmantv/minescape/mobs/Chicken.class
 org/hoffmantv/minescape/Metrics$CustomChart.class
 org/hoffmantv/minescape/skills/CombatLevel$Skill.class
 org/hoffmantv/minescape/commands/SaveSkillsCommand.class
@@ -36,10 +38,10 @@ org/hoffmantv/minescape/managers/SkillsMenu.class
 org/hoffmantv/minescape/listeners/AlwaysDayListener.class
 org/hoffmantv/minescape/skills/RangeSkill.class
 org/hoffmantv/minescape/commands/HelpCommand.class
+org/hoffmantv/minescape/mobs/Zombie.class
 org/hoffmantv/minescape/Metrics$DrilldownPie.class
 org/hoffmantv/minescape/skills/SmithingSkill$2.class
 org/hoffmantv/minescape/skills/WoodcuttingSkill.class
-org/hoffmantv/minescape/listeners/MobListener.class
 org/hoffmantv/minescape/managers/SkillManager$Skill.class
 org/hoffmantv/minescape/Metrics$SimplePie.class
 org/hoffmantv/minescape/Metrics$1.class

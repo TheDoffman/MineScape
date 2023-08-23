@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.*;
 import org.hoffmantv.minescape.listeners.*;
 import org.hoffmantv.minescape.managers.*;
+import org.hoffmantv.minescape.mobs.MobListener;
 import org.hoffmantv.minescape.skills.*;
 
 

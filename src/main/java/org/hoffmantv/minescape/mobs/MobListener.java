@@ -1,10 +1,11 @@
-package org.hoffmantv.minescape.listeners;
+package org.hoffmantv.minescape.mobs;
 
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 
 public class MobListener implements Listener {
 
@@ -16,6 +17,7 @@ public class MobListener implements Listener {
             event.setCancelled(true);
         }
     }
+
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent event) {
         // Check if the entity is a Wandering Trader
@@ -23,5 +25,13 @@ public class MobListener implements Listener {
             // Cancel the event to prevent spawning
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+        // Clear drops
+        event.getDrops().clear();
+        // Set experience to 0 to prevent dropping experience orbs
+        event.setDroppedExp(0);
     }
 }
