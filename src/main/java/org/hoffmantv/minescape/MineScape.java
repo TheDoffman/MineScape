@@ -78,6 +78,7 @@ public class MineScape extends JavaPlugin {
         registerListener(new SheepListener());
         registerListener(new HorseListener());
         registerListener(new PigListener());
+        registerListener(new EndermenListener());
         registerListener(new AlwaysDayListener(this));
     }
 
