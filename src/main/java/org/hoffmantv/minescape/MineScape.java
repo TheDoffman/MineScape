@@ -67,13 +67,17 @@ public class MineScape extends JavaPlugin {
         registerListener(new AttackSkill(skillManager, combatLevel));
         registerListener(new StrengthSkill(skillManager, new AttackSkill(skillManager, combatLevel)));
         registerListener(new DefenseSkill(skillManager, combatLevel, new AttackSkill(skillManager, combatLevel)));
-        registerListener(new MobListener());
         registerListener(new RangeSkill(this, skillManager));
+        registerListener(new MobListener());
         registerListener(new ChickenListener());
         registerListener(new ZombieListener());
         registerListener(new SpiderListener());
         registerListener(new SkeletonListener());
         registerListener(new CreeperListener());
+        registerListener(new CowListener());
+        registerListener(new SheepListener());
+        registerListener(new HorseListener());
+        registerListener(new PigListener());
         registerListener(new AlwaysDayListener(this));
     }
 

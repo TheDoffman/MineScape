@@ -81,5 +81,4 @@ public class AttackSkill implements Listener {
 
         return roll < totalMissChance;
     }
-
 }
