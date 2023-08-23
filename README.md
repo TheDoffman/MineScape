@@ -23,9 +23,7 @@ RuneCraft is a comprehensive Minecraft server plugin that brings the rich and en
 
 Navigate to the `plugins/RuneCraft/config.yml` to tweak various settings:
 
-- `worldName`: Define the world where RuneCraft mechanics apply.
-- `mobSpawnRate`: Adjust the spawn rate of RuneScape mobs.
-- ... (and any other configuration settings you have)
+- `always`: Toggle the always day feature.
 
 ## Contribution
 
