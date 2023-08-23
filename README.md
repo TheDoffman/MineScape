@@ -23,7 +23,7 @@ RuneCraft is a comprehensive Minecraft server plugin that brings the rich and en
 
 Navigate to the `plugins/RuneCraft/config.yml` to tweak various settings:
 
-- `always-day`: Toggle the always day feature.
+- `alwaysday`: Toggle the always day feature.
 
 ## Contribution
 
