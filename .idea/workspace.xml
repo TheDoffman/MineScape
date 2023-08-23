@@ -5,8 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d8353513-ba12-448e-80f6-442fc9960e4b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/StrengthSkill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/StrengthSkill.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/AttackSkill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/AttackSkill.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

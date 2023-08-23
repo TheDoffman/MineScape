@@ -50,9 +50,6 @@ public class AttackSkill implements Listener {
 
         // Add the XP reward to the player's ATTACK skill using the SkillManager
         skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
-        combatLevel.updateCombatLevel(player, player);
-        combatLevel.updatePlayerHeadDisplay(player);
-        combatLevel.updatePlayerNametag(player);
 
         // Optional: Notify the player about the XP gained
         player.sendActionBar(ChatColor.GOLD + "Attack +" + xpAmount);
