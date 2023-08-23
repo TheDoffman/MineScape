@@ -13,6 +13,11 @@ commands:
   skills:
     description: Open the skills menu.
     usage: /skills
+  alwaysday:
+    description: Toggle the always day feature.
+    usage: /alwaysday <enable|disable>
+    aliases: [ ad ]
+    permission: minescape.alwaysday
 
 permissions:
   minescape.help:
@@ -24,3 +29,6 @@ permissions:
   minescape.skills:
     description: Opens the skills menu.
     default: not op
+  minescape.alwaysday:
+    description: Allows the user to toggle the always day feature.
+    default: op

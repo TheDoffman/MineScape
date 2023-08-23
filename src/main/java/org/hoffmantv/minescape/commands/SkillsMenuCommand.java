@@ -4,8 +4,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.hoffmantv.minescape.managers.SkillsMenu;
 import org.hoffmantv.minescape.managers.SkillManager;
+import org.hoffmantv.minescape.managers.SkillsMenu;
 
 public class SkillsMenuCommand implements CommandExecutor {
 

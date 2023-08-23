@@ -3,22 +3,32 @@ package org.hoffmantv.minescape.managers;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.skills.CombatLevel;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 public class CombatLevelSystem implements Listener {
 
     private final JavaPlugin plugin;
     private final Random random = new Random();
     private final CombatLevel combatLevel;
-
+    private final Map<UUID, BossBar> mobBossBars = new HashMap<>();
     public CombatLevelSystem(JavaPlugin plugin, CombatLevel combatLevel) {
         this.plugin = plugin;
         this.combatLevel = combatLevel;
@@ -123,4 +133,55 @@ public class CombatLevelSystem implements Listener {
             return null;
         }
     }
+    @EventHandler
+    public void onMobAttack(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof LivingEntity)) return;
+
+        LivingEntity mob = (LivingEntity) event.getEntity();
+        Player player = (Player) event.getDamager();
+
+        if (extractMobLevelFromName(mob) == null) return;
+
+        if (!mobBossBars.containsKey(mob.getUniqueId())) {
+            BossBar bossBar = plugin.getServer().createBossBar(mob.getCustomName(), BarColor.RED, BarStyle.SOLID);
+            bossBar.addPlayer(player);
+            mobBossBars.put(mob.getUniqueId(), bossBar);
+        }
+
+        BossBar bossBar = mobBossBars.get(mob.getUniqueId());
+        bossBar.setProgress(mob.getHealth() / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+    }
+
+    @EventHandler
+    public void onMobDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof LivingEntity)) return;
+
+        LivingEntity mob = (LivingEntity) event.getEntity();
+        BossBar bossBar = mobBossBars.get(mob.getUniqueId());
+
+        if (bossBar == null) return;
+
+        double health = mob.getHealth() - event.getFinalDamage(); // health after damage is applied
+        bossBar.setProgress(Math.max(0, health) / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+    }
+    @EventHandler
+    public void onMobDeath(EntityDeathEvent event) {
+        BossBar bossBar = mobBossBars.remove(event.getEntity().getUniqueId());
+        if (bossBar != null) {
+            bossBar.removeAll();
+        }
+    }
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        mobBossBars.forEach((uuid, bossBar) -> {
+            Entity mob = player.getWorld().getEntity(uuid);
+            if (mob == null || mob.getLocation().distance(player.getLocation()) > 25) {
+                bossBar.removePlayer(player);
+            } else {
+                bossBar.addPlayer(player);
+            }
+        });
+    }
+
 }

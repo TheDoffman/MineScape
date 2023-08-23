@@ -10,12 +10,14 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.hoffmantv.minescape.managers.SkillManager;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 public class SkillsMenu implements Listener {
 
-    private static final String SKILLS_MENU_TITLE = ChatColor.RED + "Skills Menu";
+    private static final String SKILLS_MENU_TITLE =  ChatColor.RED + "Skills Menu";
     private static final int SKILLS_MENU_SIZE = 27;
 
     private final SkillManager skillManager;
@@ -45,12 +47,17 @@ public class SkillsMenu implements Listener {
         skillMeta.setDisplayName(ChatColor.GOLD + skill.name());
 
         int playerLevel = skillManager.getSkillLevel(player, skill);
-        skillMeta.setLore(Collections.singletonList(ChatColor.GRAY + "Level: " + playerLevel));
+        int xpNeeded = (int) skillManager.xpNeededForNextLevel(player, skill); // Assuming you have such a method
+        skillMeta.setLore(Arrays.asList(
+                ChatColor.GRAY + "Level: " + playerLevel,
+                ChatColor.BLUE + "XP till next: " + xpNeeded
+        ));
 
         skillItem.setItemMeta(skillMeta);
 
         return skillItem;
     }
+
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) {

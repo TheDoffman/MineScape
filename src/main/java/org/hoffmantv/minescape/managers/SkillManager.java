@@ -53,7 +53,7 @@ public class SkillManager implements Listener {
         COMBAT// Removed the trailing comma
     }
 
-    private double xpRequiredForLevelUp(int currentLevel) {
+    public double xpRequiredForLevelUp(int currentLevel) {
         return currentLevel * 99;  // Just a placeholder formula
     }
 
@@ -162,6 +162,21 @@ public class SkillManager implements Listener {
     public double getXP(Player player, Skill skill) {
         return playerXP.getOrDefault(player.getUniqueId(), Collections.emptyMap()).getOrDefault(skill, 0.0);
     }
+    public double xpNeededForNextLevel(Player player, Skill skill) {
+        int currentLevel = getSkillLevel(player, skill);
+
+        // Check if the player has reached level 99
+        if (currentLevel >= MAX_LEVEL) {
+            return 0.0;
+        }
+
+        double currentXP = getXP(player, skill);
+        double nextLevelXP = xpRequiredForLevelUp(currentLevel + 1);  // XP needed to reach the next level from 0
+
+        return nextLevelXP - currentXP;
+    }
+
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();

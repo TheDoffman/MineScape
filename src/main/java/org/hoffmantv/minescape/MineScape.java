@@ -20,7 +20,9 @@ public class MineScape extends JavaPlugin {
 
         new Metrics(this, pluginId);
 
-        this.saveDefaultConfig();
+        // Configuration setup
+        getConfig().options().copyDefaults(true);
+        saveConfig();
 
 // Initialize SkillManager without combatLevel
         SkillManager skillManager = new SkillManager(this);
@@ -33,7 +35,7 @@ public class MineScape extends JavaPlugin {
 
         Objects.requireNonNull(this.getCommand("help")).setExecutor(new HelpCommand(this));
         Objects.requireNonNull(this.getCommand("saveskills")).setExecutor(new SaveSkillsCommand(skillManager));
-        getCommand("skills").setExecutor(new SkillsMenuCommand(skillManager));
+        Objects.requireNonNull(getCommand("skills")).setExecutor(new SkillsMenuCommand(skillManager));
 
         WaterListener waterListener = new WaterListener(this);
         getServer().getPluginManager().registerEvents(waterListener, this);
@@ -70,6 +72,14 @@ public class MineScape extends JavaPlugin {
         getServer().getPluginManager().registerEvents(defenseSkill, this);
 
         getServer().getPluginManager().registerEvents(new MobListener(), this);
+
+        RangeSkill rangeSkill = new RangeSkill(this, skillManager);
+        getServer().getPluginManager().registerEvents(rangeSkill, this);
+
+        // Register the always day feature
+        getServer().getPluginManager().registerEvents(new AlwaysDayListener(this), this);
+        // Register the always day command
+        Objects.requireNonNull(getCommand("alwaysday")).setExecutor(new AlwaysDayCommand(this));
 
     }
 

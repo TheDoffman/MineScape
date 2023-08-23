@@ -7,10 +7,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
 import org.hoffmantv.minescape.managers.SkillManager;
-
-import java.util.Random;
 
 public class StrengthSkill implements Listener {
 
@@ -31,17 +30,41 @@ public class StrengthSkill implements Listener {
         Player player = (Player) event.getDamager();
         LivingEntity mob = (LivingEntity) event.getEntity();
 
-        Integer mobLevel = CombatLevelSystem.extractMobLevelFromName(mob);
-        if (mobLevel == null) {
+        // Placeholder check to exclude certain mobs (you should define this properly)
+        if (isExcludedMob(mob)) {
             return;
         }
+
+        Integer mobLevel = CombatLevelSystem.extractMobLevelFromName(mob);
+        if (mobLevel == null) {
+            // Make sure to review how CombatLevelSystem works!
+            return;
+        }
+
         int playerAttackLevel = skillManager.getSkillLevel(player, SkillManager.Skill.ATTACK);
 
         // Check if player misses the attack
         if (attackSkill.doesPlayerMissAttack(playerAttackLevel, mobLevel)) {
             event.setCancelled(true);
+            player.sendMessage(ChatColor.RED + "You missed your attack!");
             return;
         }
+    }
+
+    @EventHandler
+    public void onMobDeath(EntityDeathEvent event) {
+        if (!(event.getEntity().getKiller() instanceof Player)) {
+            return;
+        }
+
+        Player player = event.getEntity().getKiller();
+        LivingEntity mob = event.getEntity();
+
+        Integer mobLevel = CombatLevelSystem.extractMobLevelFromName(mob);
+        if (mobLevel == null) {
+            return;
+        }
+
         // Calculate XP reward based on the mob's level
         int xpAmount = calculateXpReward(mobLevel);
 
@@ -52,8 +75,14 @@ public class StrengthSkill implements Listener {
         player.sendActionBar(ChatColor.GOLD + "Strength +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }
+
     private int calculateXpReward(int mobLevel) {
-        // This formula can be adjusted to your liking
         return (3 + mobLevel);
+    }
+
+    private boolean isExcludedMob(LivingEntity mob) {
+        // Placeholder logic: You should implement your own criteria here.
+        // For example, if you have friendly NPCs or mobs tagged as 'non-combat'.
+        return false;
     }
 }
