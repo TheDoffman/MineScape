@@ -6,10 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="d8353513-ba12-448e-80f6-442fc9960e4b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/MineScape.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/MineScape.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/hoffmantv/minescape/MineScape.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/hoffmantv/minescape/MineScape.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/original-MineScape-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/original-MineScape-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/AgilitySkill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/hoffmantv/minescape/skills/AgilitySkill.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -52,7 +52,7 @@ public class AgilitySkill implements Listener {
 
     private int calculateXpReward() {
         // Define your XP reward calculation here
-        return 10;  // Example: reward 10 XP for every 30 blocks sprinted
+        return 2;  // Example: reward 10 XP for every 30 blocks sprinted
     }
     @EventHandler
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
