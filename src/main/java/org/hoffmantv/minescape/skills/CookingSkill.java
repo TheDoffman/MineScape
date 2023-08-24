@@ -1,12 +1,15 @@
 package org.hoffmantv.minescape.skills;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.HashMap;
@@ -24,6 +27,7 @@ public class CookingSkill implements Listener {
         put(Material.CHICKEN, 5);
         put(Material.MUTTON, 10);
         put(Material.SALMON, 15);
+        put(Material.RABBIT, 20);
     }};
     public CookingSkill(SkillManager skillManager) {
         this.skillManager = skillManager;
@@ -45,48 +49,46 @@ public class CookingSkill implements Listener {
         int playerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.COOKING);
         Material cookedVersion = getCookedVersion(itemInHand.getType());
 
-        // Check player level requirements
+            // Check player level requirements
+        int requiredLevel = getRequiredLevelForFood(itemInHand.getType());
         if (!meetsLevelRequirement(player, itemInHand.getType())) {
-            player.sendMessage("You do not have the required level to cook this food.");
+            player.sendMessage(ChatColor.RED + "⚠ " + ChatColor.GRAY + "You require level " + ChatColor.GOLD + requiredLevel
+                    + ChatColor.GRAY + " in cooking to prepare this item. Continue practicing to enhance your expertise!");
             return;
         }
 
         itemInHand.setAmount(itemInHand.getAmount() - 1); // Decrease the uncooked food by 1
 
         if (shouldBurnFood(playerLevel)) {
-            player.sendMessage("Oops! You burned the food.");
-            player.getInventory().addItem(new ItemStack(Material.CHARCOAL)); // Add burned item (charcoal) to inventory
+            player.sendMessage(ChatColor.RED + "✖ " + ChatColor.GRAY + "Sadly, you've burned the food. Try improving your skills!");
+            player.getInventory().addItem(getCustomNamedItem(Material.CHARCOAL, "Burned Food"));
         } else {
-            player.sendMessage("You successfully cooked the food.");
-            player.getInventory().addItem(new ItemStack(cookedVersion)); // Add cooked version to player's inventory
+            player.sendMessage(ChatColor.GREEN + "✓ " + ChatColor.GRAY + "Successfully cooked: " + ChatColor.GOLD + cookedVersion.name().replace("_", " "));
+            player.getInventory().addItem(getCustomNamedItem(cookedVersion, "Cooked " + cookedVersion.name().replace("_", " ")));
 
             // Add XP based on success
             int xpToAdd = calculateXpReward(itemInHand.getType());
+            player.sendActionBar(ChatColor.GOLD + "Cooking +" + xpToAdd);
+            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
             skillManager.addXP(player, SkillManager.Skill.COOKING, xpToAdd);
         }
     }
-
-
     private boolean meetsLevelRequirement(Player player, Material foodType) {
         return levelRequirements.getOrDefault(foodType, 0) <= skillManager.getSkillLevel(player, SkillManager.Skill.COOKING);
     }
-
     private int calculateXpReward(Material foodType) {
         // You can adjust this method to return different XP amounts based on the food type or other criteria.
         return 10; // Example: a flat 10 XP per cooked item.
     }
-
     private boolean shouldBurnFood(int playerLevel) {
         int burnChance = 50 - (playerLevel * 2); // e.g., at level 10, there's a 30% chance to burn, at level 25, 5% chance.
         burnChance = Math.max(5, burnChance);  // Ensure there's always at least a 5% chance to burn for challenge
         return random.nextInt(100) < burnChance;
     }
-
     private boolean isUncookedFood(Material material) {
         // Modify this list to include all uncooked food items you wish to check.
         return material == Material.BEEF || material == Material.CHICKEN || material == Material.MUTTON || material == Material.SALMON || material == Material.PORKCHOP;
     }
-
     private Material getCookedVersion(Material uncooked) {
         switch (uncooked) {
             case BEEF:
@@ -99,8 +101,33 @@ public class CookingSkill implements Listener {
                 return Material.COOKED_PORKCHOP;
             case SALMON:
                 return Material.COOKED_SALMON;
+            case RABBIT:
+                return Material.COOKED_RABBIT;
             default:
                 return Material.CHARCOAL; // This is just a default for error-handling, won't really be reached based on our isUncookedFood check.
         }
+    }
+    private int getRequiredLevelForFood(Material foodItem) {
+        // Example logic - adjust to your needs
+        switch(foodItem) {
+            case BEEF: return 1;
+            case CHICKEN: return 5;
+            case MUTTON: return 10;
+            case SALMON: return 15;
+            case RABBIT: return 20;
+            // ... other foods
+            default: return 0;
+        }
+    }
+    private ItemStack getCustomNamedItem(Material material, String name) {
+        ItemStack item = new ItemStack(material, 1);
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta != null) {
+            meta.setDisplayName(name);
+            item.setItemMeta(meta);
+        }
+
+        return item;
     }
 }
