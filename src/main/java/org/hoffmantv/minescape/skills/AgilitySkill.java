@@ -35,7 +35,7 @@ public class AgilitySkill implements Listener {
                 Location startingPosition = playerStartingPositions.get(playerId);
                 double distanceCovered = startingPosition.distance(player.getLocation());
 
-                if (distanceCovered >= 30) {
+                if (distanceCovered >= 50) {
                     // Reward XP here
                     int xpAmount = calculateXpReward();  // Implement this method based on how you want to reward XP
                     skillManager.addXP(player, SkillManager.Skill.AGILITY, xpAmount);
@@ -52,7 +52,7 @@ public class AgilitySkill implements Listener {
 
     private int calculateXpReward() {
         // Define your XP reward calculation here
-        return 2;  // Example: reward 10 XP for every 30 blocks sprinted
+        return 1;  // Example: reward 10 XP for every 30 blocks sprinted
     }
     @EventHandler
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
