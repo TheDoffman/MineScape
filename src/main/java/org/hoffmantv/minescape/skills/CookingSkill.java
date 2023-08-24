@@ -31,49 +31,42 @@ public class CookingSkill implements Listener {
 
     @EventHandler
     public void onPlayerCookFood(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
-        if (event.getClickedBlock() == null || event.getClickedBlock().getType() != Material.CAMPFIRE) {
-            return;
-        }
+        if (event.getClickedBlock() == null || event.getClickedBlock().getType() != Material.CAMPFIRE) return;
 
         ItemStack itemInHand = event.getItem();
-        if (itemInHand == null || !isUncookedFood(itemInHand.getType())) {
-            return;
-        }
+        if (itemInHand == null || !isUncookedFood(itemInHand.getType())) return;
 
-        int playerLevel = skillManager.getSkillLevel(event.getPlayer(), SkillManager.Skill.COOKING);
+        // Cancel the default interaction to prevent adding the food to the campfire
+        event.setCancelled(true);
+
+        Player player = event.getPlayer();
+        int playerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.COOKING);
         Material cookedVersion = getCookedVersion(itemInHand.getType());
 
-        if (shouldBurnFood(playerLevel)) {
-            event.getPlayer().sendMessage("Oops! You burned the food.");
-            itemInHand.setAmount(itemInHand.getAmount() - 1); // Decrease the uncooked food by 1
-            event.getPlayer().getWorld().dropItemNaturally(event.getPlayer().getLocation(), new ItemStack(Material.CHARCOAL)); // Drop burned item (using charcoal as an example of burned food)
-        } else {
-            event.getPlayer().sendMessage("You successfully cooked the food.");
-            itemInHand.setAmount(itemInHand.getAmount() - 1); // Decrease the uncooked food by 1
-            event.getPlayer().getWorld().dropItemNaturally(event.getPlayer().getLocation(), new ItemStack(cookedVersion));
-            // Optionally add XP here based on success
-        }
-        if (!meetsLevelRequirement(event.getPlayer(), itemInHand.getType())) {
-            event.getPlayer().sendMessage("You do not have the required level to cook this food.");
+        // Check player level requirements
+        if (!meetsLevelRequirement(player, itemInHand.getType())) {
+            player.sendMessage("You do not have the required level to cook this food.");
             return;
         }
 
-        if (shouldBurnFood(playerLevel)) {
-            // ... (burning logic)
-        } else {
-            event.getPlayer().sendMessage("You successfully cooked the food.");
-            itemInHand.setAmount(itemInHand.getAmount() - 1);
-            event.getPlayer().getWorld().dropItemNaturally(event.getPlayer().getLocation(), new ItemStack(cookedVersion));
+        itemInHand.setAmount(itemInHand.getAmount() - 1); // Decrease the uncooked food by 1
 
-            // Add XP to the player's cooking skill
+        if (shouldBurnFood(playerLevel)) {
+            player.sendMessage("Oops! You burned the food.");
+            player.getInventory().addItem(new ItemStack(Material.CHARCOAL)); // Add burned item (charcoal) to inventory
+        } else {
+            player.sendMessage("You successfully cooked the food.");
+            player.getInventory().addItem(new ItemStack(cookedVersion)); // Add cooked version to player's inventory
+
+            // Add XP based on success
             int xpToAdd = calculateXpReward(itemInHand.getType());
-            skillManager.addXP(event.getPlayer(), SkillManager.Skill.COOKING, xpToAdd);
+            skillManager.addXP(player, SkillManager.Skill.COOKING, xpToAdd);
         }
     }
+
+
     private boolean meetsLevelRequirement(Player player, Material foodType) {
         return levelRequirements.getOrDefault(foodType, 0) <= skillManager.getSkillLevel(player, SkillManager.Skill.COOKING);
     }
