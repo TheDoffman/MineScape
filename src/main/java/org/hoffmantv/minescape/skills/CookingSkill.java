@@ -53,7 +53,7 @@ public class CookingSkill implements Listener {
         int requiredLevel = getRequiredLevelForFood(itemInHand.getType());
         if (!meetsLevelRequirement(player, itemInHand.getType())) {
             player.sendMessage(ChatColor.RED + "⚠ " + ChatColor.GRAY + "You require level " + ChatColor.GOLD + requiredLevel
-                    + ChatColor.GRAY + " in cooking to prepare this item. Continue practicing to enhance your expertise!");
+                    + ChatColor.GRAY + " in cooking to prepare this item.");
             return;
         }
 
