@@ -18,6 +18,8 @@ commands:
     usage: /alwaysday <enable|disable>
     aliases: [ ad ]
     permission: minescape.alwaysday
+  spawnnpc:
+    description: Spawns an NPC.
 
 permissions:
   minescape.help:
@@ -31,4 +33,7 @@ permissions:
     default: not op
   minescape.alwaysday:
     description: Allows the user to toggle the always day feature.
+    default: op
+  minescape.spawnnpc:
+    description: Allows the user to setup and NPC
     default: op
