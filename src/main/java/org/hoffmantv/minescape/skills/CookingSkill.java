@@ -60,11 +60,11 @@ public class CookingSkill implements Listener {
         itemInHand.setAmount(itemInHand.getAmount() - 1); // Decrease the uncooked food by 1
 
         if (shouldBurnFood(playerLevel)) {
-            player.sendMessage(ChatColor.RED + "✖ " + ChatColor.GRAY + "Sadly, you've burned the food. Try improving your skills!");
+            player.sendMessage(ChatColor.RED + "✖ " + ChatColor.GRAY + "Sadly, you've burned the food.");
             player.getInventory().addItem(getCustomNamedItem(Material.CHARCOAL, "Burned Food"));
         } else {
             player.sendMessage(ChatColor.GREEN + "✓ " + ChatColor.GRAY + "Successfully cooked: " + ChatColor.GOLD + cookedVersion.name().replace("_", " "));
-            player.getInventory().addItem(getCustomNamedItem(cookedVersion, "Cooked " + cookedVersion.name().replace("_", " ")));
+            player.getInventory().addItem(getCustomNamedItem(cookedVersion, cookedVersion.name().replace("_", " ")));
 
             // Add XP based on success
             int xpToAdd = calculateXpReward(itemInHand.getType());
