@@ -6,15 +6,12 @@ import org.hoffmantv.minescape.commands.*;
 import org.hoffmantv.minescape.listeners.*;
 import org.hoffmantv.minescape.managers.*;
 import org.hoffmantv.minescape.mobs.*;
-import org.hoffmantv.minescape.npc.NPCCommand;
-import org.hoffmantv.minescape.npc.NPCManager;
 import org.hoffmantv.minescape.skills.*;
 
 import java.util.Objects;
 
 public class MineScape extends JavaPlugin {
 
-    private NPCManager npcManager;
 
     @Override
     public void onEnable() {
@@ -23,7 +20,6 @@ public class MineScape extends JavaPlugin {
         // Metrics
         int pluginId = 19471;
         new Metrics(this, pluginId);
-        npcManager = new NPCManager(this);
         // Configuration setup
         setupConfiguration();
 
@@ -41,7 +37,6 @@ public class MineScape extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info("MineScape has been disabled!");
-        npcManager.saveNPCs();
 
 
         // Add any cleanup code here
@@ -58,7 +53,6 @@ public class MineScape extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("saveskills")).setExecutor(new SaveSkillsCommand(skillManager));
         Objects.requireNonNull(getCommand("skills")).setExecutor(new SkillsMenuCommand(skillManager));
         Objects.requireNonNull(getCommand("alwaysday")).setExecutor(new AlwaysDayCommand(this));
-        this.getCommand("spawnnpc").setExecutor(new NPCCommand(npcManager));
     }
 
     private void registerEventListeners(SkillManager skillManager, CombatLevel combatLevel) {
