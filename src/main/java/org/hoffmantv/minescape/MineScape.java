@@ -1,17 +1,25 @@
 package org.hoffmantv.minescape;
 
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.*;
 import org.hoffmantv.minescape.listeners.*;
 import org.hoffmantv.minescape.managers.*;
 import org.hoffmantv.minescape.mobs.*;
+import org.hoffmantv.minescape.npc.CreateNPCCommand;
 import org.hoffmantv.minescape.skills.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 
 public class MineScape extends JavaPlugin {
 
+    private File npcFile;
+    private FileConfiguration npcConfig;
 
     @Override
     public void onEnable() {
@@ -22,6 +30,8 @@ public class MineScape extends JavaPlugin {
         new Metrics(this, pluginId);
         // Configuration setup
         setupConfiguration();
+        loadNPCFile();
+        loadNPCs();
 
         // Initialize managers and skills
         SkillManager skillManager = new SkillManager(this);
@@ -38,9 +48,6 @@ public class MineScape extends JavaPlugin {
     public void onDisable() {
         getLogger().info("MineScape has been disabled!");
 
-
-        // Add any cleanup code here
-        // Save data, release resources, etc.
     }
 
     private void setupConfiguration() {
@@ -53,6 +60,7 @@ public class MineScape extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("saveskills")).setExecutor(new SaveSkillsCommand(skillManager));
         Objects.requireNonNull(getCommand("skills")).setExecutor(new SkillsMenuCommand(skillManager));
         Objects.requireNonNull(getCommand("alwaysday")).setExecutor(new AlwaysDayCommand(this));
+        this.getCommand("createnpc").setExecutor(new CreateNPCCommand());
     }
 
     private void registerEventListeners(SkillManager skillManager, CombatLevel combatLevel) {
@@ -89,6 +97,31 @@ public class MineScape extends JavaPlugin {
 
     private void registerListener(Listener listener) {
         getServer().getPluginManager().registerEvents(listener, this);
+
+    }
+    private void loadNPCFile() {
+        npcFile = new File(getDataFolder(), "npcs.yml");
+        if (!npcFile.exists()) {
+            npcFile.getParentFile().mkdirs();
+            saveResource("npcs.yml", false);
+        }
+        npcConfig = new YamlConfiguration();
+        try {
+            npcConfig.load(npcFile);
+        } catch (IOException | InvalidConfigurationException e) {
+            e.printStackTrace();
+        }
     }
 
+    private void loadNPCs() {
+        // Implement NPC loading code here
+    }
+
+    public FileConfiguration getNpcConfig() {
+        return npcConfig;
+    }
+
+    public File getNpcFile() {
+        return npcFile;
+    }
 }
