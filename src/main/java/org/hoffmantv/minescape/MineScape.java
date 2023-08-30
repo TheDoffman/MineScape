@@ -93,6 +93,7 @@ public class MineScape extends JavaPlugin {
         registerListener(new EndermenListener());
         registerListener(new VilligerListener());
         registerListener(new AlwaysDayListener(this));
+        getServer().getPluginManager().registerEvents(new ResourcePackListener(), this);
     }
 
     private void registerListener(Listener listener) {
