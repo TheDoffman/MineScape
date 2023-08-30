@@ -70,10 +70,9 @@ public class CreateNPCCommand implements CommandExecutor {
 
         // Assign equipment (Optional)
         ItemStack weapon = new ItemStack(Material.DIAMOND_SWORD);
-        ItemStack armor = new ItemStack(Material.TURTLE_HELMET);
+        ItemStack armor = new ItemStack(Material.DIAMOND_HELMET);
         npc.getEquipment().setItemInMainHand(weapon);
         npc.getEquipment().setHelmet(armor);
-
         // Add additional customization as needed
     }
 }
