@@ -35,6 +35,6 @@ permissions:
   minescape.alwaysday:
     description: Allows the user to toggle the always day feature.
     default: op
-  minescape.createnpc:
+  minescape.createnpcAM:
     description: Allows the user to setup and NPC
     default: op
