@@ -1,2 +1,5 @@
 ## MineScape ##
+ResourcePack:
+  enabled: false
+  url: "http://example.com/my-resource-pack.zip"
 always-day: true

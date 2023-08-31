@@ -4,14 +4,24 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class ResourcePackListener implements Listener {
 
+    private JavaPlugin plugin;
+
+    public ResourcePackListener(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        String resourcePackURL = "http://example.com/my-resource-pack.zip";
+        boolean isEnabled = plugin.getConfig().getBoolean("ResourcePack.enabled");
+        String resourcePackURL = plugin.getConfig().getString("ResourcePack.url");
 
-        player.setResourcePack(resourcePackURL);
+        if (isEnabled && resourcePackURL != null && !resourcePackURL.isEmpty()) {
+            Player player = event.getPlayer();
+            player.setResourcePack(resourcePackURL);
+        }
     }
 }
