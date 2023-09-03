@@ -1,6 +1,5 @@
 package org.hoffmantv.minescape;
 
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
@@ -12,18 +11,11 @@ import org.hoffmantv.minescape.mobs.*;
 import org.hoffmantv.minescape.skills.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Objects;
 
 public class MineScape extends JavaPlugin {
-
-    private File npcFile;
-    private FileConfiguration npcConfig;
-
-    private File attackFile;
     private FileConfiguration attackConfig;
 
-    private File strengthFile;
     private FileConfiguration strengthConfig;
 
     @Override
@@ -48,7 +40,7 @@ public class MineScape extends JavaPlugin {
         registerEventListeners(skillManager, combatLevel);
 
         // Load or create the attack.yml configuration file
-        attackFile = new File(getDataFolder(), "skills/attack.yml");
+        File attackFile = new File(getDataFolder(), "skills/attack.yml");
         attackConfig = YamlConfiguration.loadConfiguration(attackFile);
 
         if (!attackFile.exists()) {
@@ -56,7 +48,7 @@ public class MineScape extends JavaPlugin {
             saveResource("skills/attack.yml", false);
         }
         // Load or create the strength.yml configuration file
-        strengthFile = new File(getDataFolder(), "skills/strength.yml");
+        File strengthFile = new File(getDataFolder(), "skills/strength.yml");
         strengthConfig = YamlConfiguration.loadConfiguration(strengthFile);
 
         if (!strengthFile.exists()) {
