@@ -58,10 +58,10 @@ public class SkillManager implements Listener {
     }
 
     private void createConfig() {
-        configFile = new File(plugin.getDataFolder(), "skills.yml");
+        configFile = new File(plugin.getDataFolder(), "playerdata.yml");
         if (!configFile.exists()) {
             configFile.getParentFile().mkdirs();
-            plugin.saveResource("skills.yml", false);
+            plugin.saveResource("playerdata.yml", false);
         }
 
         config = new YamlConfiguration();

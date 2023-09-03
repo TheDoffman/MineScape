@@ -3,6 +3,7 @@ package org.hoffmantv.minescape.skills;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,13 +29,10 @@ import java.util.Map;
 public class DefenseSkill implements Listener {
 
     private final SkillManager skillManager;
-    private final CombatLevel combatLevel;
-    private final AttackSkill attackSkill;
 
-    public DefenseSkill(SkillManager skillManager, CombatLevel combatLevel, AttackSkill attackSkill) {
+    public DefenseSkill(SkillManager skillManager, FileConfiguration attackConfig) {
         this.skillManager = skillManager;
-        this.combatLevel = combatLevel;
-        this.attackSkill = attackSkill;
+
     }
 
     @EventHandler

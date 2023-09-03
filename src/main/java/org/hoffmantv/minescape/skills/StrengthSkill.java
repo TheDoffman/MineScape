@@ -2,6 +2,7 @@ package org.hoffmantv.minescape.skills;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,11 +15,12 @@ import org.hoffmantv.minescape.managers.SkillManager;
 public class StrengthSkill implements Listener {
 
     private final SkillManager skillManager;
-    private final AttackSkill attackSkill;
 
-    public StrengthSkill(SkillManager skillManager, AttackSkill attackSkill) {
+    private final FileConfiguration strengthConfig;
+
+    public StrengthSkill(SkillManager skillManager, FileConfiguration strengthConfig) {
         this.skillManager = skillManager;
-        this.attackSkill = attackSkill;
+        this.strengthConfig = strengthConfig;
     }
 
     @EventHandler
@@ -82,7 +84,7 @@ public class StrengthSkill implements Listener {
     }
 
     private int calculateXpReward(int mobLevel) {
-        return (3 + mobLevel);
+        return strengthConfig.getInt("xpReward", 10); // Default value 10
     }
 
     private boolean isExcludedMob(LivingEntity mob) {

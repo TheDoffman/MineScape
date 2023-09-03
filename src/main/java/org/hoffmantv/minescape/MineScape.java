@@ -9,7 +9,6 @@ import org.hoffmantv.minescape.commands.*;
 import org.hoffmantv.minescape.listeners.*;
 import org.hoffmantv.minescape.managers.*;
 import org.hoffmantv.minescape.mobs.*;
-import org.hoffmantv.minescape.npc.CreateNPCCommand;
 import org.hoffmantv.minescape.skills.*;
 
 import java.io.File;
@@ -21,17 +20,22 @@ public class MineScape extends JavaPlugin {
     private File npcFile;
     private FileConfiguration npcConfig;
 
+    private File attackFile;
+    private FileConfiguration attackConfig;
+
+    private File strengthFile;
+    private FileConfiguration strengthConfig;
+
     @Override
     public void onEnable() {
-        getLogger().info("MineScape has been enabled!");
+
+        getLogger().info("MineScape Alpha Version 0.1 has been enabled!");
 
         // Metrics
         int pluginId = 19471;
         new Metrics(this, pluginId);
         // Configuration setup
         setupConfiguration();
-        loadNPCFile();
-        loadNPCs();
 
         // Initialize managers and skills
         SkillManager skillManager = new SkillManager(this);
@@ -42,6 +46,23 @@ public class MineScape extends JavaPlugin {
 
         // Register event listeners
         registerEventListeners(skillManager, combatLevel);
+
+        // Load or create the attack.yml configuration file
+        attackFile = new File(getDataFolder(), "skills/attack.yml");
+        attackConfig = YamlConfiguration.loadConfiguration(attackFile);
+
+        if (!attackFile.exists()) {
+            // Create the file if it doesn't exist
+            saveResource("skills/attack.yml", false);
+        }
+        // Load or create the strength.yml configuration file
+        strengthFile = new File(getDataFolder(), "skills/strength.yml");
+        strengthConfig = YamlConfiguration.loadConfiguration(strengthFile);
+
+        if (!strengthFile.exists()) {
+            // Create the file if it doesn't exist
+            saveResource("skills/strength.yml", false);
+        }
     }
 
     @Override
@@ -60,7 +81,6 @@ public class MineScape extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("saveskills")).setExecutor(new SaveSkillsCommand(skillManager));
         Objects.requireNonNull(getCommand("skills")).setExecutor(new SkillsMenuCommand(skillManager));
         Objects.requireNonNull(getCommand("alwaysday")).setExecutor(new AlwaysDayCommand(this));
-        this.getCommand("createnpc").setExecutor(new CreateNPCCommand());
     }
 
     private void registerEventListeners(SkillManager skillManager, CombatLevel combatLevel) {
@@ -73,9 +93,9 @@ public class MineScape extends JavaPlugin {
         registerListener(new FiremakingSkill(skillManager, this));
         registerListener(new HitpointsSkill(skillManager, this));
         registerListener(new PrayerSkill(skillManager, this));
-        registerListener(new AttackSkill(skillManager, combatLevel));
-        registerListener(new StrengthSkill(skillManager, new AttackSkill(skillManager, combatLevel)));
-        registerListener(new DefenseSkill(skillManager, combatLevel, new AttackSkill(skillManager, combatLevel)));
+        registerListener(new AttackSkill(skillManager, attackConfig));
+        registerListener(new StrengthSkill(skillManager, strengthConfig));
+        registerListener(new DefenseSkill(skillManager, attackConfig));
         registerListener(new RangeSkill(this, skillManager));
         registerListener(new AgilitySkill(skillManager));
         registerListener(new CookingSkill(skillManager));
@@ -100,29 +120,11 @@ public class MineScape extends JavaPlugin {
         getServer().getPluginManager().registerEvents(listener, this);
 
     }
-    private void loadNPCFile() {
-        npcFile = new File(getDataFolder(), "npcs.yml");
-        if (!npcFile.exists()) {
-            npcFile.getParentFile().mkdirs();
-            saveResource("npcs.yml", false);
-        }
-        npcConfig = new YamlConfiguration();
-        try {
-            npcConfig.load(npcFile);
-        } catch (IOException | InvalidConfigurationException e) {
-            e.printStackTrace();
-        }
+    // Getter method to access the attack.yml configuration
+    public FileConfiguration getAttackConfig() {
+        return attackConfig;
     }
-
-    private void loadNPCs() {
-        // Implement NPC loading code here
-    }
-
-    public FileConfiguration getNpcConfig() {
-        return npcConfig;
-    }
-
-    public File getNpcFile() {
-        return npcFile;
+    public FileConfiguration getStrengthConfig() {
+        return strengthConfig;
     }
 }

@@ -2,6 +2,7 @@ package org.hoffmantv.minescape.skills;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,13 +16,12 @@ import java.util.Random;
 public class AttackSkill implements Listener {
 
     private final SkillManager skillManager;
-    private final CombatLevel combatLevel;
+    private final FileConfiguration attackConfig;
 
-    public AttackSkill(SkillManager skillManager, CombatLevel combatLevel){
+    public AttackSkill(SkillManager skillManager, FileConfiguration attackConfig){
         this.skillManager = skillManager;
-        this.combatLevel = combatLevel;
+        this.attackConfig = attackConfig;
     }
-
     @EventHandler
     public void onPlayerDamageMob(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof LivingEntity)) {
@@ -56,8 +56,12 @@ public class AttackSkill implements Listener {
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }
     private int calculateXpReward(int mobLevel) {
-        // This formula can be adjusted to your liking
-        return (int) (10 + mobLevel * 1.3);
+        // Read the values from Attack.yml
+        int baseXpReward = attackConfig.getInt("baseXpReward", 10); // Default value 10
+        double mobLevelMultiplier = attackConfig.getDouble("mobLevelMultiplier", 1.3); // Default value 1.3
+
+        // Use the values from the configuration
+        return (int) (baseXpReward + mobLevel * mobLevelMultiplier);
     }
     public boolean doesPlayerMissAttack(int playerLevel, int mobLevel) {
         int baseMissChance = 20;  // 20% base chance to miss

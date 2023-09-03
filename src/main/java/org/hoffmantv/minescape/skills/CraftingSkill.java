@@ -32,7 +32,7 @@ public class CraftingSkill implements Listener {
         skillManager.addXP(player, SkillManager.Skill.CRAFTING, xpAmount);
 
         // Notify the player about the XP gained
-        player.sendActionBar(ChatColor.GOLD + "Cooking +" + xpAmount);
+        player.sendActionBar(ChatColor.GOLD + "Crafting +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
     }
 
