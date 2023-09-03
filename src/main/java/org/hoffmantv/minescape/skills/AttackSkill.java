@@ -57,11 +57,11 @@ public class AttackSkill implements Listener {
     }
     private int calculateXpReward(int mobLevel) {
         // Read the values from Attack.yml
-        int baseXpReward = attackConfig.getInt("baseXpReward", 10); // Default value 10
+        int xpReward = attackConfig.getInt("xpReward", 10); // Default value 10
         double mobLevelMultiplier = attackConfig.getDouble("mobLevelMultiplier", 1.3); // Default value 1.3
 
         // Use the values from the configuration
-        return (int) (baseXpReward + mobLevel * mobLevelMultiplier);
+        return (int) (xpReward + mobLevel * mobLevelMultiplier);
     }
     public boolean doesPlayerMissAttack(int playerLevel, int mobLevel) {
         int baseMissChance = 20;  // 20% base chance to miss

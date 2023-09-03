@@ -85,7 +85,7 @@ public class MineScape extends JavaPlugin {
         registerListener(new FiremakingSkill(skillManager, this));
         registerListener(new HitpointsSkill(skillManager, this));
         registerListener(new PrayerSkill(skillManager, this));
-        registerListener(new AttackSkill(skillManager, attackConfig));
+        AttackSkill attackSkill = new AttackSkill(skillManager, attackConfig);
         registerListener(new StrengthSkill(skillManager, strengthConfig));
         registerListener(new DefenseSkill(skillManager, attackConfig));
         registerListener(new RangeSkill(this, skillManager));
@@ -106,6 +106,7 @@ public class MineScape extends JavaPlugin {
         registerListener(new VilligerListener());
         registerListener(new AlwaysDayListener(this));
         getServer().getPluginManager().registerEvents(new ResourcePackListener(this), this);
+        getServer().getPluginManager().registerEvents(attackSkill, this);
     }
 
     private void registerListener(Listener listener) {
