@@ -30,7 +30,7 @@ public class DefenseSkill implements Listener {
 
     private final SkillManager skillManager;
 
-    public DefenseSkill(SkillManager skillManager, FileConfiguration attackConfig) {
+    public DefenseSkill(SkillManager skillManager) {
         this.skillManager = skillManager;
 
     }

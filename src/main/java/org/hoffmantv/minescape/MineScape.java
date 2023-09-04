@@ -1,7 +1,6 @@
 package org.hoffmantv.minescape;
 
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.*;
@@ -14,13 +13,11 @@ import java.io.File;
 import java.util.Objects;
 
 public class MineScape extends JavaPlugin {
-    private FileConfiguration attackConfig;
 
-    private FileConfiguration strengthConfig;
+    private ConfigurationManager configManager;
 
     @Override
     public void onEnable() {
-
         getLogger().info("MineScape Alpha Version 0.1 has been enabled!");
 
         // Metrics
@@ -39,22 +36,6 @@ public class MineScape extends JavaPlugin {
         // Register event listeners
         registerEventListeners(skillManager, combatLevel);
 
-        // Load or create the attack.yml configuration file
-        File attackFile = new File(getDataFolder(), "skills/attack.yml");
-        attackConfig = YamlConfiguration.loadConfiguration(attackFile);
-
-        if (!attackFile.exists()) {
-            // Create the file if it doesn't exist
-            saveResource("skills/attack.yml", false);
-        }
-        // Load or create the strength.yml configuration file
-        File strengthFile = new File(getDataFolder(), "skills/strength.yml");
-        strengthConfig = YamlConfiguration.loadConfiguration(strengthFile);
-
-        if (!strengthFile.exists()) {
-            // Create the file if it doesn't exist
-            saveResource("skills/strength.yml", false);
-        }
     }
 
     @Override
@@ -76,8 +57,21 @@ public class MineScape extends JavaPlugin {
     }
 
     private void registerEventListeners(SkillManager skillManager, CombatLevel combatLevel) {
-        registerListener(new WaterListener(this));
+
+        // Initialize the configuration manager
+        configManager = new ConfigurationManager(this);
+
+        // Load your custom configuration files
+        FileConfiguration attackConfig = configManager.loadConfig("skills/attack.yml");
+        FileConfiguration strengthConfig = configManager.loadConfig("skills/strength.yml");
+        FileConfiguration defenceConfig = configManager.loadConfig("skills/defence.yml");
+
+// Initialize AttackSkill with the attackConfig
+        AttackSkill attackSkill = new AttackSkill(skillManager, attackConfig, configManager);
+
         registerListener(skillManager);
+        registerListener(attackSkill);
+        registerListener(new WaterListener(this));
         registerListener(new CombatLevelSystem(this, combatLevel));
         registerListener(new WoodcuttingSkill(skillManager, this));
         registerListener(new MiningSkill(skillManager, this));
@@ -85,9 +79,8 @@ public class MineScape extends JavaPlugin {
         registerListener(new FiremakingSkill(skillManager, this));
         registerListener(new HitpointsSkill(skillManager, this));
         registerListener(new PrayerSkill(skillManager, this));
-        AttackSkill attackSkill = new AttackSkill(skillManager, attackConfig);
-        registerListener(new StrengthSkill(skillManager, strengthConfig));
-        registerListener(new DefenseSkill(skillManager, attackConfig));
+        registerListener(new StrengthSkill(skillManager));
+        registerListener(new DefenseSkill(skillManager));
         registerListener(new RangeSkill(this, skillManager));
         registerListener(new AgilitySkill(skillManager));
         registerListener(new CookingSkill(skillManager));
@@ -106,18 +99,10 @@ public class MineScape extends JavaPlugin {
         registerListener(new VilligerListener());
         registerListener(new AlwaysDayListener(this));
         getServer().getPluginManager().registerEvents(new ResourcePackListener(this), this);
-        getServer().getPluginManager().registerEvents(attackSkill, this);
     }
 
     private void registerListener(Listener listener) {
         getServer().getPluginManager().registerEvents(listener, this);
 
-    }
-    // Getter method to access the attack.yml configuration
-    public FileConfiguration getAttackConfig() {
-        return attackConfig;
-    }
-    public FileConfiguration getStrengthConfig() {
-        return strengthConfig;
     }
 }

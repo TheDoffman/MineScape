@@ -1,3 +1,5 @@
 ## XP Numbers for the Attack skill ##
 xpReward: 10
 mobLevelMultiplier: 1.3
+maxXP: 100
+minXP: 1

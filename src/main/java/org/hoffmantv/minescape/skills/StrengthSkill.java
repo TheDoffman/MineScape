@@ -16,11 +16,8 @@ public class StrengthSkill implements Listener {
 
     private final SkillManager skillManager;
 
-    private final FileConfiguration strengthConfig;
-
-    public StrengthSkill(SkillManager skillManager, FileConfiguration strengthConfig) {
+    public StrengthSkill(SkillManager skillManager) {
         this.skillManager = skillManager;
-        this.strengthConfig = strengthConfig;
     }
 
     @EventHandler
@@ -84,7 +81,9 @@ public class StrengthSkill implements Listener {
     }
 
     private int calculateXpReward(int mobLevel) {
-        return strengthConfig.getInt("xpReward", 10); // Default value 10
+        int basexp = 10;
+
+        return basexp;
     }
 
     private boolean isExcludedMob(LivingEntity mob) {

@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
+import org.hoffmantv.minescape.managers.ConfigurationManager;
 import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.Random;
@@ -16,11 +17,13 @@ import java.util.Random;
 public class AttackSkill implements Listener {
 
     private final SkillManager skillManager;
+    private final ConfigurationManager configManager;
     private final FileConfiguration attackConfig;
 
-    public AttackSkill(SkillManager skillManager, FileConfiguration attackConfig){
+    public AttackSkill(SkillManager skillManager, FileConfiguration attackConfig, ConfigurationManager configManager){
         this.skillManager = skillManager;
-        this.attackConfig = attackConfig;
+        this.configManager = configManager;
+        this.attackConfig = configManager.loadConfig("skills/attack.yml");
     }
     @EventHandler
     public void onPlayerDamageMob(EntityDamageByEntityEvent event) {
@@ -84,5 +87,8 @@ public class AttackSkill implements Listener {
         int roll = random.nextInt(100);
 
         return roll < totalMissChance;
+    }
+    public void saveAttackConfig() {
+        configManager.saveConfig("skills/attack.yml", attackConfig);
     }
 }

@@ -1,2 +1,4 @@
 ## XP Numbers for the Strength skill ##
-xpReward: 150
+xpReward: 10
+maxXP: 100
+minXP: 1
