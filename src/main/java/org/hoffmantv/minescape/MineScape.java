@@ -9,7 +9,6 @@ import org.hoffmantv.minescape.managers.*;
 import org.hoffmantv.minescape.mobs.*;
 import org.hoffmantv.minescape.skills.*;
 
-import java.io.File;
 import java.util.Objects;
 
 public class MineScape extends JavaPlugin {
