@@ -8,7 +8,6 @@ import org.hoffmantv.minescape.listeners.*;
 import org.hoffmantv.minescape.managers.*;
 import org.hoffmantv.minescape.mobs.*;
 import org.hoffmantv.minescape.skills.*;
-
 import java.util.Objects;
 
 public class MineScape extends JavaPlugin {
