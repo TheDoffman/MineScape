@@ -17,13 +17,11 @@ import java.util.Random;
 public class AttackSkill implements Listener {
 
     private final SkillManager skillManager;
-    private final ConfigurationManager configManager;
     private final FileConfiguration attackConfig;
 
     public AttackSkill(SkillManager skillManager, FileConfiguration attackConfig, ConfigurationManager configManager){
         this.skillManager = skillManager;
-        this.configManager = configManager;
-        this.attackConfig = configManager.loadConfig("skills/attack.yml");
+        this.attackConfig = configManager.getConfig("skills/attack.yml");
     }
     @EventHandler
     public void onPlayerDamageMob(EntityDamageByEntityEvent event) {
@@ -87,8 +85,5 @@ public class AttackSkill implements Listener {
         int roll = random.nextInt(100);
 
         return roll < totalMissChance;
-    }
-    public void saveAttackConfig() {
-        configManager.saveConfig("skills/attack.yml", attackConfig);
     }
 }

@@ -10,7 +10,7 @@ import org.hoffmantv.minescape.mobs.*;
 import org.hoffmantv.minescape.skills.*;
 import java.util.Objects;
 
-public class MineScape extends JavaPlugin {
+public class  MineScape extends JavaPlugin {
 
     private ConfigurationManager configManager;
 

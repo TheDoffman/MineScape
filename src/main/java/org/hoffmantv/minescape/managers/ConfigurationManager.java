@@ -38,4 +38,12 @@ public class ConfigurationManager {
             plugin.getLogger().severe("Error saving " + fileName);
         }
     }
+    public FileConfiguration getConfig(String filePath) {
+        File configFile = new File(plugin.getDataFolder(), filePath);
+        if (!configFile.exists()) {
+            plugin.saveResource(filePath, false);
+        }
+        return YamlConfiguration.loadConfiguration(configFile);
+    }
 }
+
