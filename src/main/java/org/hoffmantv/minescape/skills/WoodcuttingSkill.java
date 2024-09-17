@@ -27,33 +27,27 @@ public class WoodcuttingSkill implements Listener {
     // Enum for Tree Types with corresponding Material and Required Level
     public enum TreeType {
 
-        OAK(Material.OAK_LOG, 1, 10, Material.OAK_SAPLING, 200L), // 10 Seconds
-        DARK_OAK(Material.DARK_OAK_LOG, 10, 20, Material.DARK_OAK_SAPLING, 300L), // 15 Seconds
-        BIRCH(Material.BIRCH_LOG, 20, 12, Material.BIRCH_SAPLING, 500L), // 25 Seconds
-        SPRUCE(Material.SPRUCE_LOG, 30, 14, Material.SPRUCE_SAPLING, 1000L), // 50 Seconds
-        JUNGLE(Material.JUNGLE_LOG, 40, 16, Material.JUNGLE_SAPLING, 1200L), // 1 Min
-        ACACIA(Material.ACACIA_LOG, 50, 18, Material.ACACIA_SAPLING, 2400L); // 2 Min
+        OAK(Material.OAK_LOG, 1, 10, Material.OAK_SAPLING),
+        DARK_OAK(Material.DARK_OAK_LOG, 10, 20, Material.DARK_OAK_SAPLING),
+        BIRCH(Material.BIRCH_LOG, 20, 12, Material.BIRCH_SAPLING),
+        SPRUCE(Material.SPRUCE_LOG, 30, 14, Material.SPRUCE_SAPLING),
+        JUNGLE(Material.JUNGLE_LOG, 40, 16, Material.JUNGLE_SAPLING),
+        ACACIA(Material.ACACIA_LOG, 50, 18, Material.ACACIA_SAPLING);
 
         private final Material material;
         private final int requiredLevel;
         private final double xpValue;
         private final Material sapling;
-        private final long growthDelayTicks;
 
-        TreeType(Material material, int requiredLevel, double xpValue, Material sapling, long growthDelayTicks) {
+        TreeType(Material material, int requiredLevel, double xpValue, Material sapling) {
             this.material = material;
             this.requiredLevel = requiredLevel;
             this.xpValue = xpValue;
             this.sapling = sapling;
-            this.growthDelayTicks = growthDelayTicks;
         }
 
         public Material getMaterial() {
             return material;
-        }
-
-        public long getGrowthDelayTicks() {
-            return growthDelayTicks;
         }
 
         public int getRequiredLevel() {
@@ -192,16 +186,255 @@ public class WoodcuttingSkill implements Listener {
     }
 
     private void scheduleTreeGrowth(Location location, TreeType treeType) {
+        long minDelay = 100L; // 5 seconds in ticks
+        long maxDelay = 300L; // 15 seconds in ticks
+        long randomDelay = minDelay + (long) (Math.random() * (maxDelay - minDelay + 1));
+
+        plugin.getLogger().info("Scheduling growth for " + treeType.name() + " in " + (randomDelay / 20) + " seconds at " + location);
+
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+            plugin.getLogger().info("Attempting to grow " + treeType.name() + " at " + location);
             if (location.getBlock().getType() == treeType.getSapling()) {
                 growTree(location, treeType);
+            } else {
+                plugin.getLogger().info("Sapling was not found at the location.");
             }
-        }, treeType.getGrowthDelayTicks());
+        }, randomDelay);
     }
 
     private void growTree(Location location, TreeType treeType) {
-        // Use Bukkit's built-in tree generation to simulate regrowth
-        location.getWorld().generateTree(location, convertToBukkitTreeType(treeType));
+        // Clear space around the sapling location
+        clearSpaceForTree(location);
+
+        // Remove the sapling before generating the tree
+        location.getBlock().setType(Material.AIR);
+
+        // Use custom tree generation methods
+        switch (treeType) {
+            case OAK:
+                growCustomOakTree(location);
+                break;
+            case BIRCH:
+                growCustomBirchTree(location);
+                break;
+            case SPRUCE:
+                growCustomSpruceTree(location);
+                break;
+            case JUNGLE:
+                growCustomJungleTree(location);
+                break;
+            case ACACIA:
+                growCustomAcaciaTree(location);
+                break;
+            case DARK_OAK:
+                growCustomDarkOakTree(location);
+                break;
+            default:
+                // Default to built-in generation if custom method is not available
+                boolean success = location.getWorld().generateTree(location, convertToBukkitTreeType(treeType));
+                if (success) {
+                    plugin.getLogger().info(treeType.name() + " tree successfully grown at " + location);
+                } else {
+                    plugin.getLogger().info("Failed to grow " + treeType.name() + " tree at " + location);
+                }
+                break;
+        }
+    }
+
+    private void clearSpaceForTree(Location location) {
+        int radius = 5; // Adjust as needed
+        int height = 10; // Adjust as needed
+
+        World world = location.getWorld();
+        int baseX = location.getBlockX();
+        int baseY = location.getBlockY();
+        int baseZ = location.getBlockZ();
+
+        for (int x = baseX - radius; x <= baseX + radius; x++) {
+            for (int y = baseY; y <= baseY + height; y++) {
+                for (int z = baseZ - radius; z <= baseZ + radius; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    if (!block.isEmpty() && block.getType() != Material.DIRT && block.getType() != Material.GRASS_BLOCK) {
+                        block.setType(Material.AIR);
+                    }
+                }
+            }
+        }
+    }
+
+    // Custom tree generation methods
+    private void growCustomOakTree(Location location) {
+        World world = location.getWorld();
+
+        int height = 5; // Example fixed height
+
+        // Place log blocks
+        for (int y = 0; y < height; y++) {
+            world.getBlockAt(location.getBlockX(), location.getBlockY() + y, location.getBlockZ()).setType(Material.OAK_LOG);
+        }
+
+        // Place leaves around the top
+        int leafRadius = 2;
+        for (int x = -leafRadius; x <= leafRadius; x++) {
+            for (int y = height - 2; y <= height; y++) {
+                for (int z = -leafRadius; z <= leafRadius; z++) {
+                    if (Math.abs(x) + Math.abs(y - (height - 1)) + Math.abs(z) <= leafRadius) {
+                        Block leafBlock = world.getBlockAt(location.getBlockX() + x, location.getBlockY() + y, location.getBlockZ() + z);
+                        if (leafBlock.getType() == Material.AIR) {
+                            leafBlock.setType(Material.OAK_LEAVES);
+                        }
+                    }
+                }
+            }
+        }
+
+        plugin.getLogger().info("Custom oak tree grown at " + location);
+    }
+
+    // Implement similar methods for other tree types
+    private void growCustomBirchTree(Location location) {
+        World world = location.getWorld();
+
+        int height = 6; // Example height for birch
+
+        // Place log blocks
+        for (int y = 0; y < height; y++) {
+            world.getBlockAt(location.getBlockX(), location.getBlockY() + y, location.getBlockZ()).setType(Material.BIRCH_LOG);
+        }
+
+        // Place leaves around the top
+        int leafRadius = 2;
+        for (int x = -leafRadius; x <= leafRadius; x++) {
+            for (int y = height - 2; y <= height; y++) {
+                for (int z = -leafRadius; z <= leafRadius; z++) {
+                    if (Math.abs(x) + Math.abs(y - (height - 1)) + Math.abs(z) <= leafRadius) {
+                        Block leafBlock = world.getBlockAt(location.getBlockX() + x, location.getBlockY() + y, location.getBlockZ() + z);
+                        if (leafBlock.getType() == Material.AIR) {
+                            leafBlock.setType(Material.BIRCH_LEAVES);
+                        }
+                    }
+                }
+            }
+        }
+
+        plugin.getLogger().info("Custom birch tree grown at " + location);
+    }
+
+    private void growCustomSpruceTree(Location location) {
+        World world = location.getWorld();
+
+        int height = 8; // Example height for spruce
+
+        // Place log blocks
+        for (int y = 0; y < height; y++) {
+            world.getBlockAt(location.getBlockX(), location.getBlockY() + y, location.getBlockZ()).setType(Material.SPRUCE_LOG);
+        }
+
+        // Place leaves in a cone shape
+        int maxRadius = 3;
+        for (int y = 0; y < height; y++) {
+            int radius = maxRadius - (y * maxRadius) / height;
+            for (int x = -radius; x <= radius; x++) {
+                for (int z = -radius; z <= radius; z++) {
+                    if (x * x + z * z <= radius * radius) {
+                        Block leafBlock = world.getBlockAt(location.getBlockX() + x, location.getBlockY() + y, location.getBlockZ() + z);
+                        if (leafBlock.getType() == Material.AIR) {
+                            leafBlock.setType(Material.SPRUCE_LEAVES);
+                        }
+                    }
+                }
+            }
+        }
+
+        plugin.getLogger().info("Custom spruce tree grown at " + location);
+    }
+
+    private void growCustomJungleTree(Location location) {
+        World world = location.getWorld();
+
+        int height = 10; // Example height for jungle tree
+
+        // Place log blocks
+        for (int y = 0; y < height; y++) {
+            world.getBlockAt(location.getBlockX(), location.getBlockY() + y, location.getBlockZ()).setType(Material.JUNGLE_LOG);
+        }
+
+        // Place leaves around the top
+        int leafRadius = 3;
+        for (int x = -leafRadius; x <= leafRadius; x++) {
+            for (int y = height - 3; y <= height; y++) {
+                for (int z = -leafRadius; z <= leafRadius; z++) {
+                    if (Math.abs(x) + Math.abs(y - (height - 1)) + Math.abs(z) <= leafRadius + 1) {
+                        Block leafBlock = world.getBlockAt(location.getBlockX() + x, location.getBlockY() + y, location.getBlockZ() + z);
+                        if (leafBlock.getType() == Material.AIR) {
+                            leafBlock.setType(Material.JUNGLE_LEAVES);
+                        }
+                    }
+                }
+            }
+        }
+
+        plugin.getLogger().info("Custom jungle tree grown at " + location);
+    }
+
+    private void growCustomAcaciaTree(Location location) {
+        World world = location.getWorld();
+
+        int height = 6; // Example height for acacia
+
+        // Place log blocks in a diagonal
+        for (int y = 0; y < height; y++) {
+            int offsetX = y % 2 == 0 ? 0 : 1;
+            world.getBlockAt(location.getBlockX() + offsetX, location.getBlockY() + y, location.getBlockZ()).setType(Material.ACACIA_LOG);
+        }
+
+        // Place leaves at the top
+        int leafRadius = 3;
+        int topY = location.getBlockY() + height - 1;
+        for (int x = -leafRadius; x <= leafRadius; x++) {
+            for (int z = -leafRadius; z <= leafRadius; z++) {
+                if (Math.abs(x) + Math.abs(z) <= leafRadius) {
+                    Block leafBlock = world.getBlockAt(location.getBlockX() + x, topY, location.getBlockZ() + z);
+                    if (leafBlock.getType() == Material.AIR) {
+                        leafBlock.setType(Material.ACACIA_LEAVES);
+                    }
+                }
+            }
+        }
+
+        plugin.getLogger().info("Custom acacia tree grown at " + location);
+    }
+
+    private void growCustomDarkOakTree(Location location) {
+        World world = location.getWorld();
+
+        int height = 7; // Example height for dark oak
+
+        // Place log blocks in a 2x2 pattern
+        for (int y = 0; y < height; y++) {
+            for (int dx = 0; dx <= 1; dx++) {
+                for (int dz = 0; dz <= 1; dz++) {
+                    world.getBlockAt(location.getBlockX() + dx, location.getBlockY() + y, location.getBlockZ() + dz).setType(Material.DARK_OAK_LOG);
+                }
+            }
+        }
+
+        // Place leaves around the top
+        int leafRadius = 3;
+        for (int x = -leafRadius; x <= leafRadius + 1; x++) {
+            for (int y = height - 2; y <= height + 1; y++) {
+                for (int z = -leafRadius; z <= leafRadius + 1; z++) {
+                    if (Math.abs(x) + Math.abs(y - (height - 1)) + Math.abs(z) <= leafRadius + 1) {
+                        Block leafBlock = world.getBlockAt(location.getBlockX() + x, location.getBlockY() + y, location.getBlockZ() + z);
+                        if (leafBlock.getType() == Material.AIR) {
+                            leafBlock.setType(Material.DARK_OAK_LEAVES);
+                        }
+                    }
+                }
+            }
+        }
+
+        plugin.getLogger().info("Custom dark oak tree grown at " + location);
     }
 
     private org.bukkit.TreeType convertToBukkitTreeType(TreeType treeType) {
