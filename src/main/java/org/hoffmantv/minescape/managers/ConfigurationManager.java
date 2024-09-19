@@ -46,4 +46,3 @@ public class ConfigurationManager {
         return YamlConfiguration.loadConfiguration(configFile);
     }
 }
-

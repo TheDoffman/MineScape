@@ -95,8 +95,10 @@ public class  MineScape extends JavaPlugin {
         registerListener(new PigListener());
         registerListener(new EndermenListener());
         registerListener(new VilligerListener());
-        registerListener(new AlwaysDayListener(this));
-        getServer().getPluginManager().registerEvents(new ResourcePackListener(this), this);
+        registerListener(new AlwaysDay(this));
+        getServer().getPluginManager().registerEvents(new ResourcePack(this), this);
+        getServer().getPluginManager().registerEvents(new InventoryBlocker(this), this);
+
     }
 
     private void registerListener(Listener listener) {

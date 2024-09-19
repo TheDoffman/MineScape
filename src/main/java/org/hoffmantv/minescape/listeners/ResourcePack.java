@@ -6,11 +6,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class ResourcePackListener implements Listener {
+public class ResourcePack implements Listener {
 
     private JavaPlugin plugin;
 
-    public ResourcePackListener(JavaPlugin plugin) {
+    public ResourcePack(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
