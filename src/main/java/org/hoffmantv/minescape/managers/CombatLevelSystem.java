@@ -1,5 +1,6 @@
 package org.hoffmantv.minescape.managers;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
@@ -9,26 +10,19 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.skills.CombatLevel;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class CombatLevelSystem implements Listener {
 
     private final JavaPlugin plugin;
     private final Random random = new Random();
     private final CombatLevel combatLevel;
-    private final Map<UUID, BossBar> mobBossBars = new HashMap<>();
+    private final Map<UUID, BossBar> mobBossBars = new WeakHashMap<>();
+
     public CombatLevelSystem(JavaPlugin plugin, CombatLevel combatLevel) {
         this.plugin = plugin;
         this.combatLevel = combatLevel;
@@ -42,59 +36,70 @@ public class CombatLevelSystem implements Listener {
                 }
             }
         }
+
+        // Start BossBar updater
+        startBossBarUpdater();
     }
 
     private void assignMobLevel(LivingEntity mob) {
         Player closestPlayer = findClosestPlayer(mob);
+        int mobLevel;
 
         if (closestPlayer != null) {
-            int playerCombatLevel = combatLevel.calculateCombatLevel(
-                    closestPlayer
-            ); // use CombatLevel class here
-
-            int mobLevel = playerCombatLevel + random.nextInt(11) - 5; // Range: player combat level +/- 5
-
-            String mobName = mob.getType().toString().replace("_", " ").toLowerCase();
-            // Capitalize the first letter
-            mobName = Character.toUpperCase(mobName.charAt(0)) + mobName.substring(1);
-
-            mob.setCustomNameVisible(true);
-            mob.setCustomName(ChatColor.translateAlternateColorCodes('&',
-                    getColorBasedOnDifficulty(playerCombatLevel, mobLevel) + mobName + ": LvL " + mobLevel
-            ));
-
-            adjustMobAttributes(mob, mobLevel);
+            int playerCombatLevel = combatLevel.calculateCombatLevel(closestPlayer);
+            mobLevel = playerCombatLevel + random.nextInt(11) - 5; // player level +/-5
+        } else {
+            mobLevel = random.nextInt(5) + 1; // Random level between 1 and 5
         }
+
+        // Ensure mobLevel is at least 1
+        mobLevel = Math.max(mobLevel, 1);
+
+        setMobNameAndAttributes(mob, mobLevel);
     }
 
+    private void setMobNameAndAttributes(LivingEntity mob, int mobLevel) {
+        String mobName = formatMobName(mob.getType().toString());
+        mob.setCustomNameVisible(true);
+        mob.setCustomName(ChatColor.translateAlternateColorCodes('&',
+                getColorBasedOnDifficulty(mobLevel) + mobName + ": LvL " + mobLevel
+        ));
+        adjustMobAttributes(mob, mobLevel);
+    }
+
+    private String formatMobName(String rawName) {
+        String formattedName = rawName.replace("_", " ").toLowerCase();
+        return Character.toUpperCase(formattedName.charAt(0)) + formattedName.substring(1);
+    }
 
     // Adjust the attributes of the mob based on its level
     private void adjustMobAttributes(LivingEntity mob, int mobLevel) {
         // Adjust health
-        double baseHealth = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-        double newHealth = baseHealth + (mobLevel * 0.5);  // Example: Increase health by 0.5 per level
-        mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(newHealth);
-        mob.setHealth(newHealth);
+        if (mob.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
+            double baseHealth = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+            double newHealth = baseHealth + (mobLevel * 0.5);  // Increase health by 0.5 per level
+            mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(newHealth);
+            mob.setHealth(newHealth);
+        }
 
-        // Adjust damage (only if the mob has a melee damage attribute)
+        // Adjust damage
         if (mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) != null) {
             double baseDamage = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getBaseValue();
-            double newDamage = baseDamage + (mobLevel * 0.1);  // Example: Increase damage by 0.1 per level
+            double newDamage = baseDamage + (mobLevel * 0.1);  // Increase damage by 0.1 per level
             mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(newDamage);
         }
-    }
-    @EventHandler
-    public void onEntitySpawn(CreatureSpawnEvent event) {
-        LivingEntity entity = event.getEntity();
-        assignMobLevel(entity);
     }
 
     @EventHandler
     public void onMobSpawn(CreatureSpawnEvent event) {
         if (!(event.getEntity() instanceof Monster)) return;
-        LivingEntity mob = (LivingEntity) event.getEntity();
+        if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER_EGG) {
+            // Handle mobs spawned by eggs differently if needed
+        }
+        LivingEntity mob = event.getEntity();
         assignMobLevel(mob);
     }
+
     private Player findClosestPlayer(LivingEntity mob) {
         double closestDistance = Double.MAX_VALUE;
         Player closestPlayer = null;
@@ -108,14 +113,14 @@ public class CombatLevelSystem implements Listener {
         return closestPlayer;
     }
 
-    private String getColorBasedOnDifficulty(int playerLevel, int mobLevel) {
-        int levelDifference = mobLevel - playerLevel;
-        if (levelDifference > 4) return "&4";      // Red for much stronger mobs
-        if (levelDifference > 2) return "&c";      // Dark red for stronger mobs
-        if (levelDifference >= -2) return "&e";    // Yellow for mobs at similar level
-        if (levelDifference >= -4) return "&a";    // Green for weaker mobs
-        return "&2";                               // Dark green for much weaker mobs
+    private String getColorBasedOnDifficulty(int mobLevel) {
+        if (mobLevel >= 50) return "&4";    // Red for very high-level mobs
+        if (mobLevel >= 30) return "&c";    // Dark red for high-level mobs
+        if (mobLevel >= 20) return "&e";    // Yellow for mid-level mobs
+        if (mobLevel >= 10) return "&a";    // Green for low-level mobs
+        return "&2";                        // Dark green for very low-level mobs
     }
+
     public static Integer extractMobLevelFromName(LivingEntity mob) {
         String customName = mob.getCustomName();
         if (customName == null || !customName.contains(": LvL")) {
@@ -133,6 +138,7 @@ public class CombatLevelSystem implements Listener {
             return null;
         }
     }
+
     @EventHandler
     public void onMobAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof LivingEntity)) return;
@@ -142,14 +148,14 @@ public class CombatLevelSystem implements Listener {
 
         if (extractMobLevelFromName(mob) == null) return;
 
-        if (!mobBossBars.containsKey(mob.getUniqueId())) {
+        mobBossBars.computeIfAbsent(mob.getUniqueId(), uuid -> {
             BossBar bossBar = plugin.getServer().createBossBar(mob.getCustomName(), BarColor.RED, BarStyle.SOLID);
-            bossBar.addPlayer(player);
-            mobBossBars.put(mob.getUniqueId(), bossBar);
-        }
+            bossBar.setProgress(mob.getHealth() / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+            return bossBar;
+        });
 
         BossBar bossBar = mobBossBars.get(mob.getUniqueId());
-        bossBar.setProgress(mob.getHealth() / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+        bossBar.addPlayer(player);
     }
 
     @EventHandler
@@ -162,8 +168,11 @@ public class CombatLevelSystem implements Listener {
         if (bossBar == null) return;
 
         double health = mob.getHealth() - event.getFinalDamage(); // health after damage is applied
-        bossBar.setProgress(Math.max(0, health) / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+        double maxHealth = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+
+        bossBar.setProgress(Math.max(0, health) / maxHealth);
     }
+
     @EventHandler
     public void onMobDeath(EntityDeathEvent event) {
         BossBar bossBar = mobBossBars.remove(event.getEntity().getUniqueId());
@@ -171,9 +180,17 @@ public class CombatLevelSystem implements Listener {
             bossBar.removeAll();
         }
     }
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
+
+    // Replace onPlayerMove with a scheduled task
+    public void startBossBarUpdater() {
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                updateBossBarsForPlayer(player);
+            }
+        }, 0L, 20L); // Update every second (20 ticks)
+    }
+
+    private void updateBossBarsForPlayer(Player player) {
         mobBossBars.forEach((uuid, bossBar) -> {
             Entity mob = player.getWorld().getEntity(uuid);
             if (mob == null || mob.getLocation().distance(player.getLocation()) > 25) {
@@ -183,5 +200,4 @@ public class CombatLevelSystem implements Listener {
             }
         });
     }
-
 }

@@ -34,6 +34,7 @@ public class  MineScape extends JavaPlugin {
         // Register event listeners
         registerEventListeners(skillManager, combatLevel);
 
+
     }
 
     @Override
@@ -84,7 +85,7 @@ public class  MineScape extends JavaPlugin {
         registerListener(new CookingSkill(skillManager));
         registerListener(new CraftingSkill(skillManager));
         registerListener(new MobListener());
-        registerListener(new ChickenListener());
+        registerListener(new ChickenListener(this));
         registerListener(new ZombieListener());
         registerListener(new SpiderListener());
         registerListener(new SkeletonListener());
@@ -97,7 +98,6 @@ public class  MineScape extends JavaPlugin {
         registerListener(new VilligerListener());
         registerListener(new AlwaysDay(this));
         getServer().getPluginManager().registerEvents(new ResourcePack(this), this);
-        getServer().getPluginManager().registerEvents(new InventoryBlocker(this), this);
 
     }
 

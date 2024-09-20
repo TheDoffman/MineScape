@@ -8,17 +8,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SkillsMenu implements Listener {
 
-    private static final String SKILLS_MENU_TITLE =  ChatColor.RED + "Skills Menu";
-    private static final int SKILLS_MENU_SIZE = 27;
+    private static final String SKILLS_MENU_TITLE = ChatColor.RED + "Skills Menu";
 
     private final SkillManager skillManager;
 
@@ -27,35 +27,80 @@ public class SkillsMenu implements Listener {
     }
 
     public void openFor(Player player) {
-        Inventory skillsMenu = createSkillsMenu();
+        SkillManager.Skill[] skills = SkillManager.Skill.values();
+        Inventory skillsMenu = createSkillsMenu(skills.length);
 
-        for (SkillManager.Skill skill : SkillManager.Skill.values()) {
+        for (SkillManager.Skill skill : skills) {
             skillsMenu.addItem(createSkillItemFor(player, skill));
         }
 
         player.openInventory(skillsMenu);
     }
 
-    private Inventory createSkillsMenu() {
-        return Bukkit.createInventory(null, SKILLS_MENU_SIZE, SKILLS_MENU_TITLE);
+    private Inventory createSkillsMenu(int numberOfSkills) {
+        int size = ((numberOfSkills - 1) / 9 + 1) * 9; // Ensure inventory size is a multiple of 9
+        return Bukkit.createInventory(new SkillsMenuHolder(), size, SKILLS_MENU_TITLE);
     }
 
     private ItemStack createSkillItemFor(Player player, SkillManager.Skill skill) {
-        ItemStack skillItem = new ItemStack(Material.PAPER);
+        Material material = getMaterialForSkill(skill);
+        ItemStack skillItem = new ItemStack(material);
         ItemMeta skillMeta = skillItem.getItemMeta();
 
-        skillMeta.setDisplayName(ChatColor.GOLD + skill.name());
+        if (skillMeta != null) {
+            skillMeta.setDisplayName(ChatColor.GOLD + getDisplayNameForSkill(skill));
 
-        int playerLevel = skillManager.getSkillLevel(player, skill);
-        int xpNeeded = (int) skillManager.xpNeededForNextLevel(player, skill); // Assuming you have such a method
-        skillMeta.setLore(Arrays.asList(
-                ChatColor.GRAY + "Level: " + playerLevel,
-                ChatColor.BLUE + "XP till next: " + xpNeeded
-        ));
+            int playerLevel = skillManager.getSkillLevel(player, skill);
+            int xpNeeded = (int) skillManager.xpNeededForNextLevel(player, skill);
+            skillMeta.setLore(Arrays.asList(
+                    ChatColor.GRAY + "Level: " + ChatColor.GREEN + playerLevel,
+                    ChatColor.BLUE + "XP till next level: " + ChatColor.AQUA + xpNeeded
+            ));
 
-        skillItem.setItemMeta(skillMeta);
+            skillItem.setItemMeta(skillMeta);
+        }
 
         return skillItem;
+    }
+
+    private String getDisplayNameForSkill(SkillManager.Skill skill) {
+        String name = skill.name().toLowerCase().replace('_', ' ');
+        String[] words = name.split(" ");
+        StringBuilder displayName = new StringBuilder();
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                displayName.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1)).append(" ");
+            }
+        }
+        return displayName.toString().trim();
+    }
+
+    private Material getMaterialForSkill(SkillManager.Skill skill) {
+        switch (skill) {
+            case WOODCUTTING:
+                return Material.IRON_AXE;
+            case MINING:
+                return Material.IRON_PICKAXE;
+            case FISHING:
+                return Material.FISHING_ROD;
+            case FARMING:
+                return Material.WHEAT;
+            case COMBAT:
+                return Material.IRON_SWORD;
+            case MAGIC:
+                return Material.BLAZE_ROD;
+            case COOKING:
+                return Material.COOKED_BEEF;
+            case CRAFTING:
+                return Material.CRAFTING_TABLE;
+            case SMITHING:
+                return Material.ANVIL;
+            case ALCHEMY:
+                return Material.BREWING_STAND;
+            // Add other skills and their corresponding materials
+            default:
+                return Material.PAPER;
+        }
     }
 
     @EventHandler
@@ -64,15 +109,22 @@ public class SkillsMenu implements Listener {
             return;
         }
 
-        String title = event.getView().getTitle();
         Inventory clickedInventory = event.getClickedInventory();
-
-        if (clickedInventory == null || !title.equals(SKILLS_MENU_TITLE)) {
+        if (clickedInventory == null) {
             return;
         }
 
-        event.setCancelled(true);
-        // Handle item interactions, if needed
+        if (clickedInventory.getHolder() instanceof SkillsMenuHolder) {
+            event.setCancelled(true);
+            // Optionally handle item interactions here
+        }
     }
 
+    // Custom InventoryHolder to identify the Skills Menu
+    private static class SkillsMenuHolder implements InventoryHolder {
+        @Override
+        public Inventory getInventory() {
+            return null;
+        }
+    }
 }

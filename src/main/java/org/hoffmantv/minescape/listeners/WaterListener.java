@@ -4,6 +4,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,7 +19,7 @@ import java.util.UUID;
 public class WaterListener implements Listener {
 
     private final JavaPlugin plugin;
-    private final Map<UUID, Long> lastTeleportTime = new HashMap<>();
+    private final Map<UUID, Long> lastMessageTime = new HashMap<>();
 
     public WaterListener(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -25,29 +27,56 @@ public class WaterListener implements Listener {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        Location to = event.getTo();
-        Player player = event.getPlayer();
-        if (to == null) {
+        Location toLocation = event.getTo();
+        Location fromLocation = event.getFrom();
+
+        if (toLocation == null || fromLocation == null) {
             return;
         }
 
-        UUID playerId = event.getPlayer().getUniqueId();
+        // Only proceed if the player has moved to a different block
+        if (toLocation.getBlockX() == fromLocation.getBlockX()
+                && toLocation.getBlockY() == fromLocation.getBlockY()
+                && toLocation.getBlockZ() == fromLocation.getBlockZ()) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
         long currentTime = System.currentTimeMillis();
-        long lastTeleportRequestTime = lastTeleportTime.getOrDefault(playerId, 0L);
 
-        // Check if the player is moving into water
-        if (to.getBlock().getType() == Material.WATER) {
-            // Teleport the player 2 blocks back every 3 seconds
-            if (currentTime - lastTeleportRequestTime > 10) {
-                Location from = event.getFrom();
-                Location newLocation = from.clone().subtract(from.getDirection().multiply(2)); // Move 2 blocks back
-                event.getPlayer().teleport(newLocation);
-                lastTeleportTime.put(playerId, currentTime);
+        Block toBlock = toLocation.getBlock();
+        Material toBlockType = toBlock.getType();
 
-                // Send them a message
+        // Check if the block the player is moving into is water or waterlogged
+        if (isWaterBlock(toBlock)) {
+            // Cancel the movement
+            event.setCancelled(true);
+
+            // Only send message every 3 seconds
+            long lastMessageSent = lastMessageTime.getOrDefault(playerId, 0L);
+            if (currentTime - lastMessageSent > 3000) {
                 player.sendMessage(ChatColor.RED + "You can't go in the water!");
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                lastMessageTime.put(playerId, currentTime);
             }
         }
+    }
+
+    // Helper method to check if a block is water or waterlogged
+    private boolean isWaterBlock(Block block) {
+        Material type = block.getType();
+
+        if (type == Material.WATER) {
+            return true;
+        }
+
+        // Check if the block is waterlogged
+        if (block.getBlockData() instanceof Waterlogged) {
+            Waterlogged waterlogged = (Waterlogged) block.getBlockData();
+            return waterlogged.isWaterlogged();
+        }
+
+        return false;
     }
 }
