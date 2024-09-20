@@ -47,29 +47,23 @@ public class ConfigurationManager {
         }
     }
 
-    // Specific method to load player data configuration
+    // Specific method to get player data configuration
     private void loadPlayerDataFile() {
         playerDataFile = new File(dataFolder, "playerdata.yml");
         if (!playerDataFile.exists()) {
             try {
                 playerDataFile.createNewFile();
             } catch (IOException e) {
-                plugin.getLogger().severe("Could not create playerdata.yml");
                 e.printStackTrace();
             }
         }
         playerDataConfig = YamlConfiguration.loadConfiguration(playerDataFile);
     }
 
-    // Get the player data configuration
     public FileConfiguration getPlayerDataConfig() {
-        if (playerDataConfig == null) {
-            loadPlayerDataFile();
-        }
         return playerDataConfig;
     }
 
-    // Save the player data to the file
     public void savePlayerData() {
         try {
             playerDataConfig.save(playerDataFile);
@@ -87,14 +81,20 @@ public class ConfigurationManager {
         savePlayerData();
     }
 
-    // Method to get a specific configuration section (useful for skills)
+    // Method to get a specific configuration section from a config file
     public ConfigurationSection getConfigSection(String fileName, String section) {
         FileConfiguration config = loadConfig(fileName);
         return config.getConfigurationSection(section);
     }
 
-    // Get a section from playerdata.yml
-    public ConfigurationSection getPlayerDataSection(UUID playerUUID, String section) {
-        return playerDataConfig.getConfigurationSection(playerUUID.toString() + "." + section);
+    // Method to get the full configuration file
+    public FileConfiguration getConfig(String fileName) {
+        return loadConfig(fileName);
     }
-}
+
+    public void saveDefaultConfig(String fileName) {
+        File configFile = new File(dataFolder, fileName);
+        if (!configFile.exists()) {
+            plugin.saveResource(fileName, false);
+        }
+    }}

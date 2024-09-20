@@ -7,9 +7,6 @@ commands:
   help:
     description: Gives the player a list of available commands.
     usage: /help
-  saveskills:
-    description: Force saves all player skills.
-    usage: /saveskills
   skills:
     description: Open the skills menu.
     usage: /skills

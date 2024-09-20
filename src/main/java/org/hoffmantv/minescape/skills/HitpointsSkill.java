@@ -40,6 +40,5 @@ public class HitpointsSkill implements Listener {
     }
     private void grantXp(Player player, int xpAmount) {
         skillManager.addXP(player, SkillManager.Skill.HITPOINTS, xpAmount);
-        skillManager.saveSkillsToConfig();
     }
 }
