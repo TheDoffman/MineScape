@@ -28,10 +28,10 @@ public class CombatLevelSystem implements Listener {
         this.combatLevel = combatLevel;
         this.plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
-        // Assign levels to existing mobs
+        // Assign levels to existing mobs (hostile, passive, and baby animals) in all worlds on startup
         for (World world : plugin.getServer().getWorlds()) {
             for (LivingEntity entity : world.getLivingEntities()) {
-                if (entity instanceof Monster) {
+                if (isMobEligibleForLeveling(entity)) {
                     assignMobLevel(entity);
                 }
             }
@@ -55,11 +55,19 @@ public class CombatLevelSystem implements Listener {
         // Ensure mobLevel is at least 1
         mobLevel = Math.max(mobLevel, 1);
 
+        // If the mob is a baby, reduce the level slightly
+        if (mob instanceof Ageable && !((Ageable) mob).isAdult()) {
+            mobLevel = Math.max(1, mobLevel - 2); // Reduce level by 2 for baby animals, with minimum of 1
+        }
+
         setMobNameAndAttributes(mob, mobLevel);
     }
 
     private void setMobNameAndAttributes(LivingEntity mob, int mobLevel) {
         String mobName = formatMobName(mob.getType().toString());
+        if (mob instanceof Ageable && !((Ageable) mob).isAdult()) {
+            mobName = "Baby " + mobName; // Prefix with "Baby" if the mob is a baby
+        }
         mob.setCustomNameVisible(true);
         mob.setCustomName(ChatColor.translateAlternateColorCodes('&',
                 getColorBasedOnDifficulty(mobLevel) + mobName + ": LvL " + mobLevel
@@ -79,10 +87,10 @@ public class CombatLevelSystem implements Listener {
             double baseHealth = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
             double newHealth = baseHealth + (mobLevel * 0.5);  // Increase health by 0.5 per level
             mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(newHealth);
-            mob.setHealth(newHealth);
+            mob.setHealth(newHealth); // Set the new health to reflect immediately
         }
 
-        // Adjust damage
+        // Adjust damage (only for entities that can deal damage)
         if (mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) != null) {
             double baseDamage = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getBaseValue();
             double newDamage = baseDamage + (mobLevel * 0.1);  // Increase damage by 0.1 per level
@@ -92,12 +100,14 @@ public class CombatLevelSystem implements Listener {
 
     @EventHandler
     public void onMobSpawn(CreatureSpawnEvent event) {
-        if (!(event.getEntity() instanceof Monster)) return;
-        if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER_EGG) {
-            // Handle mobs spawned by eggs differently if needed
+        if (isMobEligibleForLeveling(event.getEntity())) {
+            assignMobLevel(event.getEntity());
         }
-        LivingEntity mob = event.getEntity();
-        assignMobLevel(mob);
+    }
+
+    private boolean isMobEligibleForLeveling(LivingEntity entity) {
+        // Include both hostile and passive mobs, including baby animals
+        return entity instanceof Monster || entity instanceof Animals || entity instanceof WaterMob || entity instanceof Ambient;
     }
 
     private Player findClosestPlayer(LivingEntity mob) {

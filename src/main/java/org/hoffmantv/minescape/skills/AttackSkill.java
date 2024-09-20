@@ -2,14 +2,13 @@ package org.hoffmantv.minescape.skills;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
-import org.hoffmantv.minescape.managers.ConfigurationManager;
 import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.Random;
@@ -17,12 +16,13 @@ import java.util.Random;
 public class AttackSkill implements Listener {
 
     private final SkillManager skillManager;
-    private final FileConfiguration attackConfig;
+    private final ConfigurationSection attackConfig;
 
-    public AttackSkill(SkillManager skillManager, FileConfiguration attackConfig, ConfigurationManager configManager){
+    public AttackSkill(SkillManager skillManager, ConfigurationSection attackConfig) {
         this.skillManager = skillManager;
-        this.attackConfig = configManager.getConfig("skills/attack.yml");
+        this.attackConfig = attackConfig;
     }
+
     @EventHandler
     public void onPlayerDamageMob(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof LivingEntity)) {
@@ -50,20 +50,22 @@ public class AttackSkill implements Listener {
         int xpAmount = calculateXpReward(mobLevel);
 
         // Add the XP reward to the player's ATTACK skill using the SkillManager
-        skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
+        skillManager.addXP(player, SkillManager.Skill.ATTACK, xpAmount);
 
-        // Optional: Notify the player about the XP gained
+        // Notify the player about the XP gained
         player.sendActionBar(ChatColor.GOLD + "Attack +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }
+
     private int calculateXpReward(int mobLevel) {
-        // Read the values from Attack.yml
-        int xpReward = attackConfig.getInt("xpReward", 10); // Default value 10
+        // Read the values from the consolidated skills.yml
+        int baseXpReward = attackConfig.getInt("xpReward", 10); // Default value 10
         double mobLevelMultiplier = attackConfig.getDouble("mobLevelMultiplier", 1.3); // Default value 1.3
 
         // Use the values from the configuration
-        return (int) (xpReward + mobLevel * mobLevelMultiplier);
+        return (int) (baseXpReward + mobLevel * mobLevelMultiplier);
     }
+
     public boolean doesPlayerMissAttack(int playerLevel, int mobLevel) {
         int baseMissChance = 20;  // 20% base chance to miss
 

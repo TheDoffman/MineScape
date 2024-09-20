@@ -2,6 +2,7 @@ package org.hoffmantv.minescape.skills;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -9,14 +10,19 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
+import org.hoffmantv.minescape.managers.ConfigurationManager;
 import org.hoffmantv.minescape.managers.SkillManager;
 
 public class StrengthSkill implements Listener {
 
     private final SkillManager skillManager;
+    private final ConfigurationSection strengthConfig;
+    private final ConfigurationManager configManager;
 
-    public StrengthSkill(SkillManager skillManager) {
+    public StrengthSkill(SkillManager skillManager, ConfigurationSection strengthConfig, ConfigurationManager configManager) {
         this.skillManager = skillManager;
+        this.strengthConfig = strengthConfig;
+        this.configManager = configManager;
     }
 
     @EventHandler
@@ -51,8 +57,9 @@ public class StrengthSkill implements Listener {
             // Make sure to review how CombatLevelSystem works!
             return;
         }
-    }
 
+        // Additional logic for when the player damages a mob can be added here
+    }
 
     @EventHandler
     public void onMobDeath(EntityDeathEvent event) {
@@ -71,8 +78,11 @@ public class StrengthSkill implements Listener {
         // Calculate XP reward based on the mob's level
         int xpAmount = calculateXpReward(mobLevel);
 
-        // Add the XP reward to the player's ATTACK skill using the SkillManager
+        // Add the XP reward to the player's STRENGTH skill using the SkillManager
         skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
+
+        // Log the XP gain to playerdata.yml
+        configManager.logXpGain(player, "strength", xpAmount);
 
         // Notify the player about the XP gained
         player.sendActionBar(ChatColor.GOLD + "Strength +" + xpAmount);
@@ -80,9 +90,11 @@ public class StrengthSkill implements Listener {
     }
 
     private int calculateXpReward(int mobLevel) {
-        int basexp = 10;
+        // Fetch base XP from the configuration section, default to 10 if not found
+        int baseXp = strengthConfig.getInt("baseXp", 10);
 
-        return basexp;
+        // Optionally use mobLevel in the calculation if needed, for now, return just the base XP
+        return baseXp;
     }
 
     private boolean isExcludedMob(LivingEntity mob) {

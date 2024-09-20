@@ -19,7 +19,9 @@ import java.util.UUID;
 public class WaterListener implements Listener {
 
     private final JavaPlugin plugin;
+    private final Map<UUID, Location> lastSafeLocation = new HashMap<>();
     private final Map<UUID, Long> lastMessageTime = new HashMap<>();
+    private final long messageCooldown = 3000; // 3 seconds cooldown for messages
 
     public WaterListener(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -34,32 +36,39 @@ public class WaterListener implements Listener {
             return;
         }
 
-        // Only proceed if the player has moved to a different block
+        Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
+
+        // Only process if the player moves to a new block
         if (toLocation.getBlockX() == fromLocation.getBlockX()
                 && toLocation.getBlockY() == fromLocation.getBlockY()
                 && toLocation.getBlockZ() == fromLocation.getBlockZ()) {
             return;
         }
 
-        Player player = event.getPlayer();
-        UUID playerId = player.getUniqueId();
-        long currentTime = System.currentTimeMillis();
-
         Block toBlock = toLocation.getBlock();
-        Material toBlockType = toBlock.getType();
 
-        // Check if the block the player is moving into is water or waterlogged
+        // If the player is in water or waterlogged block
         if (isWaterBlock(toBlock)) {
-            // Cancel the movement
-            event.setCancelled(true);
+            // Check for last safe location, if none, set current location as last safe
+            Location safeLocation = lastSafeLocation.getOrDefault(playerId, fromLocation);
 
-            // Only send message every 3 seconds
+            // Teleport the player back to the last safe location
+            player.teleport(safeLocation);
+
+            // Check if we should send the message (use cooldown to avoid spam)
+            long currentTime = System.currentTimeMillis();
             long lastMessageSent = lastMessageTime.getOrDefault(playerId, 0L);
-            if (currentTime - lastMessageSent > 3000) {
+
+            if (currentTime - lastMessageSent > messageCooldown) {
                 player.sendMessage(ChatColor.RED + "You can't go in the water!");
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 lastMessageTime.put(playerId, currentTime);
             }
+
+        } else {
+            // If not in water, update the last safe location
+            lastSafeLocation.put(playerId, toLocation);
         }
     }
 

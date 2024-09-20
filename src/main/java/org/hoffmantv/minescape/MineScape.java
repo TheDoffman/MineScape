@@ -1,6 +1,8 @@
 package org.hoffmantv.minescape;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Villager;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.*;
@@ -8,19 +10,23 @@ import org.hoffmantv.minescape.listeners.*;
 import org.hoffmantv.minescape.managers.*;
 import org.hoffmantv.minescape.mobs.*;
 import org.hoffmantv.minescape.skills.*;
+
 import java.util.Objects;
 
-public class  MineScape extends JavaPlugin {
-
+public class MineScape extends JavaPlugin {
     private ConfigurationManager configManager;
 
     @Override
     public void onEnable() {
         getLogger().info("MineScape Alpha Version 0.1 has been enabled!");
 
+        // Initialize the ConfigurationManager
+        configManager = new ConfigurationManager(this);
+
         // Metrics
         int pluginId = 19471;
         new Metrics(this, pluginId);
+
         // Configuration setup
         setupConfiguration();
 
@@ -34,13 +40,21 @@ public class  MineScape extends JavaPlugin {
         // Register event listeners
         registerEventListeners(skillManager, combatLevel);
 
+        // Load or create the skills.yml configuration file
+        FileConfiguration skillsConfig = configManager.loadConfig("skills.yml");
 
+        // Pass the specific section of skills.yml to the StrengthSkill and DefenseSkill classes
+        ConfigurationSection strengthConfig = skillsConfig.getConfigurationSection("skills.strength");
+        ConfigurationSection defenseConfig = skillsConfig.getConfigurationSection("skills.defense");
+
+        // Register the StrengthSkill and DefenseSkill with the respective configurations and ConfigurationManager
+        registerListener(new StrengthSkill(skillManager, strengthConfig, configManager)); // Pass configManager instead of a separate PlayerDataManager
+        registerListener(new DefenseSkill(skillManager, defenseConfig, configManager)); // Pass configManager instead of a separate PlayerDataManager
     }
 
     @Override
     public void onDisable() {
         getLogger().info("MineScape has been disabled!");
-
     }
 
     private void setupConfiguration() {
@@ -56,21 +70,8 @@ public class  MineScape extends JavaPlugin {
     }
 
     private void registerEventListeners(SkillManager skillManager, CombatLevel combatLevel) {
-
-        // Initialize the configuration manager
-        configManager = new ConfigurationManager(this);
-
-        // Load your custom configuration files
-        FileConfiguration attackConfig = configManager.loadConfig("skills/attack.yml");
-        FileConfiguration strengthConfig = configManager.loadConfig("skills/strength.yml");
-        FileConfiguration defenceConfig = configManager.loadConfig("skills/defence.yml");
-
-// Initialize AttackSkill with the attackConfig
-        AttackSkill attackSkill = new AttackSkill(skillManager, attackConfig, configManager);
-
-        registerListener(skillManager);
-        registerListener(attackSkill);
         registerListener(new WaterListener(this));
+        registerListener(skillManager);
         registerListener(new CombatLevelSystem(this, combatLevel));
         registerListener(new WoodcuttingSkill(skillManager, this));
         registerListener(new MiningSkill(skillManager, this));
@@ -78,8 +79,6 @@ public class  MineScape extends JavaPlugin {
         registerListener(new FiremakingSkill(skillManager, this));
         registerListener(new HitpointsSkill(skillManager, this));
         registerListener(new PrayerSkill(skillManager, this));
-        registerListener(new StrengthSkill(skillManager));
-        registerListener(new DefenseSkill(skillManager));
         registerListener(new RangeSkill(this, skillManager));
         registerListener(new AgilitySkill(skillManager));
         registerListener(new CookingSkill(skillManager));
@@ -98,11 +97,9 @@ public class  MineScape extends JavaPlugin {
         registerListener(new VilligerListener());
         registerListener(new AlwaysDay(this));
         getServer().getPluginManager().registerEvents(new ResourcePack(this), this);
-
     }
 
     private void registerListener(Listener listener) {
         getServer().getPluginManager().registerEvents(listener, this);
-
     }
 }
