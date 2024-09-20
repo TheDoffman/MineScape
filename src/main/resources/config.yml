@@ -3,3 +3,41 @@ ResourcePack:
   enabled: false
   url: "http://example.com/my-resource-pack.zip"
 always-day: true
+loginFeature:
+  enabled: true
+  welcomeMessage:
+    title: "&6Welcome to MineScape!"
+    subtitle: "&7Embark on your Runescape-inspired adventure."
+  particleEffect:
+    type: VILLAGER_HAPPY
+    count: 50
+    offsetX: 1.0
+    offsetY: 1.0
+    offsetZ: 1.0
+    speed: 0.1
+    radius: 3.0
+  soundEffect:
+    type: ENTITY_PLAYER_LEVELUP
+    volume: 1.0
+    pitch: 1.0
+  starterItems:
+    enabled: true
+    items:
+      - material: IRON_SWORD
+        name: "&bStarter Sword"
+        lore:
+          - "&7A reliable weapon to begin your journey."
+      - material: BOW
+        name: "&bStarter Bow"
+        lore:
+          - "&7For ranged adventures."
+  bossBar:
+    enabled: true
+    title: "&eMineScape Tips"
+    message: "&fTip: Use your Prayer skill to gain buffs!"
+    color: GREEN
+    style: SOLID
+    duration: 10 # in seconds
+  messages:
+    cooldownMessage: "&ePlease wait {seconds} seconds before using this feature again."
+    noPermission: "&cYou do not have permission to use this feature."

@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,11 +13,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.plugin.Plugin;
 import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.HashMap;
@@ -27,6 +27,10 @@ public class PrayerSkill implements Listener {
     private final SkillManager skillManager;
     private final Plugin plugin;
     private final Map<Material, BoneData> boneDataMap = new HashMap<>();
+
+    // Cooldown map to prevent spamming
+    private final Map<Player, Long> cooldowns = new HashMap<>();
+    private final long COOLDOWN_TIME = 10 * 1000; // 10 seconds in milliseconds
 
     /**
      * Constructor for PrayerSkill.
@@ -94,14 +98,8 @@ public class PrayerSkill implements Listener {
             return;
         }
 
-        // Determine which hand was used (main or off-hand)
-        EquipmentSlot hand = event.getHand();
-        if (hand == null) { // Some older versions might not have getHand()
-            hand = EquipmentSlot.HAND;
-        }
-
         Player player = event.getPlayer();
-        ItemStack item = (hand == EquipmentSlot.HAND) ? player.getInventory().getItemInMainHand() : player.getInventory().getItemInOffHand();
+        ItemStack item = event.getItem();
         Block clickedBlock = event.getClickedBlock();
 
         if (item == null || clickedBlock == null) {
@@ -111,13 +109,23 @@ public class PrayerSkill implements Listener {
         Material itemType = item.getType();
 
         if (boneDataMap.containsKey(itemType)) {
+            // Check cooldown
+            if (cooldowns.containsKey(player)) {
+                long timeLeft = cooldowns.get(player) - System.currentTimeMillis();
+                if (timeLeft > 0) {
+                    player.sendMessage(ChatColor.YELLOW + "You can use this bone again in " + (timeLeft / 1000) + " seconds.");
+                    return;
+                }
+            }
+
             BoneData boneData = boneDataMap.get(itemType);
             double playerPrayerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.PRAYER);
 
             // Optional: Check for any required Prayer level to use the bone
             // Example:
-            // if (playerPrayerLevel < boneData.getRequiredPrayerLevel()) {
-            //     player.sendMessage(ChatColor.RED + "You need Prayer level " + boneData.getRequiredPrayerLevel() + " to use this bone.");
+            // int requiredPrayerLevel = boneData.getRequiredPrayerLevel();
+            // if (playerPrayerLevel < requiredPrayerLevel) {
+            //     player.sendMessage(ChatColor.RED + "You need Prayer level " + requiredPrayerLevel + " to use this bone.");
             //     return;
             // }
 
@@ -128,7 +136,8 @@ public class PrayerSkill implements Listener {
             skillManager.addXP(player, SkillManager.Skill.PRAYER, boneData.getXpValue());
 
             // Provide feedback
-            player.sendMessage(ChatColor.GREEN + "You have used " + boneData.getDisplayName() + " and earned " + ChatColor.GOLD + boneData.getXpValue() + ChatColor.GREEN + " Prayer XP!");
+            String usedBoneMessage = "You have used " + boneData.getDisplayName() + " and earned " + ChatColor.GOLD + boneData.getXpValue() + ChatColor.GREEN + " Prayer XP!";
+            player.sendMessage(ChatColor.GREEN + usedBoneMessage);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
             player.sendActionBar(ChatColor.BLUE + "Prayer +" + boneData.getXpValue());
 
@@ -138,7 +147,13 @@ public class PrayerSkill implements Listener {
             applyDiggingEffect(clickedBlock, boneData);
 
             // Consume the bone from the player's inventory
-            consumeBone(player, item, hand);
+            consumeBone(player, item);
+
+            // Set cooldown
+            cooldowns.put(player, System.currentTimeMillis() + COOLDOWN_TIME);
+
+            // Schedule removal of cooldown
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> cooldowns.remove(player), COOLDOWN_TIME / 50); // Convert ms to ticks (20 ticks = 1 second)
         }
     }
 
@@ -175,18 +190,44 @@ public class PrayerSkill implements Listener {
             particle = Particle.BLOCK_CRACK;
         }
 
-        // Adjust the particle spawn parameters as needed
-        block.getWorld().spawnParticle(
-                particle,
-                block.getLocation().add(0.5, 0.5, 0.5),
-                30, // Number of particles
-                0.5, // Offset X
-                0.5, // Offset Y
-                0.5, // Offset Z
-                0.1 // Extra (speed)
-        );
+        // Check if the particle requires BlockData
+        if (particle.equals(Particle.BLOCK_CRACK) || particle.equals(Particle.BLOCK_DUST)) {
+            // Obtain the BlockData from the clicked block
+            BlockData blockData = block.getBlockData();
 
-        plugin.getLogger().info("Applied " + particle.name() + " particles to block at " + block.getLocation());
+            // Spawn particles with BlockData
+            try {
+                block.getWorld().spawnParticle(
+                        particle,
+                        block.getLocation().add(0.5, 0.5, 0.5),
+                        30, // Number of particles
+                        0.5, // Offset X
+                        0.5, // Offset Y
+                        0.5, // Offset Z
+                        0.1, // Extra (speed)
+                        blockData // Required BlockData
+                );
+                plugin.getLogger().info("Applied " + particle.name() + " particles to block at " + block.getLocation());
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Failed to spawn particle: " + particle.name() + ". " + e.getMessage());
+            }
+        } else {
+            // Spawn particles without BlockData
+            try {
+                block.getWorld().spawnParticle(
+                        particle,
+                        block.getLocation().add(0.5, 0.5, 0.5),
+                        30, // Number of particles
+                        0.5, // Offset X
+                        0.5, // Offset Y
+                        0.5, // Offset Z
+                        0.1 // Extra (speed)
+                );
+                plugin.getLogger().info("Applied " + particle.name() + " particles to block at " + block.getLocation());
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Failed to spawn particle: " + particle.name() + ". " + e.getMessage());
+            }
+        }
     }
 
     /**
@@ -194,22 +235,12 @@ public class PrayerSkill implements Listener {
      *
      * @param player The player.
      * @param item   The bone item stack.
-     * @param hand   The hand used (main or off-hand).
      */
-    private void consumeBone(Player player, ItemStack item, EquipmentSlot hand) {
+    private void consumeBone(Player player, ItemStack item) {
         if (item.getAmount() > 1) {
             item.setAmount(item.getAmount() - 1);
-            if (hand == EquipmentSlot.HAND) {
-                player.getInventory().setItemInMainHand(item);
-            } else {
-                player.getInventory().setItemInOffHand(item);
-            }
         } else {
-            if (hand == EquipmentSlot.HAND) {
-                player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
-            } else {
-                player.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
-            }
+            player.getInventory().remove(item);
         }
         plugin.getLogger().info("Consumed one " + item.getType() + " from " + player.getName() + "'s inventory.");
     }
