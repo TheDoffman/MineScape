@@ -64,9 +64,6 @@ public class LoginListener implements Listener {
         // 3. Play Sound Effects
         playSoundEffects(player);
 
-        // 4. Grant Starter Items (Only on First Join)
-        grantStarterItems(player);
-
         // 5. Display Boss Bar
         displayBossBar(player);
 
@@ -80,6 +77,17 @@ public class LoginListener implements Listener {
     private void displayWelcomeMessages(Player player) {
         String title = getString(config, "welcomeMessage.title", "&6Welcome to MineScape!");
         String subtitle = getString(config, "welcomeMessage.subtitle", "&7Embark on your Runescape-inspired adventure.");
+
+        // Trim the title and subtitle to a maximum length to prevent overflow
+        if (title.length() > 32) {
+            title = title.substring(0, 32);
+            plugin.getLogger().warning("Title truncated to 32 characters for player " + player.getName());
+        }
+
+        if (subtitle.length() > 32) {
+            subtitle = subtitle.substring(0, 32);
+            plugin.getLogger().warning("Subtitle truncated to 32 characters for player " + player.getName());
+        }
 
         player.sendTitle(ChatColor.translateAlternateColorCodes('&', title),
                 ChatColor.translateAlternateColorCodes('&', subtitle),
@@ -151,56 +159,6 @@ public class LoginListener implements Listener {
         float pitch = (float) soundConfig.getDouble("pitch", 1.0);
 
         player.playSound(player.getLocation(), sound, volume, pitch);
-    }
-
-    private void grantStarterItems(Player player) {
-        // Check if player has joined before
-        if (player.hasPlayedBefore()) {
-            return; // Not the first time joining
-        }
-
-        ConfigurationSection starterConfig = config.getConfigurationSection("starterItems");
-        if (starterConfig == null || !starterConfig.getBoolean("enabled", true)) {
-            return; // Starter items feature is disabled or config section is missing
-        }
-
-        List<Map<?, ?>> rawItems = starterConfig.getMapList("items");
-        for (Map<?, ?> rawItemMap : rawItems) {
-            // Cast the raw map to a typed map
-            @SuppressWarnings("unchecked")
-            Map<String, Object> itemMap = (Map<String, Object>) rawItemMap;
-
-            String materialStr = getString(itemMap, "material", "BONE");
-            Material material = Material.getMaterial(materialStr.toUpperCase());
-            if (material == null) {
-                plugin.getLogger().warning("Invalid material '" + materialStr + "' for starter item. Skipping this item.");
-                continue;
-            }
-
-            String name = getString(itemMap, "name", "Starter Item");
-            @SuppressWarnings("unchecked")
-            List<String> lore = (List<String>) itemMap.getOrDefault("lore", List.of());
-
-            ItemStack item = new ItemStack(material);
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null) {
-                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-
-                if (lore != null && !lore.isEmpty()) {
-                    // Translate color codes for each lore line
-                    List<String> translatedLore = lore.stream()
-                            .map(line -> ChatColor.translateAlternateColorCodes('&', line))
-                            .collect(Collectors.toList());
-                    meta.setLore(translatedLore);
-                }
-
-                item.setItemMeta(meta);
-            }
-
-            player.getInventory().addItem(item);
-        }
-
-        plugin.getLogger().info("Granted starter items to " + player.getName());
     }
 
     private void displayBossBar(Player player) {
