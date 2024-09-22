@@ -20,6 +20,7 @@ import java.util.*;
 public class CombatLevelSystem implements Listener {
 
     private final JavaPlugin plugin;
+    private final Random random = new Random();
     private final CombatLevel combatLevel;
     private final SkillManager skillManager;
     private final Map<UUID, BossBar> mobBossBars = new WeakHashMap<>();
@@ -28,12 +29,12 @@ public class CombatLevelSystem implements Listener {
     private static final int INACTIVITY_TIMEOUT = 10 * 1000; // 10 seconds in milliseconds
 
     // Active combat sessions
-    private final Map<Player, CombatSession> activeCombatSessions = new HashMap<>();
+    private final Map<UUID, CombatSession> activeCombatSessions = new HashMap<>();
 
     public CombatLevelSystem(JavaPlugin plugin, CombatLevel combatLevel, SkillManager skillManager) {
         this.plugin = plugin;
         this.combatLevel = combatLevel;
-        this.skillManager = skillManager; // Store SkillManager instance
+        this.skillManager = skillManager;
         this.plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
         // Assign levels to existing mobs (hostile, passive, and baby animals) in all worlds on startup
@@ -56,9 +57,9 @@ public class CombatLevelSystem implements Listener {
 
         if (closestPlayer != null) {
             int playerCombatLevel = combatLevel.calculateCombatLevel(closestPlayer);
-            mobLevel = playerCombatLevel + new Random().nextInt(11) - 5; // player level +/-5
+            mobLevel = playerCombatLevel + random.nextInt(11) - 5; // player level +/-5
         } else {
-            mobLevel = new Random().nextInt(5) + 1; // Random level between 1 and 5
+            mobLevel = random.nextInt(5) + 1; // Random level between 1 and 5
         }
 
         // Ensure mobLevel is at least 1
@@ -169,19 +170,36 @@ public class CombatLevelSystem implements Listener {
         if (mobLevel == null) return;
 
         // Check if player is already in a combat session
-        if (!activeCombatSessions.containsKey(player)) {
-            startCombatSession(player, mob);
+        UUID playerUUID = player.getUniqueId();
+        CombatSession existingSession = activeCombatSessions.get(playerUUID);
+
+        if (existingSession != null) {
+            if (existingSession.getMob().equals(mob)) {
+                // Player is already fighting this mob, update the last attack time
+                lastAttackTime.put(mob.getUniqueId(), System.currentTimeMillis());
+                return;
+            } else {
+                // Player is trying to start combat with a new mob, but already in a session
+                player.sendMessage(ChatColor.RED + "You are already engaged in combat with another mob!");
+                return;
+            }
         }
 
-        // Update last attack time
+        startCombatSession(player, mob);
         lastAttackTime.put(mob.getUniqueId(), System.currentTimeMillis());
-
         event.setCancelled(true); // Cancel regular damage
     }
 
     private void startCombatSession(Player player, LivingEntity mob) {
+        UUID playerUUID = player.getUniqueId();
+
+        // Prevent creating multiple sessions for the same player
+        if (activeCombatSessions.containsKey(playerUUID)) {
+            return;
+        }
+
         CombatSession session = new CombatSession(player, mob, plugin, skillManager);
-        activeCombatSessions.put(player, session);
+        activeCombatSessions.put(playerUUID, session);
     }
 
     @EventHandler
@@ -256,9 +274,10 @@ public class CombatLevelSystem implements Listener {
 
                 // Check for combat sessions
                 activeCombatSessions.entrySet().removeIf(entry -> {
-                    Player player = entry.getKey();
                     CombatSession session = entry.getValue();
-                    if (player.getLocation().distance(session.getMob().getLocation()) > MAX_DISTANCE ||
+                    if (session == null) return true;
+                    Player player = Bukkit.getPlayer(entry.getKey());
+                    if (player == null || player.getLocation().distance(session.getMob().getLocation()) > MAX_DISTANCE ||
                             currentTime - session.getLastAttackTime() > INACTIVITY_TIMEOUT) {
                         session.endCombat(); // End the combat session
                         return true;
@@ -287,7 +306,8 @@ public class CombatLevelSystem implements Listener {
 
     // Method to end the combat session and clean up
     public void endCombatSession(Player player) {
-        CombatSession session = activeCombatSessions.remove(player);
+        UUID playerUUID = player.getUniqueId();
+        CombatSession session = activeCombatSessions.remove(playerUUID);
         if (session != null) {
             session.endCombat();
         }
