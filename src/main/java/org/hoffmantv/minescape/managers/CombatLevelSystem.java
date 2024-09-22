@@ -26,7 +26,7 @@ public class CombatLevelSystem implements Listener {
     private final Map<UUID, Long> lastAttackTime = new WeakHashMap<>(); // Stores the last attack time of each mob
 
     private static final int MAX_DISTANCE = 25; // Maximum distance to show the boss bar
-    private static final int INACTIVITY_TIMEOUT = 10 * 20; // 10 seconds in ticks
+    private static final int INACTIVITY_TIMEOUT = 10 * 1000; // 10 seconds in milliseconds
 
     public CombatLevelSystem(JavaPlugin plugin, CombatLevel combatLevel) {
         this.plugin = plugin;
