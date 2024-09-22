@@ -16,6 +16,7 @@ public class CombatSession {
     private final LivingEntity mob;
     private final JavaPlugin plugin;
     private final SkillManager skillManager;
+    private final CombatLevelSystem combatLevelSystem; // Reference to CombatLevelSystem
     private final BossBar bossBar;
     private final Location initialMobLocation;
     private boolean playerTurn = true; // Start with player's turn
@@ -27,11 +28,12 @@ public class CombatSession {
     private final Random random = new Random();
     private long lastAttackTime; // Track the last attack time
 
-    public CombatSession(Player player, LivingEntity mob, JavaPlugin plugin, SkillManager skillManager) {
+    public CombatSession(Player player, LivingEntity mob, JavaPlugin plugin, SkillManager skillManager, CombatLevelSystem combatLevelSystem) {
         this.player = player;
         this.mob = mob;
         this.plugin = plugin;
         this.skillManager = skillManager;
+        this.combatLevelSystem = combatLevelSystem; // Store reference
         this.playerMaxHealth = (int) player.getHealth();
         this.mobMaxHealth = (int) mob.getHealth();
         this.playerHealth = playerMaxHealth;
@@ -49,7 +51,7 @@ public class CombatSession {
         startMobFacingTask(); // Start the task to make the mob always face the player
     }
 
-    private void startCombat() {
+    public void startCombat() {
         lastAttackTime = System.currentTimeMillis(); // Set initial last attack time
         Bukkit.getScheduler().runTaskTimer(plugin, this::takeTurn, 0L, 40L); // 40 ticks = 2 seconds per turn
     }
@@ -142,6 +144,9 @@ public class CombatSession {
 
         bossBar.removeAll();
         freezeMob(false); // Unfreeze the mob
+
+        // Remove session from CombatLevelSystem
+        combatLevelSystem.endCombatSession(player); // Use reference to end the session
     }
 
     // Overloaded endCombat method without parameters

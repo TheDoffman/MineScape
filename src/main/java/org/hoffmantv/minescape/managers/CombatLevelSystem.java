@@ -198,8 +198,19 @@ public class CombatLevelSystem implements Listener {
             return;
         }
 
-        CombatSession session = new CombatSession(player, mob, plugin, skillManager);
-        activeCombatSessions.put(playerUUID, session);
+        CombatSession session = new CombatSession(player, mob, plugin, skillManager, this);
+        activeCombatSessions.put(player.getUniqueId(), session);
+
+        // Create and assign a BossBar for this session
+        BossBar bossBar = Bukkit.createBossBar(
+                ChatColor.translateAlternateColorCodes('&', "&c" + mob.getCustomName()),
+                BarColor.RED,
+                BarStyle.SOLID
+        );
+        bossBar.addPlayer(player);
+        bossBar.setProgress(Math.max(0, mob.getHealth() / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()));
+
+        mobBossBars.put(mob.getUniqueId(), bossBar);
     }
 
     @EventHandler
@@ -219,14 +230,15 @@ public class CombatLevelSystem implements Listener {
 
     @EventHandler
     public void onMobDeath(EntityDeathEvent event) {
-        BossBar bossBar = mobBossBars.remove(event.getEntity().getUniqueId());
+        LivingEntity mob = event.getEntity();
+        BossBar bossBar = mobBossBars.remove(mob.getUniqueId());
         if (bossBar != null) {
             bossBar.removeAll();
-            lastAttackTime.remove(event.getEntity().getUniqueId());
+            lastAttackTime.remove(mob.getUniqueId());
         }
 
         // End the combat session if it exists
-        activeCombatSessions.values().removeIf(session -> session.getMob().equals(event.getEntity()));
+        activeCombatSessions.values().removeIf(session -> session.getMob().equals(mob));
     }
 
     // Replace onPlayerMove with a scheduled task

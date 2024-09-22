@@ -16,6 +16,8 @@ public class MineScape extends JavaPlugin {
     private ConfigurationManager configManager;
     private SkillManager skillManager;
 
+    private CombatLevelSystem combatLevelSystem;
+
     @Override
     public void onEnable() {
         getLogger().info("MineScape Alpha Version 0.1 has been enabled!");
@@ -37,6 +39,8 @@ public class MineScape extends JavaPlugin {
 
         // Load or create the skills.yml configuration file
         FileConfiguration skillsConfig = configManager.getConfig("skills.yml");
+
+        combatLevelSystem = new CombatLevelSystem(this, combatLevel, skillManager);
 
         // Register Skills with proper configuration sections
         ConfigurationSection strengthConfig = skillsConfig.getConfigurationSection("skills.strength");
@@ -109,6 +113,7 @@ public class MineScape extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CombatListener(this, skillManager), this);
 
 
+
         // Register ResourcePack listener
         getServer().getPluginManager().registerEvents(new ResourcePack(this), this);
 
@@ -134,6 +139,12 @@ public class MineScape extends JavaPlugin {
         // Save default playerdata.yml if it doesn't exist
         configManager.saveDefaultConfig("playerdata.yml"); // Assuming this method handles any config
     }
+
+    // Getter for CombatLevelSystem
+    public CombatLevelSystem getCombatLevelSystem() {
+        return combatLevelSystem;
+    }
+
 
     /**
      * Registers command executors.

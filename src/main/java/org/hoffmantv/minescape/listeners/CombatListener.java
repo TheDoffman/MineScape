@@ -8,14 +8,23 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.hoffmantv.minescape.MineScape;
 import org.hoffmantv.minescape.managers.CombatSession;
 import org.hoffmantv.minescape.managers.SkillManager;
+import org.hoffmantv.minescape.managers.CombatLevelSystem;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class CombatListener implements Listener {
     private final MineScape plugin;
     private final SkillManager skillManager;
+    private final CombatLevelSystem combatLevelSystem; // Add reference to CombatLevelSystem
+    private final Map<UUID, CombatSession> activeSessions; // Tracks active sessions
 
     public CombatListener(MineScape plugin, SkillManager skillManager) {
         this.plugin = plugin;
         this.skillManager = skillManager;
+        this.combatLevelSystem = plugin.getCombatLevelSystem(); // Initialize CombatLevelSystem
+        this.activeSessions = new HashMap<>(); // Initialize active sessions map
     }
 
     @EventHandler
@@ -24,11 +33,27 @@ public class CombatListener implements Listener {
             Player player = (Player) event.getDamager();
             LivingEntity mob = (LivingEntity) event.getEntity();
 
-            // Create a new combat session with all required parameters
-            CombatSession combatSession = new CombatSession(player, mob, plugin, skillManager);
+            // Check if the player is already in a combat session
+            if (activeSessions.containsKey(player.getUniqueId())) {
+                player.sendMessage("You are already in a combat session!");
+                event.setCancelled(true);
+                return;
+            }
 
-            // Additional logic to manage the combat session, e.g., storing it in a map
-            // sessions.put(player.getUniqueId(), combatSession);
+            // Prevent the player from dealing direct damage while in combat session
+            event.setCancelled(true);
+
+            // Create a new combat session and store it in the map
+            CombatSession session = new CombatSession(player, mob, plugin, skillManager, combatLevelSystem);
+            activeSessions.put(player.getUniqueId(), session);
+
+            // Start the combat session
+            session.startCombat();
         }
+    }
+
+    // Helper method to remove combat sessions when they end
+    public void removeCombatSession(UUID playerUUID) {
+        activeSessions.remove(playerUUID);
     }
 }
