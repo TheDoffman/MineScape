@@ -12,25 +12,28 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.hoffmantv.minescape.skills.CombatLevel;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.hoffmantv.minescape.skills.CombatLevel;
 
 import java.util.*;
 
 public class CombatLevelSystem implements Listener {
 
     private final JavaPlugin plugin;
-    private final Random random = new Random();
     private final CombatLevel combatLevel;
+    private final SkillManager skillManager;
     private final Map<UUID, BossBar> mobBossBars = new WeakHashMap<>();
     private final Map<UUID, Long> lastAttackTime = new WeakHashMap<>(); // Stores the last attack time of each mob
-
-    private static final int MAX_DISTANCE = 25; // Maximum distance to show the boss bar
+    private static final int MAX_DISTANCE = 15; // Maximum distance to cancel the fight
     private static final int INACTIVITY_TIMEOUT = 10 * 1000; // 10 seconds in milliseconds
 
-    public CombatLevelSystem(JavaPlugin plugin, CombatLevel combatLevel) {
+    // Active combat sessions
+    private final Map<Player, CombatSession> activeCombatSessions = new HashMap<>();
+
+    public CombatLevelSystem(JavaPlugin plugin, CombatLevel combatLevel, SkillManager skillManager) {
         this.plugin = plugin;
         this.combatLevel = combatLevel;
+        this.skillManager = skillManager; // Store SkillManager instance
         this.plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
         // Assign levels to existing mobs (hostile, passive, and baby animals) in all worlds on startup
@@ -53,9 +56,9 @@ public class CombatLevelSystem implements Listener {
 
         if (closestPlayer != null) {
             int playerCombatLevel = combatLevel.calculateCombatLevel(closestPlayer);
-            mobLevel = playerCombatLevel + random.nextInt(11) - 5; // player level +/-5
+            mobLevel = playerCombatLevel + new Random().nextInt(11) - 5; // player level +/-5
         } else {
-            mobLevel = random.nextInt(5) + 1; // Random level between 1 and 5
+            mobLevel = new Random().nextInt(5) + 1; // Random level between 1 and 5
         }
 
         // Ensure mobLevel is at least 1
@@ -165,17 +168,20 @@ public class CombatLevelSystem implements Listener {
         Integer mobLevel = extractMobLevelFromName(mob);
         if (mobLevel == null) return;
 
+        // Check if player is already in a combat session
+        if (!activeCombatSessions.containsKey(player)) {
+            startCombatSession(player, mob);
+        }
+
         // Update last attack time
         lastAttackTime.put(mob.getUniqueId(), System.currentTimeMillis());
 
-        mobBossBars.computeIfAbsent(mob.getUniqueId(), uuid -> {
-            BossBar bossBar = plugin.getServer().createBossBar(mob.getCustomName(), getBossBarColor(mobLevel), getBossBarStyle(mobLevel));
-            bossBar.setProgress(mob.getHealth() / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
-            return bossBar;
-        });
+        event.setCancelled(true); // Cancel regular damage
+    }
 
-        BossBar bossBar = mobBossBars.get(mob.getUniqueId());
-        bossBar.addPlayer(player);
+    private void startCombatSession(Player player, LivingEntity mob) {
+        CombatSession session = new CombatSession(player, mob, plugin, skillManager);
+        activeCombatSessions.put(player, session);
     }
 
     @EventHandler
@@ -200,6 +206,9 @@ public class CombatLevelSystem implements Listener {
             bossBar.removeAll();
             lastAttackTime.remove(event.getEntity().getUniqueId());
         }
+
+        // End the combat session if it exists
+        activeCombatSessions.values().removeIf(session -> session.getMob().equals(event.getEntity()));
     }
 
     // Replace onPlayerMove with a scheduled task
@@ -222,7 +231,7 @@ public class CombatLevelSystem implements Listener {
         });
     }
 
-    // Check for inactivity to remove boss bars
+    // Check for inactivity to remove boss bars and cancel combat sessions
     private void startInactivityChecker() {
         new BukkitRunnable() {
             @Override
@@ -244,6 +253,18 @@ public class CombatLevelSystem implements Listener {
                         lastAttackTime.remove(mobUUID);
                     }
                 }
+
+                // Check for combat sessions
+                activeCombatSessions.entrySet().removeIf(entry -> {
+                    Player player = entry.getKey();
+                    CombatSession session = entry.getValue();
+                    if (player.getLocation().distance(session.getMob().getLocation()) > MAX_DISTANCE ||
+                            currentTime - session.getLastAttackTime() > INACTIVITY_TIMEOUT) {
+                        session.endCombat(); // End the combat session
+                        return true;
+                    }
+                    return false;
+                });
             }
         }.runTaskTimer(plugin, 0L, 20L); // Check every second
     }
@@ -262,5 +283,13 @@ public class CombatLevelSystem implements Listener {
         if (mobLevel >= 50) return BarStyle.SEGMENTED_10;
         if (mobLevel >= 30) return BarStyle.SEGMENTED_6;
         return BarStyle.SOLID;
+    }
+
+    // Method to end the combat session and clean up
+    public void endCombatSession(Player player) {
+        CombatSession session = activeCombatSessions.remove(player);
+        if (session != null) {
+            session.endCombat();
+        }
     }
 }

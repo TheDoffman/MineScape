@@ -9,11 +9,9 @@ import org.hoffmantv.minescape.managers.SkillManager;
 
 public class HitpointsSkill implements Listener {
     private final SkillManager skillManager;
-    private final JavaPlugin plugin;
 
     public HitpointsSkill(SkillManager skillManager, JavaPlugin plugin) {
         this.skillManager = skillManager;
-        this.plugin = plugin;
     }
 
     @EventHandler

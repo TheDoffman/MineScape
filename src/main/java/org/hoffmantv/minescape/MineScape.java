@@ -85,7 +85,7 @@ public class MineScape extends JavaPlugin {
         // Register other listeners
         registerListener(new WaterListener(this));
         registerListener(skillManager); // Assuming SkillManager implements Listener
-        registerListener(new CombatLevelSystem(this, combatLevel));
+        registerListener(new CombatLevelSystem(this, combatLevel, skillManager));
         registerListener(new FiremakingSkill(skillManager, this));
         registerListener(new HitpointsSkill(skillManager, this));
         registerListener(new RangeSkill(this, skillManager));
@@ -106,6 +106,7 @@ public class MineScape extends JavaPlugin {
         registerListener(new VilligerListener()); // Corrected spelling
         registerListener(new AlwaysDay(this));
         getServer().getPluginManager().registerEvents(new LoginListener(this), this);
+        getServer().getPluginManager().registerEvents(new CombatListener(this, skillManager), this);
 
 
         // Register ResourcePack listener
