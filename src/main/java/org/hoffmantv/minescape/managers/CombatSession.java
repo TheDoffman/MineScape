@@ -1,11 +1,12 @@
 package org.hoffmantv.minescape.managers;
 
 import org.bukkit.*;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -16,37 +17,33 @@ public class CombatSession {
     private final LivingEntity mob;
     private final JavaPlugin plugin;
     private final SkillManager skillManager;
-    private final CombatLevelSystem combatLevelSystem; // Reference to CombatLevelSystem
-    private final BossBar bossBar;
+    private final CombatLevelSystem combatLevelSystem;
     private final Location initialMobLocation;
     private boolean playerTurn = true; // Start with player's turn
     private boolean active = true;
-    private int playerHealth;
-    private int mobHealth;
-    private final int playerMaxHealth;
-    private final int mobMaxHealth;
+    private double playerHealth;
+    private double mobHealth;
+    private final double playerMaxHealth;
+    private final double mobMaxHealth;
     private final Random random = new Random();
     private long lastAttackTime; // Track the last attack time
+    private final String mobBaseName; // Store the mob's original name
 
     public CombatSession(Player player, LivingEntity mob, JavaPlugin plugin, SkillManager skillManager, CombatLevelSystem combatLevelSystem) {
         this.player = player;
         this.mob = mob;
         this.plugin = plugin;
         this.skillManager = skillManager;
-        this.combatLevelSystem = combatLevelSystem; // Store reference
-        this.playerMaxHealth = (int) player.getHealth();
-        this.mobMaxHealth = (int) mob.getHealth();
+        this.combatLevelSystem = combatLevelSystem;
+        this.playerMaxHealth = player.getHealth();
+        this.mobMaxHealth = mob.getHealth();
         this.playerHealth = playerMaxHealth;
         this.mobHealth = mobMaxHealth;
         this.initialMobLocation = mob.getLocation().clone(); // Store initial location of the mob
-        this.bossBar = Bukkit.createBossBar(
-                ChatColor.translateAlternateColorCodes('&', "&c" + mob.getName() + " - " + mobHealth + "/" + mobMaxHealth),
-                BarColor.RED,
-                BarStyle.SOLID
-        );
-        this.bossBar.addPlayer(player);
+        this.mobBaseName = mob.getCustomName() != null ? mob.getCustomName() : mob.getName(); // Handle null custom names
 
         freezeMob(true); // Freeze the mob in place
+        updateMobName(); // Update mob's name to include health
         startCombat();
         startMobFacingTask(); // Start the task to make the mob always face the player
     }
@@ -71,17 +68,22 @@ public class CombatSession {
     private void playerAttack() {
         if (!active) return;
 
-        int damage = calculateDamage(player, mob);
-        mobHealth -= damage;
-        mob.damage(damage); // Apply damage to the mob
+        double damage = calculateDamage(player, mob);
+        if (damage > 0) {
+            mobHealth -= damage;
+            mob.damage(damage); // Apply damage to the mob
 
-        // Visual effect for player attack
-        player.getWorld().playSound(mob.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.0f);
-        player.getWorld().spawnParticle(Particle.CRIT, mob.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
+            // Visual effect for player attack
+            player.getWorld().playSound(mob.getLocation(), Sound.ENTITY_PLAYER_ATTACK_STRONG, 1.0f, 1.0f);
+            player.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, mob.getLocation().add(0, 1, 0), 10, 0.2, 0.2, 0.2, 0.1);
 
-        updateBossBar();
-
-        player.sendMessage("You dealt " + damage + " damage to the mob! (" + mobHealth + "/" + mobMaxHealth + " HP)");
+            // Update mob's name with new health
+            updateMobName();
+        } else {
+            // Player missed the attack
+            player.sendMessage(ChatColor.GRAY + "You missed your attack!");
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1.0f, 0.5f);
+        }
 
         lastAttackTime = System.currentTimeMillis(); // Update last attack time
         checkCombatEnd();
@@ -90,29 +92,104 @@ public class CombatSession {
     private void mobAttack() {
         if (!active) return;
 
-        // Visual and sound effects to simulate mob attack
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_HURT, 1.0f, 1.0f);
-        player.getWorld().spawnParticle(Particle.CRIT_MAGIC, player.getLocation().add(0, 1, 0), 10, 0.5, 0.5, 0.5, 0.1);
+        double damage = calculateDamage(mob, player);
+        if (damage > 0) {
+            playerHealth -= damage;
+            player.damage(damage); // Apply damage to the player
 
-        int damage = calculateDamage(mob, player);
-        playerHealth -= damage;
-        player.damage(damage); // Apply damage to the player
-
-        player.sendMessage("The mob dealt " + damage + " damage to you! (" + playerHealth + "/" + playerMaxHealth + " HP)");
+            // Visual and sound effects to simulate mob attack
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_HURT, 1.0f, 1.0f);
+            player.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, player.getLocation().add(0, 1, 0), 10, 0.2, 0.2, 0.2, 0.1);
+        } else {
+            // Mob missed the attack
+            player.sendMessage(ChatColor.GRAY + "The mob missed its attack!");
+            player.getWorld().playSound(mob.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1.0f, 0.5f);
+        }
 
         lastAttackTime = System.currentTimeMillis(); // Update last attack time
         checkCombatEnd();
     }
 
-    private int calculateDamage(LivingEntity attacker, LivingEntity defender) {
+    private double calculateDamage(LivingEntity attacker, LivingEntity defender) {
         // Use skill levels or combat levels to influence damage calculations
         int attackLevel = getCombatLevel(attacker);
         int defenseLevel = getCombatLevel(defender);
 
-        int baseDamage = random.nextInt(attackLevel + 1); // Random damage between 0 and attackLevel
-        int reducedDamage = Math.max(baseDamage - (defenseLevel / 4), 0); // Reduce damage based on defense level
+        // Get base damage from attacker's attribute, with a default if null
+        double baseDamage = getBaseDamage(attacker);
 
-        return reducedDamage;
+        // Introduce randomness in damage
+        double randomFactor = 0.8 + (random.nextDouble() * 0.4); // Random factor between 0.8 and 1.2
+        double damage = baseDamage * randomFactor;
+
+        // Adjust damage based on attack and defense levels
+        double levelDifference = attackLevel - defenseLevel;
+        double levelAdjustment = 1 + (levelDifference * 0.05); // 5% damage increase/decrease per level difference
+        damage *= levelAdjustment;
+
+        // Ensure damage is at least 1
+        damage = Math.max(damage, 1);
+
+        // Calculate hit chance
+        double hitChance = Math.min(0.95, 0.5 + ((double) (attackLevel - defenseLevel) / 100));
+        if (random.nextDouble() > hitChance) {
+            return 0; // Missed attack
+        }
+
+        return damage;
+    }
+
+    private double getBaseDamage(LivingEntity attacker) {
+        if (attacker instanceof Player) {
+            // Get weapon from player's main hand
+            Player playerAttacker = (Player) attacker;
+            ItemStack weapon = playerAttacker.getInventory().getItemInMainHand();
+            return getWeaponDamage(weapon);
+        } else {
+            // For mobs, use their attack damage attribute or a default value
+            AttributeInstance attackAttribute = attacker.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+            if (attackAttribute != null) {
+                return attackAttribute.getBaseValue();
+            } else {
+                return 2.0; // Default base damage for mobs
+            }
+        }
+    }
+
+    private double getWeaponDamage(ItemStack weapon) {
+        if (weapon == null || weapon.getType() == Material.AIR) {
+            return 1.0; // Fist damage
+        }
+
+        switch (weapon.getType()) {
+            case WOODEN_SWORD:
+                return 4.0; // Base damage for wooden sword
+            case STONE_SWORD:
+                return 5.0;
+            case IRON_SWORD:
+                return 6.0;
+            case GOLDEN_SWORD:
+                return 4.0;
+            case DIAMOND_SWORD:
+                return 7.0;
+            case NETHERITE_SWORD:
+                return 8.0;
+            case WOODEN_AXE:
+                return 7.0;
+            case STONE_AXE:
+                return 9.0;
+            case IRON_AXE:
+                return 9.0;
+            case GOLDEN_AXE:
+                return 7.0;
+            case DIAMOND_AXE:
+                return 9.0;
+            case NETHERITE_AXE:
+                return 10.0;
+            // Add other weapons as needed
+            default:
+                return 1.0; // Default base damage for unrecognized items
+        }
     }
 
     private int getCombatLevel(LivingEntity entity) {
@@ -120,7 +197,9 @@ public class CombatSession {
         if (entity instanceof Player) {
             return skillManager.getSkillLevel((Player) entity, SkillManager.Skill.COMBAT);
         }
-        return 10; // Default value for mobs
+        // For mobs, extract level from name
+        Integer mobLevel = CombatLevelSystem.extractMobLevelFromName(mob);
+        return mobLevel != null ? mobLevel : 1; // Default value for mobs
     }
 
     private void checkCombatEnd() {
@@ -133,25 +212,22 @@ public class CombatSession {
         }
     }
 
-    private void endCombat(String message) {
+    public void endCombat(String message) {
+        if (!active) return; // Prevent multiple endings
         active = false;
-        player.sendMessage(message);
+        player.sendMessage(ChatColor.GREEN + message);
 
         // End combat visual effects
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
-        player.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, player.getLocation(), 5, 0.5, 0.5, 0.5, 0.1);
-        player.getWorld().playEffect(player.getLocation(), Effect.ENDER_SIGNAL, null);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+        player.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, player.getLocation(), 10, 0.5, 0.5, 0.5, 0.1);
 
-        bossBar.removeAll();
         freezeMob(false); // Unfreeze the mob
 
-        // Remove session from CombatLevelSystem
-        combatLevelSystem.endCombatSession(player); // Use reference to end the session
-    }
+        // Restore mob's original name
+        mob.setCustomName(mobBaseName);
 
-    // Overloaded endCombat method without parameters
-    public void endCombat() {
-        endCombat("Combat ended.");
+        // Notify CombatLevelSystem to end the session
+        combatLevelSystem.endCombatSession(player);
     }
 
     public boolean isActive() {
@@ -176,10 +252,10 @@ public class CombatSession {
         return lastAttackTime;
     }
 
-    // Update the boss bar with the latest health values
-    private void updateBossBar() {
-        bossBar.setProgress(Math.max(0, (double) mobHealth / mobMaxHealth));
-        bossBar.setTitle(ChatColor.translateAlternateColorCodes('&', "&c" + mob.getName() + " - " + mobHealth + "/" + mobMaxHealth));
+    // Update the mob's name to include current health
+    private void updateMobName() {
+        String healthInfo = ChatColor.WHITE + " [" + ChatColor.GREEN + (int) mobHealth + ChatColor.WHITE + "/" + (int) mobMaxHealth + ChatColor.WHITE + "]";
+        mob.setCustomName(mobBaseName + healthInfo);
     }
 
     // Task to make the mob always face the player
@@ -188,7 +264,7 @@ public class CombatSession {
             @Override
             public void run() {
                 if (!active || !mob.isValid()) {
-                    this.cancel(); // Stop the task if the combat session is no longer active or the mob is not valid
+                    this.cancel();
                     return;
                 }
 

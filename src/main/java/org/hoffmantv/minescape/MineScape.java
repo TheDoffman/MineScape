@@ -110,7 +110,6 @@ public class MineScape extends JavaPlugin {
         registerListener(new VilligerListener()); // Corrected spelling
         registerListener(new AlwaysDay(this));
         getServer().getPluginManager().registerEvents(new LoginListener(this), this);
-        getServer().getPluginManager().registerEvents(new CombatListener(this, skillManager), this);
 
 
 

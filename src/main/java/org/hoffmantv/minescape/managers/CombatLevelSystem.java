@@ -4,11 +4,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,21 +21,24 @@ public class CombatLevelSystem implements Listener {
     private final Random random = new Random();
     private final CombatLevel combatLevel;
     private final SkillManager skillManager;
-    private final Map<UUID, BossBar> mobBossBars = new WeakHashMap<>();
-    private final Map<UUID, Long> lastAttackTime = new WeakHashMap<>(); // Stores the last attack time of each mob
+    private final Map<UUID, Long> lastAttackTime = new HashMap<>();
     private static final int MAX_DISTANCE = 15; // Maximum distance to cancel the fight
     private static final int INACTIVITY_TIMEOUT = 10 * 1000; // 10 seconds in milliseconds
 
     // Active combat sessions
     private final Map<UUID, CombatSession> activeCombatSessions = new HashMap<>();
+    private final Set<UUID> engagedPlayers = new HashSet<>();
+    private final Object sessionLock = new Object();
+    private final Map<UUID, Long> attackCooldowns = new HashMap<>();
 
     public CombatLevelSystem(JavaPlugin plugin, CombatLevel combatLevel, SkillManager skillManager) {
         this.plugin = plugin;
         this.combatLevel = combatLevel;
         this.skillManager = skillManager;
+
         this.plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
-        // Assign levels to existing mobs (hostile, passive, and baby animals) in all worlds on startup
+        // Assign levels to existing mobs on startup
         for (World world : plugin.getServer().getWorlds()) {
             for (LivingEntity entity : world.getLivingEntities()) {
                 if (isMobEligibleForLeveling(entity)) {
@@ -46,8 +47,7 @@ public class CombatLevelSystem implements Listener {
             }
         }
 
-        // Start BossBar updater
-        startBossBarUpdater();
+        // Start inactivity checker
         startInactivityChecker();
     }
 
@@ -57,9 +57,9 @@ public class CombatLevelSystem implements Listener {
 
         if (closestPlayer != null) {
             int playerCombatLevel = combatLevel.calculateCombatLevel(closestPlayer);
-            mobLevel = playerCombatLevel + random.nextInt(11) - 5; // player level +/-5
+            mobLevel = playerCombatLevel + random.nextInt(5) - 2; // player level +/-2
         } else {
-            mobLevel = random.nextInt(5) + 1; // Random level between 1 and 5
+            mobLevel = random.nextInt(3) + 1; // Random level between 1 and 3
         }
 
         // Ensure mobLevel is at least 1
@@ -67,7 +67,7 @@ public class CombatLevelSystem implements Listener {
 
         // If the mob is a baby, reduce the level slightly
         if (mob instanceof Ageable && !((Ageable) mob).isAdult()) {
-            mobLevel = Math.max(1, mobLevel - 2); // Reduce level by 2 for baby animals, with minimum of 1
+            mobLevel = Math.max(1, mobLevel - 1);
         }
 
         setMobNameAndAttributes(mob, mobLevel);
@@ -76,7 +76,7 @@ public class CombatLevelSystem implements Listener {
     private void setMobNameAndAttributes(LivingEntity mob, int mobLevel) {
         String mobName = formatMobName(mob.getType().toString());
         if (mob instanceof Ageable && !((Ageable) mob).isAdult()) {
-            mobName = "Baby " + mobName; // Prefix with "Baby" if the mob is a baby
+            mobName = "Baby " + mobName;
         }
         mob.setCustomNameVisible(true);
         mob.setCustomName(ChatColor.translateAlternateColorCodes('&',
@@ -92,18 +92,24 @@ public class CombatLevelSystem implements Listener {
 
     // Adjust the attributes of the mob based on its level
     private void adjustMobAttributes(LivingEntity mob, int mobLevel) {
-        // Adjust health
+        // Set base health similar to player's max health
+        double baseHealth = 20.0;
+
+        // Adjust health slightly based on mob level
+        double newHealth = baseHealth + ((mobLevel - 1) * 2); // Increase health by 2 per level above 1
+
+        // Cap the mob's health to a reasonable maximum (e.g., 40)
+        newHealth = Math.min(newHealth, 40.0);
+
         if (mob.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
-            double baseHealth = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-            double newHealth = baseHealth + (mobLevel * 0.5);  // Increase health by 0.5 per level
             mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(newHealth);
             mob.setHealth(newHealth); // Set the new health to reflect immediately
         }
 
-        // Adjust damage (only for entities that can deal damage)
+        // Adjust damage output
         if (mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) != null) {
-            double baseDamage = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getBaseValue();
-            double newDamage = baseDamage + (mobLevel * 0.1);  // Increase damage by 0.1 per level
+            double baseDamage = 2.0; // Base damage similar to player without weapon
+            double newDamage = baseDamage + ((mobLevel - 1) * 0.5); // Increase damage by 0.5 per level above 1
             mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(newDamage);
         }
     }
@@ -116,7 +122,6 @@ public class CombatLevelSystem implements Listener {
     }
 
     private boolean isMobEligibleForLeveling(LivingEntity entity) {
-        // Include both hostile and passive mobs, including baby animals
         return entity instanceof Monster || entity instanceof Animals || entity instanceof WaterMob || entity instanceof Ambient;
     }
 
@@ -134,11 +139,10 @@ public class CombatLevelSystem implements Listener {
     }
 
     private String getColorBasedOnDifficulty(int mobLevel) {
-        if (mobLevel >= 50) return "&4";    // Red for very high-level mobs
-        if (mobLevel >= 30) return "&c";    // Dark red for high-level mobs
-        if (mobLevel >= 20) return "&e";    // Yellow for mid-level mobs
-        if (mobLevel >= 10) return "&a";    // Green for low-level mobs
-        return "&2";                        // Dark green for very low-level mobs
+        if (mobLevel >= 10) return "&4";    // Red for high-level mobs
+        if (mobLevel >= 7) return "&c";     // Dark red for mid-level mobs
+        if (mobLevel >= 4) return "&e";     // Yellow for lower-level mobs
+        return "&a";                        // Green for very low-level mobs
     }
 
     public static Integer extractMobLevelFromName(LivingEntity mob) {
@@ -159,169 +163,136 @@ public class CombatLevelSystem implements Listener {
         }
     }
 
-    @EventHandler
-    public void onMobAttack(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof LivingEntity)) return;
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerAttack(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof LivingEntity)) {
+            return;
+        }
 
-        LivingEntity mob = (LivingEntity) event.getEntity();
         Player player = (Player) event.getDamager();
+        LivingEntity mob = (LivingEntity) event.getEntity();
+
+        // Only proceed if the damage cause is ENTITY_ATTACK (melee attack)
+        if (event.getCause() != EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
+            return;
+        }
 
         Integer mobLevel = extractMobLevelFromName(mob);
         if (mobLevel == null) return;
 
-        // Check if player is already in a combat session
         UUID playerUUID = player.getUniqueId();
-        CombatSession existingSession = activeCombatSessions.get(playerUUID);
 
-        if (existingSession != null) {
-            if (existingSession.getMob().equals(mob)) {
-                // Player is already fighting this mob, update the last attack time
-                lastAttackTime.put(mob.getUniqueId(), System.currentTimeMillis());
-                return;
-            } else {
-                // Player is trying to start combat with a new mob, but already in a session
-                player.sendMessage(ChatColor.RED + "You are already engaged in combat with another mob!");
+        long currentTime = System.currentTimeMillis();
+
+        synchronized (sessionLock) {
+            // Cooldown to prevent rapid multiple sessions
+            Long lastAttack = attackCooldowns.get(playerUUID);
+            if (lastAttack != null && currentTime - lastAttack < 500) { // 500ms cooldown
+                event.setCancelled(true);
                 return;
             }
+            attackCooldowns.put(playerUUID, currentTime);
+
+            // Check if player is already in a combat session
+            if (activeCombatSessions.containsKey(playerUUID) || engagedPlayers.contains(playerUUID)) {
+                player.sendMessage(ChatColor.RED + "You are already in a combat session. Finish it before starting a new one!");
+                event.setCancelled(true);
+                return;
+            }
+
+            // Check if this mob is already in a combat session
+            if (activeCombatSessions.values().stream().anyMatch(session -> session.getMob().equals(mob))) {
+                player.sendMessage(ChatColor.RED + "This mob is already engaged in combat with another player!");
+                event.setCancelled(true);
+                return;
+            }
+
+            // Start the combat session
+            startCombatSession(player, mob);
+            lastAttackTime.put(mob.getUniqueId(), currentTime);
         }
 
-        startCombatSession(player, mob);
-        lastAttackTime.put(mob.getUniqueId(), System.currentTimeMillis());
         event.setCancelled(true); // Cancel regular damage
     }
 
     private void startCombatSession(Player player, LivingEntity mob) {
         UUID playerUUID = player.getUniqueId();
 
-        // Prevent creating multiple sessions for the same player
-        if (activeCombatSessions.containsKey(playerUUID)) {
-            return;
+        synchronized (sessionLock) {
+            if (activeCombatSessions.containsKey(playerUUID) || engagedPlayers.contains(playerUUID)) {
+                return;
+            }
+
+            // Mark the player as engaged
+            engagedPlayers.add(playerUUID);
+
+            // Create a new combat session
+            CombatSession session = new CombatSession(player, mob, plugin, skillManager, this);
+            activeCombatSessions.put(playerUUID, session);
         }
-
-        CombatSession session = new CombatSession(player, mob, plugin, skillManager, this);
-        activeCombatSessions.put(player.getUniqueId(), session);
-
-        // Create and assign a BossBar for this session
-        BossBar bossBar = Bukkit.createBossBar(
-                ChatColor.translateAlternateColorCodes('&', "&c" + mob.getCustomName()),
-                BarColor.RED,
-                BarStyle.SOLID
-        );
-        bossBar.addPlayer(player);
-        bossBar.setProgress(Math.max(0, mob.getHealth() / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()));
-
-        mobBossBars.put(mob.getUniqueId(), bossBar);
-    }
-
-    @EventHandler
-    public void onMobDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof LivingEntity)) return;
-
-        LivingEntity mob = (LivingEntity) event.getEntity();
-        BossBar bossBar = mobBossBars.get(mob.getUniqueId());
-
-        if (bossBar == null) return;
-
-        double health = mob.getHealth() - event.getFinalDamage(); // health after damage is applied
-        double maxHealth = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-
-        bossBar.setProgress(Math.max(0, health) / maxHealth);
     }
 
     @EventHandler
     public void onMobDeath(EntityDeathEvent event) {
         LivingEntity mob = event.getEntity();
-        BossBar bossBar = mobBossBars.remove(mob.getUniqueId());
-        if (bossBar != null) {
-            bossBar.removeAll();
-            lastAttackTime.remove(mob.getUniqueId());
-        }
+        UUID mobUUID = mob.getUniqueId();
+
+        lastAttackTime.remove(mobUUID);
 
         // End the combat session if it exists
-        activeCombatSessions.values().removeIf(session -> session.getMob().equals(mob));
+        synchronized (sessionLock) {
+            activeCombatSessions.entrySet().removeIf(entry -> {
+                CombatSession session = entry.getValue();
+                if (session.getMob().equals(mob)) {
+                    UUID playerUUID = entry.getKey();
+                    engagedPlayers.remove(playerUUID);
+                    session.endCombat("Mob died."); // End the combat session
+                    return true;
+                }
+                return false;
+            });
+        }
     }
 
-    // Replace onPlayerMove with a scheduled task
-    public void startBossBarUpdater() {
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                updateBossBarsForPlayer(player);
-            }
-        }, 0L, 20L); // Update every second (20 ticks)
-    }
-
-    private void updateBossBarsForPlayer(Player player) {
-        mobBossBars.forEach((uuid, bossBar) -> {
-            Entity mob = player.getWorld().getEntity(uuid);
-            if (mob == null || mob.getLocation().distance(player.getLocation()) > MAX_DISTANCE) {
-                bossBar.removePlayer(player);
-            } else {
-                bossBar.addPlayer(player);
-            }
-        });
-    }
-
-    // Check for inactivity to remove boss bars and cancel combat sessions
+    // Check for inactivity to cancel combat sessions
     private void startInactivityChecker() {
         new BukkitRunnable() {
             @Override
             public void run() {
                 long currentTime = System.currentTimeMillis();
 
-                // Iterate over mobs with boss bars
-                Iterator<Map.Entry<UUID, BossBar>> iterator = mobBossBars.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    Map.Entry<UUID, BossBar> entry = iterator.next();
-                    UUID mobUUID = entry.getKey();
-                    BossBar bossBar = entry.getValue();
-
-                    // Check for inactivity
-                    Long lastAttack = lastAttackTime.get(mobUUID);
-                    if (lastAttack == null || currentTime - lastAttack > INACTIVITY_TIMEOUT) {
-                        bossBar.removeAll();
-                        iterator.remove(); // Remove from map
-                        lastAttackTime.remove(mobUUID);
+                synchronized (sessionLock) {
+                    Iterator<Map.Entry<UUID, CombatSession>> iterator = activeCombatSessions.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        Map.Entry<UUID, CombatSession> entry = iterator.next();
+                        UUID playerUUID = entry.getKey();
+                        CombatSession session = entry.getValue();
+                        if (session == null) {
+                            iterator.remove();
+                            continue;
+                        }
+                        Player player = Bukkit.getPlayer(playerUUID);
+                        if (player == null || player.getLocation().distance(session.getMob().getLocation()) > MAX_DISTANCE ||
+                                currentTime - session.getLastAttackTime() > INACTIVITY_TIMEOUT) {
+                            session.endCombat("Combat ended due to inactivity.");
+                            engagedPlayers.remove(playerUUID);
+                            iterator.remove(); // Safely remove using iterator
+                        }
                     }
                 }
-
-                // Check for combat sessions
-                activeCombatSessions.entrySet().removeIf(entry -> {
-                    CombatSession session = entry.getValue();
-                    if (session == null) return true;
-                    Player player = Bukkit.getPlayer(entry.getKey());
-                    if (player == null || player.getLocation().distance(session.getMob().getLocation()) > MAX_DISTANCE ||
-                            currentTime - session.getLastAttackTime() > INACTIVITY_TIMEOUT) {
-                        session.endCombat(); // End the combat session
-                        return true;
-                    }
-                    return false;
-                });
             }
         }.runTaskTimer(plugin, 0L, 20L); // Check every second
-    }
-
-    // Get BossBar color based on mob level
-    private BarColor getBossBarColor(int mobLevel) {
-        if (mobLevel >= 50) return BarColor.RED;
-        if (mobLevel >= 30) return BarColor.PINK; // Replaced PURPLE with PINK for compatibility
-        if (mobLevel >= 20) return BarColor.YELLOW;
-        if (mobLevel >= 10) return BarColor.GREEN;
-        return BarColor.BLUE;
-    }
-
-    // Get BossBar style based on mob level
-    private BarStyle getBossBarStyle(int mobLevel) {
-        if (mobLevel >= 50) return BarStyle.SEGMENTED_10;
-        if (mobLevel >= 30) return BarStyle.SEGMENTED_6;
-        return BarStyle.SOLID;
     }
 
     // Method to end the combat session and clean up
     public void endCombatSession(Player player) {
         UUID playerUUID = player.getUniqueId();
-        CombatSession session = activeCombatSessions.remove(playerUUID);
-        if (session != null) {
-            session.endCombat();
+        synchronized (sessionLock) {
+            // Check if the session is still present
+            if (activeCombatSessions.containsKey(playerUUID)) {
+                // The session will be removed by the iterator in startInactivityChecker()
+                engagedPlayers.remove(playerUUID);
+            }
         }
     }
 }
