@@ -1,6 +1,7 @@
 package org.hoffmantv.minescape.managers;
 
 import org.bukkit.*;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
@@ -18,14 +19,18 @@ public class SkillManager implements Listener {
 
     private final JavaPlugin plugin;
     private final ConfigurationManager configManager;
-    private FileConfiguration playerDataConfig;
-    private CombatLevel combatLevel;
+    private final FileConfiguration playerDataConfig;
+    private final FileConfiguration skillsConfig;
+    private final CombatLevel combatLevel;
 
     private static final int MAX_LEVEL = 99;
 
     // Initialize the maps to store player levels and XP
-    private Map<UUID, Map<Skill, Integer>> playerLevels = new HashMap<>();
-    private Map<UUID, Map<Skill, Double>> playerXP = new HashMap<>();
+    private final Map<UUID, Map<Skill, Integer>> playerLevels = new HashMap<>();
+    private final Map<UUID, Map<Skill, Double>> playerXP = new HashMap<>();
+
+    // Map to store weapon requirements: <Material, Required Strength Level>
+    private final Map<Material, Integer> weaponStrengthRequirements = new HashMap<>();
 
     public SkillManager(JavaPlugin plugin, ConfigurationManager configManager) {
         this.plugin = plugin;
@@ -36,8 +41,14 @@ public class SkillManager implements Listener {
         // Load the playerdata.yml configuration through ConfigurationManager
         this.playerDataConfig = configManager.getPlayerDataConfig();
 
+        // Load the skills.yml configuration through ConfigurationManager
+        this.skillsConfig = configManager.getSkillsConfig();
+
         // Load skills from the configuration
         loadSkillsFromConfig();
+
+        // Load weapon requirements from skills.yml
+        loadWeaponRequirements();
     }
 
     // Enum to represent different skills
@@ -77,6 +88,35 @@ public class SkillManager implements Listener {
         }
     }
 
+    // Load weapon requirements from skills.yml
+    private void loadWeaponRequirements() {
+        ConfigurationSection strengthConfig = skillsConfig.getConfigurationSection("strength");
+        if (strengthConfig != null) {
+            ConfigurationSection weaponReqSection = strengthConfig.getConfigurationSection("weaponRequirements");
+            if (weaponReqSection != null) {
+                Set<String> keys = weaponReqSection.getKeys(false);
+                for (String key : keys) {
+                    try {
+                        Material material = Material.valueOf(key);
+                        int requiredLevel = weaponReqSection.getInt(key);
+                        weaponStrengthRequirements.put(material, requiredLevel);
+                    } catch (IllegalArgumentException e) {
+                        plugin.getLogger().warning("Invalid material in weapon requirements: " + key);
+                    }
+                }
+            } else {
+                plugin.getLogger().warning("No weapon requirements found in skills.yml under strength.weaponRequirements");
+            }
+        } else {
+            plugin.getLogger().warning("No strength section found in skills.yml");
+        }
+    }
+
+    // Get the required Strength level for a weapon
+    public int getRequiredStrengthLevel(Material weaponType) {
+        return weaponStrengthRequirements.getOrDefault(weaponType, 1); // Default required level is 1
+    }
+
     // Set a player's skill level
     public void setSkillLevel(Player player, Skill skill, int level) {
         int cappedLevel = Math.min(level, MAX_LEVEL); // Ensure we don't go beyond MAX_LEVEL
@@ -94,7 +134,8 @@ public class SkillManager implements Listener {
     // Get a player's skill level
     public int getSkillLevel(Player player, Skill skill) {
         UUID playerUUID = player.getUniqueId();
-        return playerLevels.getOrDefault(playerUUID, Collections.emptyMap()).getOrDefault(skill, skill == Skill.COMBAT ? 3 : 1);
+        return playerLevels.getOrDefault(playerUUID, Collections.emptyMap())
+                .getOrDefault(skill, skill == Skill.COMBAT ? 3 : 1);
     }
 
     // Add experience to a skill
@@ -136,7 +177,8 @@ public class SkillManager implements Listener {
             launchFirework(player.getLocation());
 
             // Update combat level if necessary
-            if (skill == Skill.ATTACK || skill == Skill.DEFENCE || skill == Skill.STRENGTH || skill == Skill.HITPOINTS || skill == Skill.MAGIC || skill == Skill.RANGE || skill == Skill.PRAYER) {
+            if (skill == Skill.ATTACK || skill == Skill.DEFENCE || skill == Skill.STRENGTH ||
+                    skill == Skill.HITPOINTS || skill == Skill.MAGIC || skill == Skill.RANGE || skill == Skill.PRAYER) {
                 combatLevel.updateCombatLevel(player, player);
             }
 
@@ -168,7 +210,8 @@ public class SkillManager implements Listener {
     // Get the XP for a specific skill
     public double getXP(Player player, Skill skill) {
         UUID playerUUID = player.getUniqueId();
-        return playerXP.getOrDefault(playerUUID, Collections.emptyMap()).getOrDefault(skill, 0.0);
+        return playerXP.getOrDefault(playerUUID, Collections.emptyMap())
+                .getOrDefault(skill, 0.0);
     }
 
     public double xpNeededForNextLevel(Player player, Skill skill) {
@@ -215,9 +258,9 @@ public class SkillManager implements Listener {
         }
 
         // Update combat level displays
-        Integer combatLevel = this.combatLevel.calculateCombatLevel(player);
-        this.combatLevel.updatePlayerNametag(player);
-        this.combatLevel.updatePlayerHeadDisplay(player);
+        combatLevel.updateCombatLevel(player, player);
+        combatLevel.updatePlayerNametag(player);
+        combatLevel.updatePlayerHeadDisplay(player);
     }
 
     public void launchFirework(Location location) {

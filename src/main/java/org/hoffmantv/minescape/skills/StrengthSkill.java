@@ -7,7 +7,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
 import org.hoffmantv.minescape.managers.ConfigurationManager;
@@ -23,42 +22,6 @@ public class StrengthSkill implements Listener {
         this.skillManager = skillManager;
         this.strengthConfig = strengthConfig;
         this.configManager = configManager;
-    }
-
-    @EventHandler
-    public void onPlayerDamageMob(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof LivingEntity)) {
-            return;
-        }
-
-        Player player = (Player) event.getDamager();
-        LivingEntity mob = (LivingEntity) event.getEntity();
-
-        // Check if the player is holding a sword
-        switch (player.getInventory().getItemInMainHand().getType()) {
-            case DIAMOND_SWORD:
-            case GOLDEN_SWORD:
-            case IRON_SWORD:
-            case STONE_SWORD:
-            case WOODEN_SWORD:
-            case NETHERITE_SWORD:
-                break; // If they are holding a sword, continue to the logic below.
-            default:
-                return; // If not, exit out of the event.
-        }
-
-        // Placeholder check to exclude certain mobs (you should define this properly)
-        if (isExcludedMob(mob)) {
-            return;
-        }
-
-        Integer mobLevel = CombatLevelSystem.extractMobLevelFromName(mob);
-        if (mobLevel == null) {
-            // Make sure to review how CombatLevelSystem works!
-            return;
-        }
-
-        // Additional logic for when the player damages a mob can be added here
     }
 
     @EventHandler
@@ -81,7 +44,7 @@ public class StrengthSkill implements Listener {
         // Add the XP reward to the player's STRENGTH skill using the SkillManager
         skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
 
-        // Log the XP gain to playerdata.yml
+        // Log the XP gain to playerdata.yml or any other logging mechanism
         configManager.logXpGain(player, "strength", xpAmount);
 
         // Notify the player about the XP gained
@@ -93,13 +56,9 @@ public class StrengthSkill implements Listener {
         // Fetch base XP from the configuration section, default to 10 if not found
         int baseXp = strengthConfig.getInt("baseXp", 10);
 
-        // Optionally use mobLevel in the calculation if needed, for now, return just the base XP
-        return baseXp;
-    }
+        // Optionally use mobLevel in the calculation
+        int xp = baseXp + (mobLevel * 2); // Example: Increase XP reward per mob level
 
-    private boolean isExcludedMob(LivingEntity mob) {
-        // Placeholder logic: You should implement your own criteria here.
-        // For example, if you have friendly NPCs or mobs tagged as 'non-combat'.
-        return false;
+        return xp;
     }
 }

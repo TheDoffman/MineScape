@@ -6,11 +6,10 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.Random;
+import java.util.*;
 
 public class CombatSession {
     private final Player player;
@@ -28,6 +27,7 @@ public class CombatSession {
     private final Random random = new Random();
     private long lastAttackTime; // Track the last attack time
     private final String mobBaseName; // Store the mob's original name
+    private static final Set<UUID> notifiedPlayers = new HashSet<>();
 
     public CombatSession(Player player, LivingEntity mob, JavaPlugin plugin, SkillManager skillManager, CombatLevelSystem combatLevelSystem) {
         this.player = player;
@@ -127,6 +127,14 @@ public class CombatSession {
         double levelAdjustment = 1 + (levelDifference * 0.05); // 5% damage increase/decrease per level difference
         damage *= levelAdjustment;
 
+        // Adjust damage based on player's Strength skill level
+        if (attacker instanceof Player) {
+            Player playerAttacker = (Player) attacker;
+            int strengthLevel = skillManager.getSkillLevel(playerAttacker, SkillManager.Skill.STRENGTH);
+            double strengthMultiplier = 1 + (strengthLevel * 0.02); // Increase damage by 2% per Strength level
+            damage *= strengthMultiplier;
+        }
+
         // Ensure damage is at least 1
         damage = Math.max(damage, 1);
 
@@ -144,7 +152,7 @@ public class CombatSession {
             // Get weapon from player's main hand
             Player playerAttacker = (Player) attacker;
             ItemStack weapon = playerAttacker.getInventory().getItemInMainHand();
-            return getWeaponDamage(weapon);
+            return getWeaponDamage(playerAttacker, weapon);
         } else {
             // For mobs, use their attack damage attribute or a default value
             AttributeInstance attackAttribute = attacker.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
@@ -156,12 +164,41 @@ public class CombatSession {
         }
     }
 
-    private double getWeaponDamage(ItemStack weapon) {
+    private double getWeaponDamage(Player player, ItemStack weapon) {
         if (weapon == null || weapon.getType() == Material.AIR) {
             return 1.0; // Fist damage
         }
 
-        switch (weapon.getType()) {
+        Material weaponType = weapon.getType();
+
+        // Get the required Strength level for the weapon
+        int requiredStrengthLevel = skillManager.getRequiredStrengthLevel(weaponType);
+
+        // Get the player's Strength level
+        int playerStrengthLevel = skillManager.getSkillLevel(player, SkillManager.Skill.STRENGTH);
+
+        // Check if the player meets the required Strength level
+        if (playerStrengthLevel < requiredStrengthLevel) {
+            // Player does not meet the requirement
+            if (!notifiedPlayers.contains(player.getUniqueId())) {
+                player.sendMessage(ChatColor.RED + "You need Strength level " + requiredStrengthLevel + " to use this weapon effectively!");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                notifiedPlayers.add(player.getUniqueId());
+
+                // Remove the player from the set after 5 seconds
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        notifiedPlayers.remove(player.getUniqueId());
+                    }
+                }.runTaskLater(plugin, 100L); // 100 ticks = 5 seconds
+            }
+            // Return reduced damage
+            return 1.0; // Minimal damage
+        }
+
+        // Player meets the requirement, return the weapon's base damage
+        switch (weaponType) {
             case WOODEN_SWORD:
                 return 4.0; // Base damage for wooden sword
             case STONE_SWORD:

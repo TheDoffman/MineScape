@@ -5,6 +5,19 @@ skills:
   strength:
     baseXp: 10
     levelMultiplier: 1.0
+    weaponRequirements:
+      WOODEN_SWORD: 1
+      STONE_SWORD: 5
+      IRON_SWORD: 10
+      GOLDEN_SWORD: 12
+      DIAMOND_SWORD: 15
+      NETHERITE_SWORD: 20
+      WOODEN_AXE: 3
+      STONE_AXE: 7
+      IRON_AXE: 12
+      GOLDEN_AXE: 14
+      DIAMOND_AXE: 17
+      NETHERITE_AXE: 22
   defense:
     xpMultiplier: 2.0
     xpPerDamage: 5

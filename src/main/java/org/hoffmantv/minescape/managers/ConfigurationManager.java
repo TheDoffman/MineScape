@@ -16,6 +16,9 @@ public class ConfigurationManager {
     private FileConfiguration playerDataConfig;
     private File playerDataFile;
 
+    private FileConfiguration skillsConfig;
+    private File skillsFile;
+
     public ConfigurationManager(JavaPlugin plugin) {
         this.plugin = plugin;
         this.dataFolder = plugin.getDataFolder();
@@ -23,6 +26,7 @@ public class ConfigurationManager {
             dataFolder.mkdirs();
         }
         loadPlayerDataFile(); // Load player data file during initialization
+        loadSkillsFile();     // Load skills file during initialization
     }
 
     // General method to load any configuration file
@@ -51,11 +55,7 @@ public class ConfigurationManager {
     private void loadPlayerDataFile() {
         playerDataFile = new File(dataFolder, "playerdata.yml");
         if (!playerDataFile.exists()) {
-            try {
-                playerDataFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            plugin.saveResource("playerdata.yml", false);
         }
         playerDataConfig = YamlConfiguration.loadConfiguration(playerDataFile);
     }
@@ -70,6 +70,34 @@ public class ConfigurationManager {
         } catch (IOException e) {
             plugin.getLogger().severe("Could not save playerdata.yml");
         }
+    }
+
+    // Specific method to load skills.yml
+    private void loadSkillsFile() {
+        skillsFile = new File(dataFolder, "skills.yml");
+        if (!skillsFile.exists()) {
+            plugin.saveResource("skills.yml", false); // Create from resources
+        }
+        skillsConfig = YamlConfiguration.loadConfiguration(skillsFile);
+    }
+
+    // Getter for skills.yml configuration
+    public FileConfiguration getSkillsConfig() {
+        return skillsConfig;
+    }
+
+    // Save method for skills.yml
+    public void saveSkillsConfig() {
+        try {
+            skillsConfig.save(skillsFile);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Could not save skills.yml");
+        }
+    }
+
+    // Reload method for skills.yml
+    public void reloadSkillsConfig() {
+        skillsConfig = YamlConfiguration.loadConfiguration(skillsFile);
     }
 
     // Log XP gain into playerdata.yml
@@ -97,4 +125,5 @@ public class ConfigurationManager {
         if (!configFile.exists()) {
             plugin.saveResource(fileName, false);
         }
-    }}
+    }
+}
