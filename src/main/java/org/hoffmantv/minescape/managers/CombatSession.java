@@ -177,6 +177,11 @@ public class CombatSession {
         // Get the player's Strength level
         int playerStrengthLevel = skillManager.getSkillLevel(player, SkillManager.Skill.STRENGTH);
 
+        // Add Debug Statements
+        System.out.println("DEBUG: Weapon Type: " + weaponType.name());
+        System.out.println("DEBUG: Required Strength Level: " + requiredStrengthLevel);
+        System.out.println("DEBUG: Player Strength Level: " + playerStrengthLevel);
+
         // Check if the player meets the required Strength level
         if (playerStrengthLevel < requiredStrengthLevel) {
             // Player does not meet the requirement
@@ -200,7 +205,7 @@ public class CombatSession {
         // Player meets the requirement, return the weapon's base damage
         switch (weaponType) {
             case WOODEN_SWORD:
-                return 4.0; // Base damage for wooden sword
+                return 4.0;
             case STONE_SWORD:
                 return 5.0;
             case IRON_SWORD:
@@ -211,21 +216,9 @@ public class CombatSession {
                 return 7.0;
             case NETHERITE_SWORD:
                 return 8.0;
-            case WOODEN_AXE:
-                return 7.0;
-            case STONE_AXE:
-                return 9.0;
-            case IRON_AXE:
-                return 9.0;
-            case GOLDEN_AXE:
-                return 7.0;
-            case DIAMOND_AXE:
-                return 9.0;
-            case NETHERITE_AXE:
-                return 10.0;
             // Add other weapons as needed
             default:
-                return 1.0; // Default base damage for unrecognized items
+                return 1.0;
         }
     }
 

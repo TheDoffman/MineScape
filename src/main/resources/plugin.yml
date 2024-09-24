@@ -7,17 +7,14 @@ commands:
   help:
     description: Gives the player a list of available commands.
     usage: /help
-  skills:
-    description: Open the skills menu.
-    usage: /skills
+  togglehologram:
+    description: Allows player to turn on and off the skills menu
+    usage: /togglehologram
   alwaysday:
     description: Toggle the always day feature.
     usage: /alwaysday <enable|disable>
     aliases: [ ad ]
     permission: minescape.alwaysday
-  createnpc:
-    usage: /createnpc <name>
-    description: Spawns an NPC.
 
 permissions:
   minescape.help:

@@ -7,17 +7,17 @@ skills:
     levelMultiplier: 1.0
     weaponRequirements:
       WOODEN_SWORD: 1
-      STONE_SWORD: 5
-      IRON_SWORD: 10
-      GOLDEN_SWORD: 12
-      DIAMOND_SWORD: 15
-      NETHERITE_SWORD: 20
+      STONE_SWORD: 10
+      IRON_SWORD: 20
+      GOLDEN_SWORD: 15
+      DIAMOND_SWORD: 30
+      NETHERITE_SWORD: 50
       WOODEN_AXE: 3
-      STONE_AXE: 7
-      IRON_AXE: 12
-      GOLDEN_AXE: 14
-      DIAMOND_AXE: 17
-      NETHERITE_AXE: 22
+      STONE_AXE: 13
+      IRON_AXE: 23
+      GOLDEN_AXE: 18
+      DIAMOND_AXE: 33
+      NETHERITE_AXE: 53
   defense:
     xpMultiplier: 2.0
     xpPerDamage: 5
@@ -78,6 +78,40 @@ skills:
         requiredLevel: 50
         xpValue: 18
         sapling: ACACIA_SAPLING
+  firemaking:
+    logRequirements:
+      OAK_LOG:
+        xp: 10
+        despawnTime: 1200  # 1200 ticks = 1 minute
+        requiredLevel: 1
+      SPRUCE_LOG:
+        xp: 12
+        despawnTime: 1200
+        requiredLevel: 15
+      BIRCH_LOG:
+        xp: 14
+        despawnTime: 1200
+        requiredLevel: 30
+      JUNGLE_LOG:
+        xp: 16
+        despawnTime: 1400
+        requiredLevel: 35
+      ACACIA_LOG:
+        xp: 18
+        despawnTime: 1600
+        requiredLevel: 45
+      DARK_OAK_LOG:
+        xp: 20
+        despawnTime: 1200
+        requiredLevel: 50
+      CRIMSON_STEM:
+        xp: 22
+        despawnTime: 1800
+        requiredLevel: 60
+      WARPED_STEM:
+        xp: 24
+        despawnTime: 2000
+        requiredLevel: 65
   smithing:
     smelting:
       iron_ore:

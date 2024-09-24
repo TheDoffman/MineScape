@@ -12,9 +12,10 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class SkillsMenu implements Listener {
 
@@ -69,11 +70,8 @@ public class SkillsMenu implements Listener {
             skillMeta.setDisplayName(ChatColor.GOLD + getDisplayNameForSkill(skill));
 
             int playerLevel = skillManager.getSkillLevel(player, skill);
-            int xpNeeded = (int) skillManager.xpNeededForNextLevel(player, skill);
-            skillMeta.setLore(Arrays.asList(
-                    ChatColor.GRAY + "Level: " + ChatColor.GREEN + playerLevel,
-                    ChatColor.BLUE + "XP till next level: " + ChatColor.AQUA + xpNeeded
-            ));
+            double xpNeeded = skillManager.xpNeededForNextLevel(player, skill);
+            skillMeta.setLore(getSkillLore(playerLevel, xpNeeded));
 
             skillItem.setItemMeta(skillMeta);
         }
@@ -124,7 +122,7 @@ public class SkillsMenu implements Listener {
             case RANGE:
                 return Material.BOW;
             case HITPOINTS:
-                return Material.HEART_OF_THE_SEA; // Alternative: RED_DYE
+                return Material.HEART_OF_THE_SEA;
             case PRAYER:
                 return Material.BONE;
             case MAGIC:
@@ -134,7 +132,7 @@ public class SkillsMenu implements Listener {
             case FLETCHING:
                 return Material.ARROW;
             case FIREMAKING:
-                return Material.FLINT_AND_STEEL;
+                return Material.CAMPFIRE;
             case CRAFTING:
                 return Material.CRAFTING_TABLE;
             case HERBLORE:
@@ -142,7 +140,7 @@ public class SkillsMenu implements Listener {
             case AGILITY:
                 return Material.LEATHER_BOOTS;
             case THEVING:
-                return Material.TRIPWIRE_HOOK; // Alternative: LEATHER_CHESTPLATE
+                return Material.TRIPWIRE_HOOK;
             case SLAYER:
                 return Material.SKELETON_SKULL;
             case FARMING:
@@ -160,6 +158,20 @@ public class SkillsMenu implements Listener {
             default:
                 return Material.PAPER;
         }
+    }
+
+    /**
+     * Returns a list of strings to be displayed as lore for a skill.
+     *
+     * @param playerLevel The player's current level in the skill.
+     * @param xpNeeded    XP needed to reach the next level.
+     * @return A list of lore lines.
+     */
+    private List<String> getSkillLore(int playerLevel, double xpNeeded) {
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Level: " + ChatColor.GREEN + playerLevel);
+        lore.add(ChatColor.BLUE + "XP till next level: " + ChatColor.AQUA + String.format("%.2f", xpNeeded));
+        return lore;
     }
 
     /**
@@ -190,7 +202,7 @@ public class SkillsMenu implements Listener {
             Player player = (Player) event.getWhoClicked();
             String skillName = ChatColor.stripColor(clickedItem.getItemMeta().getDisplayName());
 
-            // Example: Notify the player about the clicked skill
+            // Notify the player about the clicked skill
             player.sendMessage(ChatColor.YELLOW + "You clicked on " + ChatColor.GOLD + skillName + ChatColor.YELLOW + " skill!");
 
             // Implement further interactions as needed

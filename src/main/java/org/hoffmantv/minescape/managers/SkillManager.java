@@ -51,6 +51,11 @@ public class SkillManager implements Listener {
         loadWeaponRequirements();
     }
 
+    // Getter for the plugin instance
+    public JavaPlugin getPlugin() {
+        return plugin;
+    }
+
     // Enum to represent different skills
     public enum Skill {
         WOODCUTTING, MINING, SMITHING, FISHING, ATTACK, DEFENCE,
@@ -262,7 +267,15 @@ public class SkillManager implements Listener {
         combatLevel.updatePlayerNametag(player);
         combatLevel.updatePlayerHeadDisplay(player);
     }
+    public Map<Skill, Integer> getAllSkillLevels(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        return playerLevels.getOrDefault(playerUUID, Collections.emptyMap());
+    }
 
+    public void showSkillsHologram(Player player) {
+        SkillsHologram hologram = new SkillsHologram(this);
+        hologram.showSkillsHologram(player);
+    }
     public void launchFirework(Location location) {
         Firework firework = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
         FireworkMeta fireworkMeta = firework.getFireworkMeta();

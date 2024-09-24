@@ -1,26 +1,55 @@
 package org.hoffmantv.minescape.skills;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.hoffmantv.minescape.managers.ConfigurationManager;
 import org.hoffmantv.minescape.managers.SkillManager;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FiremakingSkill implements Listener {
     private final SkillManager skillManager;
     private final JavaPlugin plugin;
+    private final ConfigurationSection firemakingConfig;
+    private final Map<Material, LogProperties> logPropertiesMap = new HashMap<>();
 
-    public FiremakingSkill(SkillManager skillManager, JavaPlugin plugin) {
+    public FiremakingSkill(SkillManager skillManager, JavaPlugin plugin, ConfigurationManager configManager) {
         this.skillManager = skillManager;
         this.plugin = plugin;
+        this.firemakingConfig = configManager.getConfigSection("skills.yml", "skills.firemaking.logRequirements");
+        loadLogProperties();
+    }
+
+    // Load log properties from the configuration file
+    private void loadLogProperties() {
+        if (firemakingConfig != null) {
+            for (String key : firemakingConfig.getKeys(false)) {
+                Material material;
+                try {
+                    material = Material.valueOf(key);
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().warning("Invalid material: " + key + " in skills.yml");
+                    continue;
+                }
+                int xp = firemakingConfig.getInt(key + ".xp", 0);
+                int despawnTime = firemakingConfig.getInt(key + ".despawnTime", 1200);
+                int requiredLevel = firemakingConfig.getInt(key + ".requiredLevel", 1);
+                logPropertiesMap.put(material, new LogProperties(material, xp, despawnTime, requiredLevel));
+            }
+        } else {
+            plugin.getLogger().warning("Firemaking configuration section not found in skills.yml.");
+        }
     }
 
     @EventHandler
@@ -28,7 +57,7 @@ public class FiremakingSkill implements Listener {
         Player player = event.getPlayer();
         ItemStack handItem = player.getInventory().getItemInMainHand();
         Material logType = handItem.getType();
-        LogProperties logProperties = LogProperties.fromMaterial(logType);
+        LogProperties logProperties = logPropertiesMap.get(logType);
 
         if (logProperties == null) {
             return;
@@ -71,26 +100,19 @@ public class FiremakingSkill implements Listener {
             return;
         }
 
-        // Give the player XP
-        grantXp(player, logProperties.getXpValue());
-
-        // Place the bonfire
-        placeBonfire(blockAbove, player);
+        // 5. Start the log ignition animation
+        startIgnitionAnimation(blockAbove, player, logProperties);
 
         // Remove the log from player's hand
         handItem.setAmount(handItem.getAmount() - 1);
+    }
 
-        // Set a timer to remove the bonfire after a log-specific time
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                blockAbove.setType(Material.AIR);
-            }
-        }.runTaskLater(plugin, logProperties.getDespawnTime());
-    }
+    // Check if the material is a log type
     private boolean isLogType(Material material) {
-        return LogProperties.fromMaterial(material) != null;
+        return logPropertiesMap.containsKey(material);
     }
+
+    // Log properties class to manage different log types
     private static class LogProperties {
         private final Material material;
         private final int xpValue;
@@ -104,38 +126,20 @@ public class FiremakingSkill implements Listener {
             this.requiredLevel = requiredLevel;
         }
 
-    public static LogProperties fromMaterial(Material material) {
-        switch (material) {
-            case OAK_LOG:
-                return new LogProperties(material, 10, 20 * 60, 1);
-            case SPRUCE_LOG:
-                return new LogProperties(material, 12, 20 * 60, 30);
-            case BIRCH_LOG:
-                return new LogProperties(material, 14, 20 * 60, 20);
-            case JUNGLE_LOG:
-                return new LogProperties(material, 16, 20 * 70, 40);
-            case ACACIA_LOG:
-                return new LogProperties(material, 18, 20 * 80, 50);
-            case DARK_OAK_LOG:
-                return new LogProperties(material, 20, 20 * 60, 10);
-            default:
-                return null;
+        public int getXpValue() {
+            return xpValue;
+        }
+
+        public int getDespawnTime() {
+            return despawnTime;
+        }
+
+        public int getRequiredLevel() {
+            return requiredLevel;
         }
     }
 
-    public int getXpValue() {
-        return xpValue;
-    }
-
-    public int getDespawnTime() {
-        return despawnTime;
-    }
-
-    public int getRequiredLevel() {
-        return requiredLevel;
-    }
-}
-
+    // Check if the ground is a valid type for firemaking
     private boolean isValidGround(Material material) {
         switch (material) {
             case GRASS_BLOCK:
@@ -145,18 +149,59 @@ public class FiremakingSkill implements Listener {
             case GRAVEL:
             case COBBLESTONE:
             case COBBLESTONE_SLAB:
+            case COARSE_DIRT:
+            case ROOTED_DIRT:
+            case PODZOL:
+            case DIRT_PATH:
+            case MYCELIUM:
                 return true;
             default:
                 return false;
         }
     }
 
-    private void placeBonfire(Block block, Player player) {
+    // Start the ignition animation before placing the bonfire
+    private void startIgnitionAnimation(Block block, Player player, LogProperties logProperties) {
+        new BukkitRunnable() {
+            int step = 0;
+
+            @Override
+            public void run() {
+                if (step > 20) { // 1 second duration (20 ticks = 1 second)
+                    placeBonfire(block, player, logProperties);
+                    cancel();
+                    return;
+                }
+
+                // Ignition particle effect
+                block.getWorld().spawnParticle(Particle.FLAME, block.getLocation().add(0.5, 0.5, 0.5), 5, 0.2, 0.2, 0.2, 0.02);
+                block.getWorld().playSound(block.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 1.0f, 1.0f);
+
+                step++;
+            }
+        }.runTaskTimer(plugin, 0L, 1L); // Run every tick (0.05 seconds)
+    }
+
+    // Place the bonfire after the ignition animation
+    private void placeBonfire(Block block, Player player, LogProperties logProperties) {
         block.setType(Material.CAMPFIRE);
         block.getWorld().spawnParticle(Particle.SMOKE_LARGE, block.getLocation().add(0.5, 0.5, 0.5), 30, 0.5, 0.5, 0.5, 0.05);
         player.playSound(player.getLocation(), Sound.BLOCK_FIRE_AMBIENT, 1.0f, 1.0f);
+
+        // Give the player XP
+        grantXp(player, logProperties.getXpValue());
+
+        // Set a timer to remove the bonfire after a log-specific time
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                block.setType(Material.AIR);
+                dropAsh(block.getLocation());
+            }
+        }.runTaskLater(plugin, logProperties.getDespawnTime());
     }
 
+    // Grant XP to the player
     private void grantXp(Player player, int xpAmount) {
         if (xpAmount <= 0) {
             return;
@@ -164,5 +209,17 @@ public class FiremakingSkill implements Listener {
         skillManager.addXP(player, SkillManager.Skill.FIREMAKING, xpAmount);
         player.sendActionBar(ChatColor.GOLD + "FireMaking +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+    }
+
+    // Drop ash item after the bonfire is done burning
+    private void dropAsh(Location location) {
+        ItemStack ash = new ItemStack(Material.GRAY_DYE);
+        ItemMeta meta = ash.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ChatColor.GRAY + "Ash");
+            meta.setLore(Arrays.asList(ChatColor.DARK_GRAY + "Remains of a burned log."));
+            ash.setItemMeta(meta);
+        }
+        location.getWorld().dropItemNaturally(location, ash);
     }
 }
