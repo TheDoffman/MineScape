@@ -83,23 +83,20 @@ public class SkillsHologram {
             return scoreboard;
         }
 
-        int index = skills.size(); // Line index for unique entry names, descending order
-
-        // Add each skill and its rank to the scoreboard
+        // Add each skill and its level to the scoreboard with skill level as the score
         for (Map.Entry<SkillManager.Skill, Integer> entry : skills.entrySet()) {
             String skillDisplay = getFormattedSkillDisplay(entry.getKey(), entry.getValue());
 
-            // Create a unique invisible entry name for each line
-            String entryName = getUniqueEntryName(index);
+            // Create a unique entry name for each line
+            String entryName = skillDisplay;
 
-            // Use teams to set the prefix and suffix for the display
-            Team team = scoreboard.registerNewTeam("skill_" + index);
+            // Use teams to set the prefix for the display
+            Team team = scoreboard.registerNewTeam("skill_" + entry.getKey().name());
             team.addEntry(entryName);
-            team.setPrefix(skillDisplay); // Skill name and symbol
-            team.setSuffix(" " + LEVEL_COLOR + getSkillRank(entry.getValue())); // Skill rank
+            team.setPrefix(skillDisplay);
 
-            objective.getScore(entryName).setScore(index); // Set score to the index
-            index--;
+            // Set score to the actual skill level
+            objective.getScore(entryName).setScore(entry.getValue());
         }
 
         return scoreboard;
@@ -127,7 +124,7 @@ public class SkillsHologram {
     private String getFormattedSkillDisplay(SkillManager.Skill skill, int level) {
         String symbol = getSkillSymbol(skill);
         String skillName = formatSkillName(skill);
-        return symbol + " " + PRIMARY_COLOR + skillName + SEPARATOR_COLOR + " »";
+        return symbol + " " + PRIMARY_COLOR + skillName + SEPARATOR_COLOR + " » " + LEVEL_COLOR + level;
     }
 
     /**
@@ -209,38 +206,6 @@ public class SkillsHologram {
             }
         }
         return formattedName.toString().trim();
-    }
-
-    /**
-     * Generates a unique entry name for each line.
-     *
-     * @param index The index of the line.
-     * @return A unique string for the entry.
-     */
-    private String getUniqueEntryName(int index) {
-        return ChatColor.values()[index % ChatColor.values().length].toString() + ChatColor.RESET;
-    }
-
-    /**
-     * Gets the skill rank based on the skill level.
-     *
-     * @param level The level of the skill.
-     * @return The corresponding rank as a string.
-     */
-    private String getSkillRank(int level) {
-        if (level >= 90) {
-            return "Master";
-        } else if (level >= 70) {
-            return "Expert";
-        } else if (level >= 50) {
-            return "Adept";
-        } else if (level >= 30) {
-            return "Apprentice";
-        } else if (level >= 10) {
-            return "Novice";
-        } else {
-            return "Beginner";
-        }
     }
 
     /**
