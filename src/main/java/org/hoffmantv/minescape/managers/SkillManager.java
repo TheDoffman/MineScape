@@ -9,10 +9,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.hoffmantv.minescape.skills.CombatLevel;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 public class SkillManager implements Listener {
@@ -74,22 +77,26 @@ public class SkillManager implements Listener {
     public void loadSkillsFromConfig() {
         Set<String> uuidStrings = playerDataConfig.getKeys(false);
         for (String uuidString : uuidStrings) {
-            UUID uuid = UUID.fromString(uuidString);
+            try {
+                UUID uuid = UUID.fromString(uuidString); // Check if it's a valid UUID
 
-            Map<Skill, Integer> levels = new HashMap<>();
-            Map<Skill, Double> xpMap = new HashMap<>();
+                Map<Skill, Integer> levels = new HashMap<>();
+                Map<Skill, Double> xpMap = new HashMap<>();
 
-            for (Skill skill : Skill.values()) {
-                int defaultLevel = (skill == Skill.COMBAT) ? 3 : 1; // Set default combat level to 3
-                int level = playerDataConfig.getInt(uuidString + "." + skill.name() + ".level", defaultLevel);
-                double xp = playerDataConfig.getDouble(uuidString + "." + skill.name() + ".xp", 0.0);
+                for (Skill skill : Skill.values()) {
+                    int defaultLevel = (skill == Skill.COMBAT) ? 3 : 1; // Set default combat level to 3
+                    int level = playerDataConfig.getInt(uuidString + "." + skill.name() + ".level", defaultLevel);
+                    double xp = playerDataConfig.getDouble(uuidString + "." + skill.name() + ".xp", 0.0);
 
-                levels.put(skill, level);
-                xpMap.put(skill, xp);
+                    levels.put(skill, level);
+                    xpMap.put(skill, xp);
+                }
+
+                playerLevels.put(uuid, levels);
+                playerXP.put(uuid, xpMap);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Invalid entry in playerdata.yml: " + uuidString + ". Skipping...");
             }
-
-            playerLevels.put(uuid, levels);
-            playerXP.put(uuid, xpMap);
         }
     }
 
@@ -257,25 +264,96 @@ public class SkillManager implements Listener {
 
             playerLevels.put(playerUUID, levels);
             playerXP.put(playerUUID, xpMap);
-
-            // Save the player data
-            configManager.savePlayerData();
         }
+
+        // Initialize or update playtime
+        if (!playerDataConfig.contains(playerUUID.toString() + ".playtime")) {
+            playerDataConfig.set(playerUUID.toString() + ".playtime", 0); // Set initial playtime to 0 seconds
+        }
+
+        // Save the player data
+        configManager.savePlayerData();
+
+        // Start tracking playtime
+        startPlaytimeTracking(player);
 
         // Update combat level displays
         combatLevel.updateCombatLevel(player, player);
         combatLevel.updatePlayerNametag(player);
         combatLevel.updatePlayerHeadDisplay(player);
     }
+
+    private void startPlaytimeTracking(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!player.isOnline()) {
+                    this.cancel();
+                    return;
+                }
+
+                // Increase playtime by 60 seconds every minute
+                long playtime = playerDataConfig.getLong(playerUUID.toString() + ".playtime");
+                playtime += 60;
+                playerDataConfig.set(playerUUID.toString() + ".playtime", playtime);
+
+                // Save the updated playtime
+                configManager.savePlayerData();
+            }
+        }.runTaskTimer(plugin, 0L, 20L); // 1200 ticks = 1 minute
+    }
+
+    // Method to get player health
+    public int getHealth(Player player) {
+        return (int) player.getHealth(); // Return player health as an integer value
+    }
+
+    // Method to get player combat level
+    public int getCombatLevel(Player player) {
+        return combatLevel.calculateCombatLevel(player); // Use combatLevel object to get combat level
+    }
+
+    // Method to get player ping
+    public int getPing(Player player) {
+        // Using the Paper method if available, else use reflection
+        try {
+            return player.getPing(); // For Paper servers
+        } catch (NoSuchMethodError e) {
+            // Fallback for servers without getPing method (Reflection)
+            try {
+                Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
+                Field pingField = craftPlayer.getClass().getDeclaredField("ping");
+                return pingField.getInt(craftPlayer);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return -1; // Return -1 if there is an issue retrieving the ping
+            }
+        }
+    }
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        UUID playerUUID = player.getUniqueId();
+
+        // Save the current playtime to playerdata.yml
+        long playtime = playerDataConfig.getLong(playerUUID.toString() + ".playtime");
+        playerDataConfig.set(playerUUID.toString() + ".playtime", playtime);
+        configManager.savePlayerData();
+    }
+    // Utility method to get all skill levels for a player
     public Map<Skill, Integer> getAllSkillLevels(Player player) {
         UUID playerUUID = player.getUniqueId();
         return playerLevels.getOrDefault(playerUUID, Collections.emptyMap());
     }
 
+    // Method to show the skills hologram
     public void showSkillsHologram(Player player) {
         SkillsHologram hologram = new SkillsHologram(this);
         hologram.showSkillsHologram(player);
     }
+
+    // Utility method to launch a firework at a location
     public void launchFirework(Location location) {
         Firework firework = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
         FireworkMeta fireworkMeta = firework.getFireworkMeta();
@@ -293,5 +371,30 @@ public class SkillManager implements Listener {
         fireworkMeta.setPower(1);
 
         firework.setFireworkMeta(fireworkMeta);
+    }
+
+    // Method to get formatted playtime
+    public String getFormattedPlaytime(Player player) {
+        long playtimeTicks = getPlaytime(player);
+        long playtimeSeconds = playtimeTicks / 20;
+        long hours = playtimeSeconds / 3600;
+        long minutes = (playtimeSeconds % 3600) / 60;
+        long seconds = playtimeSeconds % 60;
+
+        return String.format("%dh %dm %ds", hours, minutes, seconds);
+    }
+
+    // Method to get player playtime in ticks
+    public long getPlaytime(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        return playerDataConfig.getLong(playerUUID.toString() + ".playtime", 0L);
+    }
+
+    // Method to update player playtime
+    public void updatePlaytime(Player player, long ticksPlayed) {
+        UUID playerUUID = player.getUniqueId();
+        long currentPlaytime = getPlaytime(player);
+        playerDataConfig.set(playerUUID.toString() + ".playtime", currentPlaytime + ticksPlayed);
+        configManager.savePlayerData();
     }
 }

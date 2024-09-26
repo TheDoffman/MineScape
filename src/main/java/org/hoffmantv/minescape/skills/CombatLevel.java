@@ -41,7 +41,7 @@ public class CombatLevel {
 
     public void updatePlayerNametag(Player player) {
         int combatLevel = skillManager.getSkillLevel(player, SkillManager.Skill.COMBAT);
-        String nameTag = ChatColor.GRAY + "[" + combatLevel + "] " + ChatColor.RESET + player.getName();
+        String nameTag = ChatColor.GRAY + "[" + ChatColor.GREEN+  combatLevel + ChatColor.GRAY + "] " + ChatColor.RESET + player.getName();
         player.setDisplayName(nameTag);
         player.setPlayerListName(nameTag);
     }
