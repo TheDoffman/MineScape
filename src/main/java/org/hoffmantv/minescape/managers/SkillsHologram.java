@@ -15,6 +15,7 @@ public class SkillsHologram {
     private static final ChatColor PRIMARY_COLOR = ChatColor.GOLD;
     private static final ChatColor SECONDARY_COLOR = ChatColor.GRAY;
     private static final ChatColor LEVEL_COLOR = ChatColor.GREEN;
+    private static final String SPACER = ChatColor.DARK_GRAY + ChatColor.STRIKETHROUGH.toString() + "                      ";
 
     public SkillsHologram(SkillManager skillManager) {
         this.skillManager = skillManager;
@@ -51,15 +52,17 @@ public class SkillsHologram {
 
         player.setScoreboard(scoreboard);
 
-        Bukkit.getScheduler().runTaskTimer(skillManager.getPlugin(), () -> updatePlaytime(objective, player), 0L, 20L);
+        // Schedule a repeating task to update the playtime and ping every second
+        Bukkit.getScheduler().runTaskTimer(skillManager.getPlugin(), () -> {
+            updateDynamicLine(objective, player, ChatColor.WHITE + "Play time: " + ChatColor.AQUA + skillManager.getFormattedPlaytime(player), 13);
+            updateDynamicLine(objective, player, ChatColor.WHITE + "Online: " + LEVEL_COLOR + Bukkit.getOnlinePlayers().size() + ChatColor.GRAY + " | " + ChatColor.WHITE + " Ping: " + LEVEL_COLOR + skillManager.getPing(player), 12);
+        }, 0L, 20L);
     }
 
     private void addInformationSection(Objective objective, Player player) {
-        addLineToObjective(objective, ChatColor.WHITE + "HP: " + LEVEL_COLOR + skillManager.getHealth(player) + ChatColor.GRAY + " | " + ChatColor.WHITE + "CB: " + ChatColor.GOLD + skillManager.getCombatLevel(player), 15);
-        addLineToObjective(objective, ChatColor.WHITE + "Target: " + LEVEL_COLOR + " ", 14);
-        addLineToObjective(objective, ChatColor.WHITE + "Online: " + LEVEL_COLOR + Bukkit.getOnlinePlayers().size() + ChatColor.GRAY + " | " + ChatColor.WHITE + " Ping: " + LEVEL_COLOR + skillManager.getPing(player), 12);
-        addLineToObjective(objective, ChatColor.BLACK + "", 11);
-        addLineToObjective(objective, ChatColor.BLACK + " ", 1);
+        addLineToObjective(objective, ChatColor.WHITE + "HP: " + LEVEL_COLOR + skillManager.getHealth(player) + ChatColor.GRAY + " | " + ChatColor.WHITE + "CB: " + ChatColor.GOLD + skillManager.getCombatLevel(player), 14);
+        addLineToObjective(objective, ChatColor.WHITE + "Play time: " + ChatColor.AQUA + skillManager.getFormattedPlaytime(player), 13);
+        addLineToObjective(objective, SPACER, 11); // Spacer
     }
 
     private void addSkillsGrid(Objective objective, Player player) {
@@ -94,22 +97,19 @@ public class SkillsHologram {
     }
 
     private void addFooterText(Objective objective) {
-        String footerText = "MINESCAPE (ALPHA)";
-        addLineToObjective(objective, ChatColor.YELLOW + centerText(footerText, 30), 0);
+        String footerText = ChatColor.YELLOW + centerText("MINESCAPE (ALPHA)", 30);
+        addLineToObjective(objective, footerText, 0);
     }
 
-    private void updatePlaytime(Objective objective, Player player) {
-        // Reset the old playtime entry
+    private void updateDynamicLine(Objective objective, Player player, String line, int score) {
+        // Reset the old entry first
         for (String entry : objective.getScoreboard().getEntries()) {
-            if (entry.contains("Play time:")) {
+            if (entry.contains(line.split(":")[0])) {
                 objective.getScoreboard().resetScores(entry);
             }
         }
-
-        // Add the updated playtime line
-        String playtimeLine = ChatColor.WHITE + "Play time: " + ChatColor.AQUA + skillManager.getFormattedPlaytime(player);
-        Score score = objective.getScore(playtimeLine);
-        score.setScore(13); // Ensure playtime always stays in the correct position
+        // Add the updated entry
+        addLineToObjective(objective, line, score);
     }
 
     private void addLineToObjective(Objective objective, String line, int score) {
@@ -150,7 +150,6 @@ public class SkillsHologram {
     }
 
     private String formatSkillLevel(int level) {
-        // Ensure level is always at least 2 characters for alignment
         return String.format("%02d", level);
     }
 
