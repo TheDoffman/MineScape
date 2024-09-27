@@ -15,6 +15,16 @@ commands:
     usage: /alwaysday <enable|disable>
     aliases: [ ad ]
     permission: minescape.alwaysday
+  serverreload:
+    description: Reloads the server without confirmation.
+    usage: /serverreload
+    permission: minescape.reload
+    permission-message: ✘ You don't have permission to perform this action.
+  trade:
+    description: Initiates a trade with another player.
+    usage: /trade <player>
+    permission: minescape.trade
+    permission-message: You don't have permission to use this command.
 
 permissions:
   minescape.help:

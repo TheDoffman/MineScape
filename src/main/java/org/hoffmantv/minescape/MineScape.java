@@ -18,6 +18,8 @@ public class MineScape extends JavaPlugin {
     private SkillsHologram skillsHologram;
     private CombatLevelSystem combatLevelSystem;
 
+    private TradeMenu tradeMenu;
+
     @Override
     public void onEnable() {
         getLogger().info("MineScape Alpha Version 0.1 has been enabled!");
@@ -37,6 +39,8 @@ public class MineScape extends JavaPlugin {
         // Initialize SkillsHologram with SkillManager
         skillsHologram = new SkillsHologram(skillManager);
 
+        tradeMenu = new TradeMenu(this);
+
         // Register Commands
         registerCommands(skillManager);
 
@@ -45,6 +49,8 @@ public class MineScape extends JavaPlugin {
 
         // Initialize CombatLevelSystem
         combatLevelSystem = new CombatLevelSystem(this, combatLevel, skillManager);
+
+
 
         // Register Skills with proper configuration sections
         ConfigurationSection strengthConfig = skillsConfig.getConfigurationSection("skills.strength");
@@ -159,7 +165,9 @@ public class MineScape extends JavaPlugin {
     private void registerCommands(SkillManager skillManager) {
         Objects.requireNonNull(this.getCommand("help")).setExecutor(new HelpCommand(this));
         Objects.requireNonNull(getCommand("alwaysday")).setExecutor(new AlwaysDayCommand(this));
-        Objects.requireNonNull(getCommand("togglehologram")).setExecutor(new ToggleHologramCommand(skillsHologram));
+        Objects.requireNonNull(getCommand("togglehologram")).setExecutor(new ToggleSkillsCommand(skillsHologram));
+        Objects.requireNonNull(getCommand("serverreload")).setExecutor(new ReloadCommand(this));
+        this.getCommand("trade").setExecutor(new TradeCommand(tradeMenu));
     }
 
     /**
