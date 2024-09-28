@@ -1,4 +1,4 @@
-package org.hoffmantv.minescape;
+package org.hoffmantv.minescape.other;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;

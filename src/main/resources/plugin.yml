@@ -25,7 +25,17 @@ commands:
     usage: /trade <player>
     permission: minescape.trade
     permission-message: You don't have permission to use this command.
-
+  accepttrade:
+    description: Allows player to accept trade.
+    usage: /accepttrade
+  setspawn:
+    description: Sets the global spawn point.
+    usage: /setspawn
+    permission: minescape.setspawn
+    permission-message: You do not have permission to set the spawn point.
+  spawn:
+    description: Teleports you to the global spawn point.
+    usage: /spawn
 permissions:
   minescape.help:
     description: Gives the player a list of available commands.

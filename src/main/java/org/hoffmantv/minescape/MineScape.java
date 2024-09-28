@@ -167,7 +167,10 @@ public class MineScape extends JavaPlugin {
         Objects.requireNonNull(getCommand("alwaysday")).setExecutor(new AlwaysDayCommand(this));
         Objects.requireNonNull(getCommand("togglehologram")).setExecutor(new ToggleSkillsCommand(skillsHologram));
         Objects.requireNonNull(getCommand("serverreload")).setExecutor(new ReloadCommand(this));
-        this.getCommand("trade").setExecutor(new TradeCommand(tradeMenu));
+        getCommand("accepttrade").setExecutor(new AcceptTradeCommand(tradeMenu));
+        this.getCommand("trade").setExecutor(new TradeCommand(tradeMenu));        this.getCommand("setspawn").setExecutor(new SetSpawnCommand(this));
+        this.getCommand("spawn").setExecutor(new SpawnCommand(this));
+
     }
 
     /**
