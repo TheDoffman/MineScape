@@ -36,6 +36,14 @@ commands:
   spawn:
     description: Teleports you to the global spawn point.
     usage: /spawn
+  reloadfishing:
+    description: Reloads the fishing configuration.
+    usage: /reloadfishing
+    permission: minescape.reloadfishing
+  addfishingspot:
+    description: Adds a new fishing spot at your current location with specific fish and required level.
+    usage: /addfishingspot <requiredLevel> <fishType1> <fishType2> ...
+    permission: minescape.addfishingspot
 permissions:
   minescape.help:
     description: Gives the player a list of available commands.

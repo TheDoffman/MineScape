@@ -19,8 +19,9 @@ public class MineScape extends JavaPlugin {
     private SkillManager skillManager;
     private SkillsHologram skillsHologram;
     private CombatLevelSystem combatLevelSystem;
-
+    private FishingSkill fishingSkill;
     private TradeMenu tradeMenu;
+
 
     @Override
     public void onEnable() {
@@ -41,6 +42,9 @@ public class MineScape extends JavaPlugin {
         // Initialize SkillsHologram with SkillManager
         skillsHologram = new SkillsHologram(skillManager);
 
+        // Initialize FishingSkill
+        fishingSkill = new FishingSkill(this, skillManager, configManager);
+
         tradeMenu = new TradeMenu(this);
 
         // Register Commands
@@ -52,7 +56,6 @@ public class MineScape extends JavaPlugin {
         // Initialize CombatLevelSystem
         combatLevelSystem = new CombatLevelSystem(this, combatLevel, skillManager);
 
-        FishingSkill fishingSkill = new FishingSkill(this, skillManager, configManager);
 
         // Register Skills with proper configuration sections
         ConfigurationSection strengthConfig = skillsConfig.getConfigurationSection("skills.strength");
@@ -165,6 +168,8 @@ public class MineScape extends JavaPlugin {
         this.getCommand("trade").setExecutor(new Trade(tradeMenu));
         this.getCommand("setspawn").setExecutor(new SetSpawn(this));
         this.getCommand("spawn").setExecutor(new Spawn(this));
+        this.getCommand("reloadfishing").setExecutor(new ReloadFishingConfigCommand(configManager, fishingSkill));
+        this.getCommand("addfishingspot").setExecutor(new AddFishingSpotCommand(configManager, fishingSkill));
     }
 
     private void registerListener(Listener listener) {

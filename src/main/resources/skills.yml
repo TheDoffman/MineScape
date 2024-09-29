@@ -188,6 +188,32 @@ skills:
         requiredLevel: 20
       netherite_pickaxe:
         requiredLevel: 30
+  fishing:
+    fishTypes:
+      COD:
+        level: 1
+        xp: 10.0
+        equipment: FISHING_ROD
+      SALMON:
+        level: 30
+        xp: 70.0
+        equipment: FISHING_ROD
+      TROPICAL_FISH:
+        level: 20
+        xp: 50.0
+        equipment: FISHING_ROD
+      PUFFERFISH:
+        level: 50
+        xp: 100.0
+        equipment: FISHING_ROD
+    fishingSpots:
+      spot0:
+        world: "world"
+        x: 100
+        y: 65
+        z: 200
+      # Additional spots will be added dynamically
+    actionDelay: 5
   prayer:
     bones:
       regular_bone:

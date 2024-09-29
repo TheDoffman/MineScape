@@ -70,8 +70,11 @@ public class SkillManager implements Listener {
 
     // Formula to calculate XP required for the next level
     public double xpRequiredForLevelUp(int currentLevel) {
-        // Using a standard XP curve formula
-        return Math.floor(0.04 * Math.pow(currentLevel, 3) + 0.8 * Math.pow(currentLevel, 2) + 2 * currentLevel);
+        double totalXp = 0;
+        for (int i = 1; i <= currentLevel; i++) {
+            totalXp += Math.floor(i + 300 * Math.pow(2, i / 7.0));
+        }
+        return Math.floor(totalXp / 4);
     }
 
     public void loadSkillsFromConfig() {
