@@ -12,14 +12,13 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.hoffmantv.minescape.managers.SkillManager;
 
-public class RangeSkill implements Listener {
+public class Range implements Listener {
 
     private final JavaPlugin plugin;
     private final SkillManager skillManager;
 
-    public RangeSkill(JavaPlugin plugin, SkillManager skillsManager) {
+    public Range(JavaPlugin plugin, SkillManager skillsManager) {
         this.plugin = plugin;
         this.skillManager = skillsManager;
     }

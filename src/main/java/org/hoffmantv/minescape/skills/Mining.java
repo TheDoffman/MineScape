@@ -16,14 +16,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-public class MiningSkill implements Listener {
+public class Mining implements Listener {
 
     private final SkillManager skillManager;
     private final Plugin plugin;
@@ -32,13 +31,13 @@ public class MiningSkill implements Listener {
     private final Map<Material, PickaxeData> pickaxeDataMap = new EnumMap<>(Material.class);
 
     /**
-     * Constructor for MiningSkill.
+     * Constructor for Mining.
      *
      * @param skillManager The SkillManager instance.
      * @param miningConfig The ConfigurationSection for mining from skills.yml.
      * @param plugin       The main plugin instance.
      */
-    public MiningSkill(SkillManager skillManager, ConfigurationSection miningConfig, Plugin plugin) {
+    public Mining(SkillManager skillManager, ConfigurationSection miningConfig, Plugin plugin) {
         this.skillManager = skillManager;
         this.plugin = plugin;
         loadMiningConfigs(miningConfig);

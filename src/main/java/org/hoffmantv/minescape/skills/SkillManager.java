@@ -1,4 +1,4 @@
-package org.hoffmantv.minescape.managers;
+package org.hoffmantv.minescape.skills;
 
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
@@ -13,7 +13,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.hoffmantv.minescape.skills.CombatLevel;
+import org.hoffmantv.minescape.managers.ConfigurationManager;
 
 import java.lang.reflect.Field;
 import java.util.*;

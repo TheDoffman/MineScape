@@ -5,12 +5,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.hoffmantv.minescape.managers.SkillManager;
 
-public class HitpointsSkill implements Listener {
+public class Hitpoints implements Listener {
     private final SkillManager skillManager;
 
-    public HitpointsSkill(SkillManager skillManager, JavaPlugin plugin) {
+    public Hitpoints(SkillManager skillManager, JavaPlugin plugin) {
         this.skillManager = skillManager;
     }
 

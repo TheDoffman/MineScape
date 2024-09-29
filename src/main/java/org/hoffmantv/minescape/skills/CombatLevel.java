@@ -5,7 +5,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 public class CombatLevel {
 

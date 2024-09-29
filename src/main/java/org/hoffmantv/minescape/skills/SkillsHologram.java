@@ -1,9 +1,10 @@
-package org.hoffmantv.minescape.managers;
+package org.hoffmantv.minescape.skills;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
+import org.hoffmantv.minescape.skills.SkillManager;
 
 import java.util.Map;
 

@@ -7,13 +7,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.ItemStack;
-import org.hoffmantv.minescape.managers.SkillManager;
 
-public class CraftingSkill implements Listener {
+public class Crafting implements Listener {
 
     private final SkillManager skillManager;
 
-    public CraftingSkill(SkillManager skillManager){
+    public Crafting(SkillManager skillManager){
         this.skillManager = skillManager;
     }
 

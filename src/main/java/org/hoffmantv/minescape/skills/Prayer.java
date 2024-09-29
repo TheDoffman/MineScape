@@ -17,12 +17,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.plugin.Plugin;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class PrayerSkill implements Listener {
+public class Prayer implements Listener {
 
     private final SkillManager skillManager;
     private final Plugin plugin;
@@ -32,24 +31,12 @@ public class PrayerSkill implements Listener {
     private final Map<Player, Long> cooldowns = new HashMap<>();
     private final long COOLDOWN_TIME = 10 * 1000; // 10 seconds in milliseconds
 
-    /**
-     * Constructor for PrayerSkill.
-     *
-     * @param skillManager The SkillManager instance.
-     * @param prayerConfig The ConfigurationSection for prayer from skills.yml.
-     * @param plugin       The main plugin instance.
-     */
-    public PrayerSkill(SkillManager skillManager, ConfigurationSection prayerConfig, Plugin plugin) {
+    public Prayer(SkillManager skillManager, ConfigurationSection prayerConfig, Plugin plugin) {
         this.skillManager = skillManager;
         this.plugin = plugin;
         loadPrayerConfigs(prayerConfig);
     }
 
-    /**
-     * Loads prayer configurations for bones.
-     *
-     * @param prayerConfig The ConfigurationSection for prayer.
-     */
     private void loadPrayerConfigs(ConfigurationSection prayerConfig) {
         if (prayerConfig != null) {
             plugin.getLogger().info("Loading Prayer Skill configurations...");
@@ -86,11 +73,6 @@ public class PrayerSkill implements Listener {
         }
     }
 
-    /**
-     * Event handler for player interactions (e.g., right-clicking with a bone).
-     *
-     * @param event The PlayerInteractEvent.
-     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
         // Check if the action is right-click on a block
@@ -121,14 +103,6 @@ public class PrayerSkill implements Listener {
             BoneData boneData = boneDataMap.get(itemType);
             double playerPrayerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.PRAYER);
 
-            // Optional: Check for any required Prayer level to use the bone
-            // Example:
-            // int requiredPrayerLevel = boneData.getRequiredPrayerLevel();
-            // if (playerPrayerLevel < requiredPrayerLevel) {
-            //     player.sendMessage(ChatColor.RED + "You need Prayer level " + requiredPrayerLevel + " to use this bone.");
-            //     return;
-            // }
-
             // Apply the effect to the player
             applyEffect(player, boneData);
 
@@ -157,12 +131,6 @@ public class PrayerSkill implements Listener {
         }
     }
 
-    /**
-     * Applies the configured effect to the player.
-     *
-     * @param player   The player.
-     * @param boneData The BoneData containing effect details.
-     */
     private void applyEffect(Player player, BoneData boneData) {
         PotionEffectType effectType = PotionEffectType.getByName(boneData.getEffectType().toUpperCase());
         if (effectType == null) {

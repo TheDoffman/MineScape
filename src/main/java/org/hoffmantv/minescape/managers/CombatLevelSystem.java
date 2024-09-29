@@ -12,6 +12,7 @@ import org.bukkit.event.entity.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.hoffmantv.minescape.skills.CombatLevel;
+import org.hoffmantv.minescape.skills.SkillManager;
 
 import java.util.*;
 

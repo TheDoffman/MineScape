@@ -1,4 +1,4 @@
-package org.hoffmantv.minescape.commands;
+package org.hoffmantv.minescape.trade;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -6,7 +6,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.hoffmantv.minescape.managers.TradeMenu;
+import org.hoffmantv.minescape.trade.TradeMenu;
 
 public class Trade implements CommandExecutor {
     private final TradeMenu tradeMenu;

@@ -1,4 +1,4 @@
-package org.hoffmantv.minescape.managers;
+package org.hoffmantv.minescape.skills;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,11 +11,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.hoffmantv.minescape.skills.SkillManager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class SkillsMenu implements Listener {
 

@@ -1,24 +1,20 @@
 package org.hoffmantv.minescape.skills;
 
 import org.bukkit.*;
-import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.managers.ConfigurationManager;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class SmithingSkill implements Listener {
+public class Smithing implements Listener {
 
     private final SkillManager skillManager;
     private final ConfigurationManager configManager;
@@ -27,7 +23,7 @@ public class SmithingSkill implements Listener {
     private final Map<Material, SmeltingRecipe> smeltingRecipes = new HashMap<>();
     private final Map<Material, CraftingRecipe> craftingRecipes = new HashMap<>();
 
-    public SmithingSkill(SkillManager skillManager, ConfigurationManager configManager, JavaPlugin plugin) {
+    public Smithing(SkillManager skillManager, ConfigurationManager configManager, JavaPlugin plugin) {
         this.skillManager = skillManager;
         this.configManager = configManager;
         this.plugin = plugin;

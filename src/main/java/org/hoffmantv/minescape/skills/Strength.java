@@ -12,19 +12,18 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
 import org.hoffmantv.minescape.managers.ConfigurationManager;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class StrengthSkill implements Listener {
+public class Strength implements Listener {
 
     private final SkillManager skillManager;
     private final ConfigurationSection strengthConfig;
     private final ConfigurationManager configManager;
     private final Map<Material, Integer> weaponStrengthRequirements = new HashMap<>();
 
-    public StrengthSkill(SkillManager skillManager, ConfigurationSection strengthConfig, ConfigurationManager configManager) {
+    public Strength(SkillManager skillManager, ConfigurationSection strengthConfig, ConfigurationManager configManager) {
         this.skillManager = skillManager;
         this.strengthConfig = strengthConfig;
         this.configManager = configManager;

@@ -1,4 +1,4 @@
-package org.hoffmantv.minescape.managers;
+package org.hoffmantv.minescape.trade;
 
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;

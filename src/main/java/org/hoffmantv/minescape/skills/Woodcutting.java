@@ -4,7 +4,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,11 +12,10 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.managers.ConfigurationManager;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.*;
 
-public class WoodcuttingSkill implements Listener {
+public class Woodcutting implements Listener {
 
     private final SkillManager skillManager;
     private final ConfigurationManager configManager;
@@ -26,7 +24,7 @@ public class WoodcuttingSkill implements Listener {
     // Configurable tree settings
     private final Map<Material, TreeType> treeTypes = new HashMap<>();
 
-    public WoodcuttingSkill(SkillManager skillManager, ConfigurationManager configManager, JavaPlugin plugin) {
+    public Woodcutting(SkillManager skillManager, ConfigurationManager configManager, JavaPlugin plugin) {
         this.skillManager = skillManager;
         this.configManager = configManager;
         this.plugin = plugin;

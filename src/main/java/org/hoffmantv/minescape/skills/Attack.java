@@ -9,16 +9,15 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.Random;
 
-public class AttackSkill implements Listener {
+public class Attack implements Listener {
 
     private final SkillManager skillManager;
     private final ConfigurationSection attackConfig;
 
-    public AttackSkill(SkillManager skillManager, ConfigurationSection attackConfig) {
+    public Attack(SkillManager skillManager, ConfigurationSection attackConfig) {
         this.skillManager = skillManager;
         this.attackConfig = attackConfig;
     }

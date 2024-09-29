@@ -6,19 +6,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.util.Vector;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.HashMap;
 import java.util.UUID;
 
-public class AgilitySkill implements Listener {
+public class Agility implements Listener {
 
     private final SkillManager skillManager;
     private final HashMap<UUID, Location> playerStartingPositions = new HashMap<>();
 
 
-    public AgilitySkill(SkillManager skillManager) {
+    public Agility(SkillManager skillManager) {
         this.skillManager = skillManager;
     }
 

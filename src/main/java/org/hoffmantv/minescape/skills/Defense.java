@@ -10,15 +10,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
 import org.hoffmantv.minescape.managers.ConfigurationManager;
-import org.hoffmantv.minescape.managers.SkillManager;
 
-public class DefenseSkill implements Listener {
+public class Defense implements Listener {
 
     private final SkillManager skillManager;
     private final ConfigurationSection defenseConfig;
     private final ConfigurationManager configManager;
 
-    public DefenseSkill(SkillManager skillManager, ConfigurationSection defenseConfig, ConfigurationManager configManager) {
+    public Defense(SkillManager skillManager, ConfigurationSection defenseConfig, ConfigurationManager configManager) {
         this.skillManager = skillManager;
         this.defenseConfig = defenseConfig;
         this.configManager = configManager;

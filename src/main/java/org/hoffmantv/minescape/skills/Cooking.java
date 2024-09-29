@@ -10,13 +10,12 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-public class CookingSkill implements Listener {
+public class Cooking implements Listener {
 
     private final SkillManager skillManager;
     private final Random random = new Random();
@@ -29,7 +28,7 @@ public class CookingSkill implements Listener {
         put(Material.SALMON, 15);
         put(Material.RABBIT, 20);
     }};
-    public CookingSkill(SkillManager skillManager) {
+    public Cooking(SkillManager skillManager) {
         this.skillManager = skillManager;
     }
 

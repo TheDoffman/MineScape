@@ -12,19 +12,18 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.hoffmantv.minescape.managers.ConfigurationManager;
-import org.hoffmantv.minescape.managers.SkillManager;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FiremakingSkill implements Listener {
+public class Firemaking implements Listener {
     private final SkillManager skillManager;
     private final JavaPlugin plugin;
     private final ConfigurationSection firemakingConfig;
     private final Map<Material, LogProperties> logPropertiesMap = new HashMap<>();
 
-    public FiremakingSkill(SkillManager skillManager, JavaPlugin plugin, ConfigurationManager configManager) {
+    public Firemaking(SkillManager skillManager, JavaPlugin plugin, ConfigurationManager configManager) {
         this.skillManager = skillManager;
         this.plugin = plugin;
         this.firemakingConfig = configManager.getConfigSection("skills.yml", "skills.firemaking.logRequirements");

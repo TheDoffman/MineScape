@@ -10,8 +10,9 @@ import org.hoffmantv.minescape.listeners.*;
 import org.hoffmantv.minescape.managers.*;
 import org.hoffmantv.minescape.mobs.*;
 import org.hoffmantv.minescape.skills.*;
-
-import java.util.Objects;
+import org.hoffmantv.minescape.trade.AcceptTrade;
+import org.hoffmantv.minescape.trade.Trade;
+import org.hoffmantv.minescape.trade.TradeMenu;
 
 public class MineScape extends JavaPlugin {
     private ConfigurationManager configManager;
@@ -51,7 +52,7 @@ public class MineScape extends JavaPlugin {
         // Initialize CombatLevelSystem
         combatLevelSystem = new CombatLevelSystem(this, combatLevel, skillManager);
 
-
+        FishingSkill fishingSkill = new FishingSkill(this, skillManager, configManager);
 
         // Register Skills with proper configuration sections
         ConfigurationSection strengthConfig = skillsConfig.getConfigurationSection("skills.strength");
@@ -62,37 +63,37 @@ public class MineScape extends JavaPlugin {
         ConfigurationSection smithingConfig = skillsConfig.getConfigurationSection("skills.smithing");
 
         if (strengthConfig != null) {
-            registerListener(new StrengthSkill(skillManager, strengthConfig, configManager));
+            registerListener(new Strength(skillManager, strengthConfig, configManager));
         } else {
             getLogger().warning("No 'strength' section found in skills.yml under 'skills'");
         }
 
         if (defenseConfig != null) {
-            registerListener(new DefenseSkill(skillManager, defenseConfig, configManager));
+            registerListener(new Defense(skillManager, defenseConfig, configManager));
         } else {
             getLogger().warning("No 'defense' section found in skills.yml under 'skills'");
         }
 
         if (woodcuttingConfig != null) {
-            registerListener(new WoodcuttingSkill(skillManager, configManager, this));
+            registerListener(new Woodcutting(skillManager, configManager, this));
         } else {
             getLogger().warning("No 'woodcutting' section found in skills.yml under 'skills'");
         }
 
         if (prayerConfig != null) {
-            registerListener(new PrayerSkill(skillManager, prayerConfig, this));
+            registerListener(new Prayer(skillManager, prayerConfig, this));
         } else {
             getLogger().warning("No 'prayer' section found in skills.yml under 'skills'");
         }
 
         if (miningConfig != null) {
-            registerListener(new MiningSkill(skillManager, miningConfig, this));
+            registerListener(new Mining(skillManager, miningConfig, this));
         } else {
             getLogger().warning("No 'mining' section found in skills.yml under 'skills'");
         }
 
         if (smithingConfig != null) {
-            registerListener(new SmithingSkill(skillManager, configManager, this));
+            registerListener(new Smithing(skillManager, configManager, this));
         } else {
             getLogger().warning("No 'smithing' section found in skills.yml under 'skills'");
         }
@@ -101,12 +102,12 @@ public class MineScape extends JavaPlugin {
         registerListener(new Water(this));
         registerListener(skillManager); // Assuming SkillManager implements Listener
         registerListener(combatLevelSystem);
-        registerListener(new FiremakingSkill(skillManager, this, configManager));
-        registerListener(new HitpointsSkill(skillManager, this));
-        registerListener(new RangeSkill(this, skillManager));
-        registerListener(new AgilitySkill(skillManager));
-        registerListener(new CookingSkill(skillManager));
-        registerListener(new CraftingSkill(skillManager));
+        registerListener(new Firemaking(skillManager, this, configManager));
+        registerListener(new Hitpoints(skillManager, this));
+        registerListener(new Range(this, skillManager));
+        registerListener(new Agility(skillManager));
+        registerListener(new Cooking(skillManager));
+        registerListener(new Crafting(skillManager));
         registerListener(new MobListener());
         registerListener(new ChickenListener(this));
         registerListener(new ZombieListener());
@@ -134,9 +135,6 @@ public class MineScape extends JavaPlugin {
         getLogger().info("MineScape has been disabled!");
     }
 
-    /**
-     * Sets up configuration files, ensuring defaults are copied if they don't exist.
-     */
     private void setupConfiguration() {
         getConfig().options().copyDefaults(true);
         saveConfig();
@@ -158,28 +156,17 @@ public class MineScape extends JavaPlugin {
         return skillsHologram;
     }
 
-    /**
-     * Registers command executors.
-     *
-     * @param skillManager The SkillManager instance.
-     */
     private void registerCommands(SkillManager skillManager) {
         this.getCommand("help").setExecutor(new Help(this));
         getCommand("alwaysday").setExecutor(new AlwaysDay(this));
-        getCommand("togglehologram").setExecutor(new ToggleSkills(skillsHologram));
+        getCommand("togglehologram").setExecutor(new ToggleSkillsMenu(skillsHologram));
         getCommand("serverreload").setExecutor(new Reload(this));
         getCommand("accepttrade").setExecutor(new AcceptTrade(tradeMenu));
         this.getCommand("trade").setExecutor(new Trade(tradeMenu));
         this.getCommand("setspawn").setExecutor(new SetSpawn(this));
         this.getCommand("spawn").setExecutor(new Spawn(this));
-
     }
 
-    /**
-     * Helper method to register a listener.
-     *
-     * @param listener The listener to register.
-     */
     private void registerListener(Listener listener) {
         getServer().getPluginManager().registerEvents(listener, this);
     }
