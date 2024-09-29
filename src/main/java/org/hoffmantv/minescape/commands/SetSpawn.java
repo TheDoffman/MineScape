@@ -9,11 +9,11 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class SetSpawnCommand implements CommandExecutor {
+public class SetSpawn implements CommandExecutor {
 
     private final JavaPlugin plugin;
 
-    public SetSpawnCommand(JavaPlugin plugin) {
+    public SetSpawn(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 

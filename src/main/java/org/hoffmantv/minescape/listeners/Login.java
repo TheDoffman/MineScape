@@ -2,7 +2,6 @@ package org.hoffmantv.minescape.listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
@@ -10,18 +9,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.hoffmantv.minescape.MineScape;
 
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-public class LoginListener implements Listener {
+public class Login implements Listener {
 
     private final MineScape plugin;
     private final ConfigurationSection config;
@@ -30,7 +25,7 @@ public class LoginListener implements Listener {
     private final Map<Player, Long> cooldowns;
     private final long COOLDOWN_TIME = 10 * 1000; // 10 seconds in milliseconds
 
-    public LoginListener(MineScape plugin) {
+    public Login(MineScape plugin) {
         this.plugin = plugin;
         this.config = plugin.getConfig().getConfigurationSection("loginFeature");
         this.cooldowns = new java.util.HashMap<>();
@@ -76,7 +71,7 @@ public class LoginListener implements Listener {
 
     private void displayWelcomeMessages(Player player) {
         String title = getString(config, "welcomeMessage.title", "&6Welcome to MineScape!");
-        String subtitle = getString(config, "welcomeMessage.subtitle", "&7Embark on your Runescape-inspired adventure.");
+        String subtitle = getString(config, "welcomeMessage.subtitle", "&7Embark on your MMORPG");
 
         // Trim the title and subtitle to a maximum length to prevent overflow
         if (title.length() > 32) {

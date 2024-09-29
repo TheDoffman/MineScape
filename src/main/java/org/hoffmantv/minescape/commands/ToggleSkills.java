@@ -6,10 +6,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.hoffmantv.minescape.managers.SkillsHologram;
 
-public class ToggleSkillsCommand implements CommandExecutor {
+public class ToggleSkills implements CommandExecutor {
     private final SkillsHologram skillsHologram;
 
-    public ToggleSkillsCommand(SkillsHologram skillsHologram) {
+    public ToggleSkills(SkillsHologram skillsHologram) {
         this.skillsHologram = skillsHologram;
     }
 

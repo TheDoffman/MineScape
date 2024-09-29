@@ -7,12 +7,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.ChatColor;
 
-public class AlwaysDayCommand implements CommandExecutor {
+public class AlwaysDay implements CommandExecutor {
 
     private final JavaPlugin plugin;
     private final String PREFIX = ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "MineScape" + ChatColor.DARK_GRAY + "] " + ChatColor.RESET;
 
-    public AlwaysDayCommand(JavaPlugin plugin) {
+    public AlwaysDay(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 

@@ -5,6 +5,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.*;
+import org.hoffmantv.minescape.commands.AlwaysDay;
 import org.hoffmantv.minescape.listeners.*;
 import org.hoffmantv.minescape.managers.*;
 import org.hoffmantv.minescape.mobs.*;
@@ -97,7 +98,7 @@ public class MineScape extends JavaPlugin {
         }
 
         // Register other listeners
-        registerListener(new WaterListener(this));
+        registerListener(new Water(this));
         registerListener(skillManager); // Assuming SkillManager implements Listener
         registerListener(combatLevelSystem);
         registerListener(new FiremakingSkill(skillManager, this, configManager));
@@ -118,8 +119,8 @@ public class MineScape extends JavaPlugin {
         registerListener(new PigListener());
         registerListener(new EndermenListener());
         registerListener(new VilligerListener()); // Corrected spelling
-        registerListener(new AlwaysDay(this));
-        getServer().getPluginManager().registerEvents(new LoginListener(this), this);
+        registerListener(new org.hoffmantv.minescape.listeners.AlwaysDay(this));
+        getServer().getPluginManager().registerEvents(new Login(this), this);
 
         // Register ResourcePack listener
         getServer().getPluginManager().registerEvents(new ResourcePack(this), this);
@@ -163,13 +164,13 @@ public class MineScape extends JavaPlugin {
      * @param skillManager The SkillManager instance.
      */
     private void registerCommands(SkillManager skillManager) {
-        Objects.requireNonNull(this.getCommand("help")).setExecutor(new HelpCommand(this));
-        Objects.requireNonNull(getCommand("alwaysday")).setExecutor(new AlwaysDayCommand(this));
-        Objects.requireNonNull(getCommand("togglehologram")).setExecutor(new ToggleSkillsCommand(skillsHologram));
-        Objects.requireNonNull(getCommand("serverreload")).setExecutor(new ReloadCommand(this));
-        getCommand("accepttrade").setExecutor(new AcceptTradeCommand(tradeMenu));
-        this.getCommand("trade").setExecutor(new TradeCommand(tradeMenu));        this.getCommand("setspawn").setExecutor(new SetSpawnCommand(this));
-        this.getCommand("spawn").setExecutor(new SpawnCommand(this));
+        Objects.requireNonNull(this.getCommand("help")).setExecutor(new Help(this));
+        Objects.requireNonNull(getCommand("alwaysday")).setExecutor(new AlwaysDay(this));
+        Objects.requireNonNull(getCommand("togglehologram")).setExecutor(new ToggleSkills(skillsHologram));
+        Objects.requireNonNull(getCommand("serverreload")).setExecutor(new Reload(this));
+        getCommand("accepttrade").setExecutor(new AcceptTrade(tradeMenu));
+        this.getCommand("trade").setExecutor(new Trade(tradeMenu));        this.getCommand("setspawn").setExecutor(new SetSpawn(this));
+        this.getCommand("spawn").setExecutor(new Spawn(this));
 
     }
 

@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class HelpCommand implements CommandExecutor {
+public class Help implements CommandExecutor {
 
     private final MineScape plugin;
 
-    public HelpCommand(MineScape plugin) {
+    public Help(MineScape plugin) {
         this.plugin = plugin;
     }
 

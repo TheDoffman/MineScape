@@ -16,14 +16,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class WaterListener implements Listener {
+public class Water implements Listener {
 
     private final JavaPlugin plugin;
     private final Map<UUID, Location> lastSafeLocation = new HashMap<>();
     private final Map<UUID, Long> lastMessageTime = new HashMap<>();
     private final long messageCooldown = 3000; // 3 seconds cooldown for messages
 
-    public WaterListener(JavaPlugin plugin) {
+    public Water(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
