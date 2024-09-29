@@ -164,12 +164,13 @@ public class MineScape extends JavaPlugin {
      * @param skillManager The SkillManager instance.
      */
     private void registerCommands(SkillManager skillManager) {
-        Objects.requireNonNull(this.getCommand("help")).setExecutor(new Help(this));
-        Objects.requireNonNull(getCommand("alwaysday")).setExecutor(new AlwaysDay(this));
-        Objects.requireNonNull(getCommand("togglehologram")).setExecutor(new ToggleSkills(skillsHologram));
-        Objects.requireNonNull(getCommand("serverreload")).setExecutor(new Reload(this));
+        this.getCommand("help").setExecutor(new Help(this));
+        getCommand("alwaysday").setExecutor(new AlwaysDay(this));
+        getCommand("togglehologram").setExecutor(new ToggleSkills(skillsHologram));
+        getCommand("serverreload").setExecutor(new Reload(this));
         getCommand("accepttrade").setExecutor(new AcceptTrade(tradeMenu));
-        this.getCommand("trade").setExecutor(new Trade(tradeMenu));        this.getCommand("setspawn").setExecutor(new SetSpawn(this));
+        this.getCommand("trade").setExecutor(new Trade(tradeMenu));
+        this.getCommand("setspawn").setExecutor(new SetSpawn(this));
         this.getCommand("spawn").setExecutor(new Spawn(this));
 
     }
