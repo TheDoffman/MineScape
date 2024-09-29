@@ -23,7 +23,7 @@ public class MineScape extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        getLogger().info("MineScape Alpha Version 0.1 has been enabled!");
+        getLogger().info("MineScape Alpha Version 0.2 has been enabled!");
 
         // Initialize ConfigurationManager
         configManager = new ConfigurationManager(this);
