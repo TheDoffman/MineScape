@@ -15,6 +15,7 @@ import org.hoffmantv.minescape.managers.ConfigurationManager;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class Strength implements Listener {
 
@@ -22,6 +23,7 @@ public class Strength implements Listener {
     private final ConfigurationSection strengthConfig;
     private final ConfigurationManager configManager;
     private final Map<Material, Integer> weaponStrengthRequirements = new HashMap<>();
+    private final Random random = new Random();
 
     public Strength(SkillManager skillManager, ConfigurationSection strengthConfig, ConfigurationManager configManager) {
         this.skillManager = skillManager;
@@ -55,10 +57,9 @@ public class Strength implements Listener {
         Player player = (Player) event.getDamager();
         LivingEntity mob = (LivingEntity) event.getEntity();
 
-        // Check if the player is holding a sword
         Material weaponType = player.getInventory().getItemInMainHand().getType();
         if (!weaponStrengthRequirements.containsKey(weaponType)) {
-            return; // If the weapon isn't in the requirements list, exit out of the event.
+            return;
         }
 
         int requiredLevel = weaponStrengthRequirements.get(weaponType);
@@ -70,18 +71,31 @@ public class Strength implements Listener {
             return;
         }
 
-        // Placeholder check to exclude certain mobs (you should define this properly)
         if (isExcludedMob(mob)) {
             return;
         }
 
         Integer mobLevel = CombatLevelSystem.extractMobLevelFromName(mob);
         if (mobLevel == null) {
-            // Make sure to review how CombatLevelSystem works!
             return;
         }
 
-        // Additional logic for when the player damages a mob can be added here
+        // Calculate hit chance and damage
+        if (doesPlayerHit(playerStrengthLevel, mobLevel)) {
+            double maxHit = calculateMaxHit(playerStrengthLevel);
+            double damageDealt = random.nextDouble() * maxHit;
+            event.setDamage(damageDealt);
+
+            // Grant XP based on damage dealt
+            int xpAmount = calculateXpFromDamage(damageDealt);
+            skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
+
+            // Notify player
+            player.sendActionBar(ChatColor.GOLD + "Strength +" + xpAmount);
+            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
+        } else {
+            player.sendActionBar(ChatColor.RED + "Missed!");
+        }
     }
 
     @EventHandler
@@ -98,31 +112,45 @@ public class Strength implements Listener {
             return;
         }
 
-        // Calculate XP reward based on the mob's level
+        // XP on mob death
         int xpAmount = calculateXpReward(mobLevel);
-
-        // Add the XP reward to the player's STRENGTH skill using the SkillManager
         skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
-
-        // Log the XP gain to playerdata.yml
         configManager.logXpGain(player, "strength", xpAmount);
 
-        // Notify the player about the XP gained
         player.sendActionBar(ChatColor.GOLD + "Strength +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }
 
-    private int calculateXpReward(int mobLevel) {
-        // Fetch base XP from the configuration section, default to 10 if not found
-        int baseXp = strengthConfig.getInt("baseXp", 10);
+    private boolean doesPlayerHit(int playerLevel, int mobLevel) {
+        // OSRS-like hit chance: As the player's level increases, they are more likely to hit
+        int baseHitChance = 70; // Base hit chance is 70%
+        int levelDifference = playerLevel - mobLevel;
 
-        // Optionally use mobLevel in the calculation if needed, for now, return just the base XP
-        return baseXp;
+        // Adjust hit chance based on level difference
+        baseHitChance += levelDifference * 2; // Increase hit chance by 2% for each level higher than mob
+        baseHitChance = Math.max(5, baseHitChance); // Minimum hit chance is 5%
+        baseHitChance = Math.min(95, baseHitChance); // Maximum hit chance is 95%
+
+        return random.nextInt(100) < baseHitChance;
+    }
+
+    private double calculateMaxHit(int strengthLevel) {
+        // OSRS-like max hit formula: Higher strength level = higher max hit
+        return 1 + (strengthLevel / 10.0); // Example: Strength 50 would have max hit of 6.0
+    }
+
+    private int calculateXpFromDamage(double damageDealt) {
+        // OSRS-like XP calculation: 4 XP per point of damage dealt
+        return (int) (damageDealt * 4);
+    }
+
+    private int calculateXpReward(int mobLevel) {
+        int baseXp = strengthConfig.getInt("baseXp", 10);
+        return baseXp + mobLevel * 2; // Give more XP for higher level mobs
     }
 
     private boolean isExcludedMob(LivingEntity mob) {
-        // Placeholder logic: You should implement your own criteria here.
-        // For example, if you have friendly NPCs or mobs tagged as 'non-combat'.
+        // Placeholder logic for excluding certain mobs (e.g., friendly mobs, pets)
         return false;
     }
 }

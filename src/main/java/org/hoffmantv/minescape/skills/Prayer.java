@@ -14,8 +14,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
@@ -30,6 +28,9 @@ public class Prayer implements Listener {
     // Cooldown map to prevent spamming
     private final Map<Player, Long> cooldowns = new HashMap<>();
     private final long COOLDOWN_TIME = 10 * 1000; // 10 seconds in milliseconds
+
+    // XP multiplier for using bones on altars
+    private final double ALTAR_XP_MULTIPLIER = 2.5;
 
     public Prayer(SkillManager skillManager, ConfigurationSection prayerConfig, Plugin plugin) {
         this.skillManager = skillManager;
@@ -75,7 +76,6 @@ public class Prayer implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
-        // Check if the action is right-click on a block
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
@@ -101,21 +101,24 @@ public class Prayer implements Listener {
             }
 
             BoneData boneData = boneDataMap.get(itemType);
-            double playerPrayerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.PRAYER);
+            double xpValue = boneData.getXpValue();
 
-            // Apply the effect to the player
-            applyEffect(player, boneData);
+            // Check if using on an altar for additional XP
+            if (isAltar(clickedBlock)) {
+                xpValue *= ALTAR_XP_MULTIPLIER;
+                player.sendMessage(ChatColor.AQUA + "You used the bone on an altar and earned extra XP!");
+            }
 
             // Award XP
-            skillManager.addXP(player, SkillManager.Skill.PRAYER, boneData.getXpValue());
+            skillManager.addXP(player, SkillManager.Skill.PRAYER, xpValue);
 
             // Provide feedback
-            String usedBoneMessage = "You have used " + boneData.getDisplayName() + " and earned " + ChatColor.GOLD + boneData.getXpValue() + ChatColor.GREEN + " Prayer XP!";
+            String usedBoneMessage = "You have used " + boneData.getDisplayName() + " and earned " + ChatColor.GOLD + xpValue + ChatColor.GREEN + " Prayer XP!";
             player.sendMessage(ChatColor.GREEN + usedBoneMessage);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
-            player.sendActionBar(ChatColor.BLUE + "Prayer +" + boneData.getXpValue());
+            player.sendActionBar(ChatColor.BLUE + "Prayer +" + xpValue);
 
-            plugin.getLogger().info("Player " + player.getName() + " used " + boneData.getDisplayName() + " and earned " + boneData.getXpValue() + " Prayer XP.");
+            plugin.getLogger().info("Player " + player.getName() + " used " + boneData.getDisplayName() + " and earned " + xpValue + " Prayer XP.");
 
             // Apply visual digging effect to the clicked block
             applyDiggingEffect(clickedBlock, boneData);
@@ -127,28 +130,15 @@ public class Prayer implements Listener {
             cooldowns.put(player, System.currentTimeMillis() + COOLDOWN_TIME);
 
             // Schedule removal of cooldown
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> cooldowns.remove(player), COOLDOWN_TIME / 50); // Convert ms to ticks (20 ticks = 1 second)
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> cooldowns.remove(player), COOLDOWN_TIME / 50);
         }
     }
 
-    private void applyEffect(Player player, BoneData boneData) {
-        PotionEffectType effectType = PotionEffectType.getByName(boneData.getEffectType().toUpperCase());
-        if (effectType == null) {
-            plugin.getLogger().warning("Invalid effect type for bone: " + boneData.getBoneMaterial());
-            return;
-        }
-
-        PotionEffect effect = new PotionEffect(effectType, boneData.getEffectDuration() * 20, boneData.getEffectAmplifier() - 1, false, false);
-        player.addPotionEffect(effect);
-        plugin.getLogger().info("Applied " + effectType.getName() + " effect to " + player.getName() + " for " + boneData.getEffectDuration() + " seconds.");
+    private boolean isAltar(Block block) {
+        // Example: Altar blocks could be gold blocks in this implementation
+        return block.getType() == Material.GOLD_BLOCK;
     }
 
-    /**
-     * Applies a visual digging effect on the specified block.
-     *
-     * @param block    The block to apply the effect on.
-     * @param boneData The BoneData containing particle details.
-     */
     private void applyDiggingEffect(Block block, BoneData boneData) {
         Particle particle;
         try {
@@ -158,70 +148,46 @@ public class Prayer implements Listener {
             particle = Particle.BLOCK_CRACK;
         }
 
-        // Check if the particle requires BlockData
         if (particle.equals(Particle.BLOCK_CRACK) || particle.equals(Particle.BLOCK_DUST)) {
-            // Obtain the BlockData from the clicked block
             BlockData blockData = block.getBlockData();
 
-            // Spawn particles with BlockData
-            try {
-                block.getWorld().spawnParticle(
-                        particle,
-                        block.getLocation().add(0.5, 0.5, 0.5),
-                        30, // Number of particles
-                        0.5, // Offset X
-                        0.5, // Offset Y
-                        0.5, // Offset Z
-                        0.1, // Extra (speed)
-                        blockData // Required BlockData
-                );
-                plugin.getLogger().info("Applied " + particle.name() + " particles to block at " + block.getLocation());
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Failed to spawn particle: " + particle.name() + ". " + e.getMessage());
-            }
+            block.getWorld().spawnParticle(
+                    particle,
+                    block.getLocation().add(0.5, 0.5, 0.5),
+                    30,
+                    0.5,
+                    0.5,
+                    0.5,
+                    0.1,
+                    blockData
+            );
         } else {
-            // Spawn particles without BlockData
-            try {
-                block.getWorld().spawnParticle(
-                        particle,
-                        block.getLocation().add(0.5, 0.5, 0.5),
-                        30, // Number of particles
-                        0.5, // Offset X
-                        0.5, // Offset Y
-                        0.5, // Offset Z
-                        0.1 // Extra (speed)
-                );
-                plugin.getLogger().info("Applied " + particle.name() + " particles to block at " + block.getLocation());
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Failed to spawn particle: " + particle.name() + ". " + e.getMessage());
-            }
+            block.getWorld().spawnParticle(
+                    particle,
+                    block.getLocation().add(0.5, 0.5, 0.5),
+                    30,
+                    0.5,
+                    0.5,
+                    0.5,
+                    0.1
+            );
         }
     }
 
-    /**
-     * Consumes one bone from the player's inventory.
-     *
-     * @param player The player.
-     * @param item   The bone item stack.
-     */
     private void consumeBone(Player player, ItemStack item) {
         if (item.getAmount() > 1) {
             item.setAmount(item.getAmount() - 1);
         } else {
             player.getInventory().remove(item);
         }
-        plugin.getLogger().info("Consumed one " + item.getType() + " from " + player.getName() + "'s inventory.");
     }
 
-    /**
-     * Inner class to store bone-related data.
-     */
     private static class BoneData {
         private final Material boneMaterial;
         private final String displayName;
         private final double xpValue;
         private final String effectType;
-        private final int effectDuration; // in seconds
+        private final int effectDuration;
         private final int effectAmplifier;
         private final String particleType;
 

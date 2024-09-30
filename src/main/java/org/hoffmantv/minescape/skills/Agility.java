@@ -1,23 +1,42 @@
 package org.hoffmantv.minescape.skills;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class Agility implements Listener {
 
     private final SkillManager skillManager;
-    private final HashMap<UUID, Location> playerStartingPositions = new HashMap<>();
+    private final Map<UUID, Location> playerStartingPositions = new HashMap<>();
+    private final Map<UUID, Boolean> playerOnAgilityCourse = new HashMap<>();  // Track if a player is on an agility course
 
+    // Define custom obstacle points (agility obstacles in a course)
+    private final Map<Location, Integer> agilityObstacles = new HashMap<>(); // Obstacle location and corresponding XP reward
 
     public Agility(SkillManager skillManager) {
         this.skillManager = skillManager;
+        setupAgilityObstacles();  // Define the obstacle locations and XP rewards
+    }
+
+    // Setup OSRS-like agility obstacles with specific XP rewards
+    private void setupAgilityObstacles() {
+        // Example: Define some obstacles with locations and XP rewards
+        // You'd need to adjust these locations based on your Minecraft world
+        agilityObstacles.put(new Location(Bukkit.getWorld("world"), 100, 65, 200), 15); // Example obstacle 1
+        agilityObstacles.put(new Location(Bukkit.getWorld("world"), 105, 65, 205), 25); // Example obstacle 2
     }
 
     @EventHandler
@@ -25,8 +44,8 @@ public class Agility implements Listener {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
 
+        // Check if the player is sprinting and track their movement for XP rewards
         if (player.isSprinting()) {
-            // If player is sprinting but not yet tracked, start tracking
             if (!playerStartingPositions.containsKey(playerId)) {
                 playerStartingPositions.put(playerId, player.getLocation());
             } else {
@@ -34,24 +53,54 @@ public class Agility implements Listener {
                 double distanceCovered = startingPosition.distance(player.getLocation());
 
                 if (distanceCovered >= 50) {
-                    // Reward XP here
-                    int xpAmount = calculateXpReward();  // Implement this method based on how you want to reward XP
+                    int xpAmount = calculateDistanceXpReward();
                     skillManager.addXP(player, SkillManager.Skill.AGILITY, xpAmount);
 
-                    // Reset the starting position so the player can earn XP again after another 30 blocks
+                    player.sendMessage("You gained " + xpAmount + " agility XP for running!");
+
+                    // Reset the starting position to track another 50 blocks
                     playerStartingPositions.put(playerId, player.getLocation());
                 }
             }
         } else {
-            // If player stops sprinting, remove them from the tracking map
             playerStartingPositions.remove(playerId);
         }
     }
 
-    private int calculateXpReward() {
-        // Define your XP reward calculation here
-        return 1;  // Example: reward 10 XP for every 30 blocks sprinted
+    // Handle interaction with agility obstacles
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        Location location = player.getLocation();
+
+        // Check if the player is interacting with an agility obstacle
+        if (agilityObstacles.containsKey(location)) {
+            int xpReward = agilityObstacles.get(location);
+
+            // Simulate player performing agility action (e.g., jumping, climbing)
+            performAgilityAction(player);
+
+            // Award XP for completing the obstacle
+            skillManager.addXP(player, SkillManager.Skill.AGILITY, xpReward);
+            player.sendMessage("You gained " + xpReward + " agility XP for completing the obstacle!");
+        }
     }
+
+    // Custom agility action (e.g., jump boost, launch player forward, etc.)
+    private void performAgilityAction(Player player) {
+        // Example: Give the player a small velocity boost to simulate a jump/climb
+        Vector jumpBoost = new Vector(0, 1, 0.5);
+        player.setVelocity(jumpBoost);
+
+        // Play a sound to simulate climbing or jumping action
+        player.playSound(player.getLocation(), "minecraft:block.wooden_trapdoor.open", 1.0F, 1.0F);
+    }
+
+    // Calculate XP reward for running distance
+    private int calculateDistanceXpReward() {
+        return 10;  // Example: reward 10 XP for every 50 blocks sprinted
+    }
+
     @EventHandler
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
         if (!(event.getEntity() instanceof Player)) return;
@@ -64,14 +113,29 @@ public class Agility implements Listener {
         int currentFoodLevel = player.getFoodLevel();
         int newFoodLevel = event.getFoodLevel();
 
-        // Check if the food level is decreasing (due to sprinting, for instance)
         if (newFoodLevel < currentFoodLevel) {
-            // Adjust the decrease based on agility level
-            // This is just an example formula, you can adjust as needed
             double adjustment = 1 + (0.02 * agilityLevel); // 2% less hunger depletion per agility level
             int adjustedFoodLevel = (int) (currentFoodLevel - (currentFoodLevel - newFoodLevel) / adjustment);
 
             event.setFoodLevel(adjustedFoodLevel);
         }
+    }
+
+    // Example method for stamina regeneration based on agility level
+    public void regenerateStamina(Player player) {
+        int agilityLevel = skillManager.getSkillLevel(player, SkillManager.Skill.AGILITY);
+
+        // Regenerate hunger/stamina more quickly if not sprinting
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!player.isSprinting()) {
+                    int currentFoodLevel = player.getFoodLevel();
+                    int newFoodLevel = Math.min(20, currentFoodLevel + (1 + agilityLevel / 20)); // Regenerate faster at higher agility levels
+
+                    player.setFoodLevel(newFoodLevel);
+                }
+            }
+        }.runTaskTimer(skillManager.getPlugin(), 0L, 100L); // Run every 5 seconds (100 ticks)
     }
 }

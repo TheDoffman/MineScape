@@ -20,14 +20,21 @@ public class Cooking implements Listener {
     private final SkillManager skillManager;
     private final Random random = new Random();
 
-    // Define level requirements for certain foods
-    private final Map<Material, Integer> levelRequirements = new HashMap<Material, Integer>() {{
-        put(Material.BEEF, 1);
-        put(Material.CHICKEN, 5);
-        put(Material.MUTTON, 10);
-        put(Material.SALMON, 15);
-        put(Material.RABBIT, 20);
+    // Define level requirements, XP, and burn stop levels for all Minecraft cookable foods
+    private final Map<Material, FoodData> foodData = new HashMap<Material, FoodData>() {{
+        put(Material.BEEF, new FoodData(1, 10, 30));           // Raw Beef -> Cooked Beef
+        put(Material.CHICKEN, new FoodData(5, 15, 35));        // Raw Chicken -> Cooked Chicken
+        put(Material.MUTTON, new FoodData(10, 20, 40));        // Raw Mutton -> Cooked Mutton
+        put(Material.PORKCHOP, new FoodData(15, 25, 45));      // Raw Porkchop -> Cooked Porkchop
+        put(Material.COD, new FoodData(10, 20, 40));           // Raw Cod -> Cooked Cod
+        put(Material.RABBIT, new FoodData(25, 35, 55));        // Raw Rabbit -> Cooked Rabbit
+        put(Material.KELP, new FoodData(1, 5, 10));            // Kelp -> Dried Kelp
+        put(Material.COD, new FoodData(1, 10, 25));            // Raw Cod -> Cooked Cod
+        put(Material.SALMON, new FoodData(10, 20, 35));        // Raw Salmon -> Cooked Salmon
+        put(Material.POTATO, new FoodData(1, 5, 10));          // Potato -> Baked Potato
+        put(Material.PUFFERFISH, new FoodData(50, 60, 100));   // Pufferfish for high XP, though not cookable in vanilla
     }};
+
     public Cooking(SkillManager skillManager) {
         this.skillManager = skillManager;
     }
@@ -36,58 +43,69 @@ public class Cooking implements Listener {
     public void onPlayerCookFood(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
-        if (event.getClickedBlock() == null || event.getClickedBlock().getType() != Material.CAMPFIRE) return;
+        if (event.getClickedBlock() == null || (event.getClickedBlock().getType() != Material.CAMPFIRE && event.getClickedBlock().getType() != Material.FURNACE)) return;
 
         ItemStack itemInHand = event.getItem();
         if (itemInHand == null || !isUncookedFood(itemInHand.getType())) return;
 
-        // Cancel the default interaction to prevent adding the food to the campfire
+        // Cancel the default interaction to prevent adding the food to the campfire/furnace
         event.setCancelled(true);
 
         Player player = event.getPlayer();
-        int playerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.COOKING);
-        Material cookedVersion = getCookedVersion(itemInHand.getType());
+        Material uncookedFood = itemInHand.getType();
+        FoodData foodInfo = foodData.get(uncookedFood);
 
-            // Check player level requirements
-        int requiredLevel = getRequiredLevelForFood(itemInHand.getType());
-        if (!meetsLevelRequirement(player, itemInHand.getType())) {
-            player.sendMessage(ChatColor.RED + "⚠ " + ChatColor.GRAY + "You require level " + ChatColor.GOLD + requiredLevel
+        // Check if player meets the level requirements for cooking
+        if (!meetsLevelRequirement(player, uncookedFood)) {
+            player.sendMessage(ChatColor.RED + "⚠ " + ChatColor.GRAY + "You require level " + ChatColor.GOLD + foodInfo.requiredLevel
                     + ChatColor.GRAY + " in cooking to prepare this item.");
             return;
         }
 
-        itemInHand.setAmount(itemInHand.getAmount() - 1); // Decrease the uncooked food by 1
+        // Decrease the uncooked food by 1
+        itemInHand.setAmount(itemInHand.getAmount() - 1);
 
-        if (shouldBurnFood(playerLevel)) {
+        if (shouldBurnFood(player, foodInfo)) {
             player.sendMessage(ChatColor.RED + "✖ " + ChatColor.GRAY + "Sadly, you've burned the food.");
             player.getInventory().addItem(getCustomNamedItem(Material.CHARCOAL, "Burned Food"));
         } else {
+            Material cookedVersion = getCookedVersion(uncookedFood);
             player.sendMessage(ChatColor.GREEN + "✓ " + ChatColor.GRAY + "Successfully cooked: " + ChatColor.GOLD + cookedVersion.name().replace("_", " "));
             player.getInventory().addItem(getCustomNamedItem(cookedVersion, cookedVersion.name().replace("_", " ")));
 
             // Add XP based on success
-            int xpToAdd = calculateXpReward(itemInHand.getType());
-            player.sendActionBar(ChatColor.GOLD + "Cooking +" + xpToAdd);
+            player.sendActionBar(ChatColor.GOLD + "Cooking +" + foodInfo.xpReward);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
-            skillManager.addXP(player, SkillManager.Skill.COOKING, xpToAdd);
+            skillManager.addXP(player, SkillManager.Skill.COOKING, foodInfo.xpReward);
         }
     }
+
     private boolean meetsLevelRequirement(Player player, Material foodType) {
-        return levelRequirements.getOrDefault(foodType, 0) <= skillManager.getSkillLevel(player, SkillManager.Skill.COOKING);
+        return foodData.getOrDefault(foodType, new FoodData(0, 0, 0)).requiredLevel <= skillManager.getSkillLevel(player, SkillManager.Skill.COOKING);
     }
-    private int calculateXpReward(Material foodType) {
-        // You can adjust this method to return different XP amounts based on the food type or other criteria.
-        return 10; // Example: a flat 10 XP per cooked item.
-    }
-    private boolean shouldBurnFood(int playerLevel) {
-        int burnChance = 50 - (playerLevel * 2); // e.g., at level 10, there's a 30% chance to burn, at level 25, 5% chance.
-        burnChance = Math.max(5, burnChance);  // Ensure there's always at least a 5% chance to burn for challenge
+
+    private boolean shouldBurnFood(Player player, FoodData foodInfo) {
+        int playerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.COOKING);
+        int burnChance = 50 - (playerLevel * 2); // Default burn chance based on level
+
+        // If the player has reached the burn stop level, food doesn't burn
+        if (playerLevel >= foodInfo.burnStopLevel) {
+            return false;
+        }
+
+        // If cooking on a furnace, reduce burn chance further (e.g., 10% less chance to burn)
+        if (player.getLocation().getBlock().getType() == Material.FURNACE) {
+            burnChance -= 10;
+        }
+
+        burnChance = Math.max(5, burnChance);  // Ensure a minimum burn chance for challenge
         return random.nextInt(100) < burnChance;
     }
+
     private boolean isUncookedFood(Material material) {
-        // Modify this list to include all uncooked food items you wish to check.
-        return material == Material.BEEF || material == Material.CHICKEN || material == Material.MUTTON || material == Material.SALMON || material == Material.PORKCHOP;
+        return foodData.containsKey(material); // If the food is in our foodData map, it's considered uncooked
     }
+
     private Material getCookedVersion(Material uncooked) {
         switch (uncooked) {
             case BEEF:
@@ -100,24 +118,19 @@ public class Cooking implements Listener {
                 return Material.COOKED_PORKCHOP;
             case SALMON:
                 return Material.COOKED_SALMON;
+            case COD:
+                return Material.COOKED_COD;
             case RABBIT:
                 return Material.COOKED_RABBIT;
+            case POTATO:
+                return Material.BAKED_POTATO;
+            case KELP:
+                return Material.DRIED_KELP;
             default:
-                return Material.CHARCOAL; // This is just a default for error-handling, won't really be reached based on our isUncookedFood check.
+                return Material.CHARCOAL; // Default for burned food
         }
     }
-    private int getRequiredLevelForFood(Material foodItem) {
-        // Example logic - adjust to your needs
-        switch(foodItem) {
-            case BEEF: return 1;
-            case CHICKEN: return 5;
-            case MUTTON: return 10;
-            case SALMON: return 15;
-            case RABBIT: return 20;
-            // ... other foods
-            default: return 0;
-        }
-    }
+
     private ItemStack getCustomNamedItem(Material material, String name) {
         ItemStack item = new ItemStack(material, 1);
         ItemMeta meta = item.getItemMeta();
@@ -128,5 +141,18 @@ public class Cooking implements Listener {
         }
 
         return item;
+    }
+
+    // Data class for food level requirements, XP rewards, and burn stop levels
+    private static class FoodData {
+        final int requiredLevel;
+        final int xpReward;
+        final int burnStopLevel;
+
+        FoodData(int requiredLevel, int xpReward, int burnStopLevel) {
+            this.requiredLevel = requiredLevel;
+            this.xpReward = xpReward;
+            this.burnStopLevel = burnStopLevel;
+        }
     }
 }
