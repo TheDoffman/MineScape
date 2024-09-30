@@ -39,6 +39,10 @@ public class ConfigurationManager {
 
         return YamlConfiguration.loadConfiguration(configFile);
     }
+    public FileConfiguration getPlayerDataConfig() {
+        // Ensure this method returns the player data configuration file
+        return plugin.getPlayerDataConfig(); // Ensure this matches your method to get the config
+    }
 
     // Save method for any configuration file
     public void saveConfig(String fileName, FileConfiguration config) {

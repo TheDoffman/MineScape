@@ -20,6 +20,7 @@ public class Woodcutting implements Listener {
     private final SkillManager skillManager;
     private final ConfigurationManager configManager;
     private final JavaPlugin plugin;
+    private final Random random = new Random();
 
     // Configurable tree settings
     private final Map<Material, TreeType> treeTypes = new HashMap<>();
@@ -129,23 +130,33 @@ public class Woodcutting implements Listener {
 
     // Handles tree removal and planting a sapling for regrowth
     private void handleTreeCut(Player player, Block block, TreeType treeType) {
-        // Remove the tree and keep the stump
-        int logsRemoved = removeTree(block);
+        // Random delay simulation based on OSRS mechanics
+        int delay = random.nextInt(20) + 30; // Random delay between 30-50 ticks (1.5 to 2.5 seconds)
 
-        // Give logs to the player
-        if (logsRemoved > 0) {
-            ItemStack logs = new ItemStack(treeType.getMaterial(), logsRemoved);
-            player.getInventory().addItem(logs);
-        }
+        // Play woodcutting animation
+        player.playSound(player.getLocation(), Sound.BLOCK_WOOD_BREAK, 1.0f, 1.0f);
+        player.spawnParticle(Particle.BLOCK_CRACK, block.getLocation(), 10, block.getType().createBlockData());
 
-        // Check if the block below is dirt or grass to plant a sapling
-        Location stumpLocation = block.getLocation();
-        if (isPlantableBase(stumpLocation.getBlock().getRelative(BlockFace.DOWN).getType())) {
-            plantSapling(stumpLocation, treeType);
-        }
+        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+            // Remove the tree and keep the stump
+            int logsRemoved = removeTree(block);
 
-        // Provide XP to the player
-        grantXpForTree(player, treeType);
+            // Give logs to the player
+            if (logsRemoved > 0) {
+                ItemStack logs = new ItemStack(treeType.getMaterial(), logsRemoved);
+                player.getInventory().addItem(logs);
+            }
+
+            // Check if the block below is dirt or grass to plant a sapling
+            Location stumpLocation = block.getLocation();
+            if (isPlantableBase(stumpLocation.getBlock().getRelative(BlockFace.DOWN).getType())) {
+                plantSapling(stumpLocation, treeType);
+            }
+
+            // Provide XP to the player
+            grantXpForTree(player, treeType);
+
+        }, delay);
     }
 
     private int removeTree(Block startBlock) {

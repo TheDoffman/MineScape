@@ -77,7 +77,7 @@ public class SkillManager implements Listener {
                 Map<Skill, Double> xpMap = new EnumMap<>(Skill.class);
 
                 for (Skill skill : Skill.values()) {
-                    int defaultLevel = (skill == Skill.COMBAT) ? 3 : 1;
+                    int defaultLevel = (skill == Skill.COMBAT) ? 3 : 1; // Default level
                     int level = playerDataConfig.getInt(uuidString + "." + skill.name() + ".level", defaultLevel);
                     double xp = playerDataConfig.getDouble(uuidString + "." + skill.name() + ".xp", 0.0);
 
@@ -112,7 +112,7 @@ public class SkillManager implements Listener {
         }
     }
 
-    // Retrieve required Strength level for a weapon
+    // Get the required Strength level for a weapon
     public int getRequiredStrengthLevel(Material weaponType) {
         return weaponStrengthRequirements.getOrDefault(weaponType, 1);
     }
@@ -212,11 +212,18 @@ public class SkillManager implements Listener {
         UUID playerUUID = player.getUniqueId();
         initializePlayerData(playerUUID);
 
-        if (!playerDataConfig.contains(playerUUID.toString() + ".playtime")) {
-            playerDataConfig.set(playerUUID.toString() + ".playtime", 0L);
+        // Initialize all skills with default values
+        for (Skill skill : Skill.values()) {
+            if (!playerDataConfig.contains(playerUUID.toString() + "." + skill.name())) {
+                int defaultLevel = (skill == Skill.COMBAT) ? 3 : 1;
+                playerDataConfig.set(playerUUID.toString() + "." + skill.name() + ".level", defaultLevel);
+                playerDataConfig.set(playerUUID.toString() + "." + skill.name() + ".xp", 0.0);
+            }
         }
 
         savePlayerDataAsync();
+
+        // Start tracking playtime and update combat level
         startPlaytimeTracking(player);
         combatLevel.updateCombatLevel(player, player);
         combatLevel.updatePlayerNametag(player);
@@ -241,7 +248,7 @@ public class SkillManager implements Listener {
                 }
 
                 long playtime = playerDataConfig.getLong(playerUUID.toString() + ".playtime");
-                playtime += 60;
+                playtime += 60; // Increment playtime every minute
                 playerDataConfig.set(playerUUID.toString() + ".playtime", playtime);
                 savePlayerDataAsync();
             }
@@ -309,18 +316,23 @@ public class SkillManager implements Listener {
             }
         }
     }
+
+    // Utility method to get all skill levels for a player
     public Map<Skill, Integer> getAllSkillLevels(Player player) {
         UUID playerUUID = player.getUniqueId();
-        initializePlayerData(playerUUID); // Ensures player data is properly initialized
+        initializePlayerData(playerUUID); // Ensure player data is properly initialized
         return playerLevels.getOrDefault(playerUUID, Collections.emptyMap());
     }
+
     public JavaPlugin getPlugin() {
         return plugin;
     }
+
     public int getHealth(Player player) {
         return (int) Math.ceil(player.getHealth()); // Return player's health as an integer
     }
+
     public int getCombatLevel(Player player) {
-        return combatLevel.calculateCombatLevel(player); // Assuming CombatLevel has a method to calculate the level
+        return combatLevel.calculateCombatLevel(player); // Calculate combat level
     }
 }

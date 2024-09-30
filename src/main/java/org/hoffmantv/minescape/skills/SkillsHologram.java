@@ -1,7 +1,6 @@
 package org.hoffmantv.minescape.skills;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
 import org.hoffmantv.minescape.skills.SkillManager;
@@ -13,10 +12,6 @@ public class SkillsHologram {
     private final SkillManager skillManager;
     private static final String SKILLS_OBJECTIVE = "skills";
     private static final String SKILLS_TITLE = ChatColor.GOLD + " =-=-=-=[ MineScape ]=-=-=-=";
-    private static final ChatColor PRIMARY_COLOR = ChatColor.GOLD;
-    private static final ChatColor SECONDARY_COLOR = ChatColor.GRAY;
-    private static final ChatColor LEVEL_COLOR = ChatColor.GREEN;
-    private static final String SPACER = ChatColor.DARK_GRAY + ChatColor.STRIKETHROUGH.toString() + "                      ";
 
     public SkillsHologram(SkillManager skillManager) {
         this.skillManager = skillManager;
@@ -54,17 +49,17 @@ public class SkillsHologram {
 
         player.setScoreboard(scoreboard);
 
-        // Schedule a repeating task to update the playtime and ping every second
+        // Schedule a repeating task to update every second
         Bukkit.getScheduler().runTaskTimer(skillManager.getPlugin(), () -> {
             updateDynamicLine(objective, player, ChatColor.WHITE + "Play time: " + ChatColor.AQUA + skillManager.getFormattedPlaytime(player), 13);
-            updateDynamicLine(objective, player, ChatColor.WHITE + "Online: " + LEVEL_COLOR + Bukkit.getOnlinePlayers().size() + ChatColor.GRAY + " | " + ChatColor.WHITE + " Ping: " + LEVEL_COLOR + skillManager.getPing(player), 12);
+            updateDynamicLine(objective, player, ChatColor.WHITE + "Online: " + ChatColor.GREEN + Bukkit.getOnlinePlayers().size() + ChatColor.GRAY + " | Ping: " + ChatColor.GREEN + skillManager.getPing(player), 12);
         }, 0L, 20L);
     }
 
     private void addInformationSection(Objective objective, Player player) {
-        addLineToObjective(objective, ChatColor.WHITE + "HP: " + LEVEL_COLOR + skillManager.getHealth(player) + ChatColor.GRAY + " | " + ChatColor.WHITE + "CB: " + ChatColor.GOLD + skillManager.getCombatLevel(player), 14);
+        addLineToObjective(objective, ChatColor.WHITE + "HP: " + ChatColor.GREEN + skillManager.getHealth(player) + ChatColor.GRAY + " | CB: " + ChatColor.GOLD + skillManager.getCombatLevel(player), 14);
         addLineToObjective(objective, ChatColor.WHITE + "Play time: " + ChatColor.AQUA + skillManager.getFormattedPlaytime(player), 13);
-        addLineToObjective(objective, SPACER, 11); // Spacer
+        addLineToObjective(objective, ChatColor.DARK_GRAY + ChatColor.STRIKETHROUGH.toString() + "                      ", 11); // Spacer
     }
 
     private void addSkillsGrid(Objective objective, Player player) {
@@ -88,10 +83,12 @@ public class SkillsHologram {
         for (SkillManager.Skill[] row : skillLayout) {
             StringBuilder rowText = new StringBuilder();
             for (SkillManager.Skill skill : row) {
-                if (!skills.containsKey(skill)) continue;
-                String skillIcon = getSkillIcon(skill);
-                String skillLevel = formatSkillLevel(skills.get(skill));
-                rowText.append(skillIcon).append(" ").append(skillLevel).append("  ");
+                Integer skillLevel = skills.get(skill);
+                if (skillLevel != null) {
+                    String skillIcon = getSkillIcon(skill);
+                    String formattedLevel = formatSkillLevel(skillLevel);
+                    rowText.append(skillIcon).append(" ").append(formattedLevel).append("  ");
+                }
             }
             if (rowText.length() > 0) {
                 addLineToObjective(objective, rowText.toString().trim(), rows[index++]);
@@ -105,12 +102,11 @@ public class SkillsHologram {
     }
 
     private void updateDynamicLine(Objective objective, Player player, String line, int score) {
-        for (String entry : objective.getScoreboard().getEntries()) {
+        objective.getScoreboard().getEntries().forEach(entry -> {
             if (entry.contains(line.split(":")[0])) {
                 objective.getScoreboard().resetScores(entry);
-                break;
             }
-        }
+        });
         addLineToObjective(objective, line, score);
     }
 

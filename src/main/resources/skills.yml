@@ -1,212 +1,192 @@
+# Mining skill configuration
 skills:
-  attack:
-    xpReward: 10
-    mobLevelMultiplier: 1.3
-  strength:
-    baseXp: 10
-    levelMultiplier: 1.0
-    weaponRequirements:
-      WOODEN_SWORD: 1
-      STONE_SWORD: 10
-      IRON_SWORD: 20
-      GOLDEN_SWORD: 15
-      DIAMOND_SWORD: 30
-      NETHERITE_SWORD: 50
-      WOODEN_AXE: 3
-      STONE_AXE: 13
-      IRON_AXE: 23
-      GOLDEN_AXE: 18
-      DIAMOND_AXE: 33
-      NETHERITE_AXE: 53
-  defense:
-    xpMultiplier: 2.0
-    xpPerDamage: 5
-    armorRequirements:
-      LEATHER_HELMET: 1
-      LEATHER_CHESTPLATE: 1
-      LEATHER_LEGGINGS: 1
-      LEATHER_BOOTS: 1
-      CHAINMAIL_HELMET: 10
-      CHAINMAIL_CHESTPLATE: 10
-      CHAINMAIL_LEGGINGS: 10
-      CHAINMAIL_BOOTS: 10
-      GOLDEN_HELMET: 15
-      GOLDEN_CHESTPLATE: 15
-      GOLDEN_LEGGINGS: 15
-      GOLDEN_BOOTS: 15
-      IRON_HELMET: 20
-      IRON_CHESTPLATE: 20
-      IRON_LEGGINGS: 20
-      IRON_BOOTS: 20
-      DIAMOND_HELMET: 30
-      DIAMOND_CHESTPLATE: 30
-      DIAMOND_LEGGINGS: 30
-      DIAMOND_BOOTS: 30
-      NETHERITE_HELMET: 50
-      NETHERITE_CHESTPLATE: 50
-      NETHERITE_LEGGINGS: 50
-      NETHERITE_BOOTS: 50
-  woodcutting:
-    trees:
-      OAK:
-        log: OAK_LOG
-        requiredLevel: 1
-        xpValue: 10
-        sapling: OAK_SAPLING
-      DARK_OAK:
-        log: DARK_OAK_LOG
-        requiredLevel: 10
-        xpValue: 20
-        sapling: DARK_OAK_SAPLING
-      BIRCH:
-        log: BIRCH_LOG
-        requiredLevel: 20
-        xpValue: 12
-        sapling: BIRCH_SAPLING
-      SPRUCE:
-        log: SPRUCE_LOG
-        requiredLevel: 30
-        xpValue: 14
-        sapling: SPRUCE_SAPLING
-      JUNGLE:
-        log: JUNGLE_LOG
-        requiredLevel: 40
-        xpValue: 16
-        sapling: JUNGLE_SAPLING
-      ACACIA:
-        log: ACACIA_LOG
-        requiredLevel: 50
-        xpValue: 18
-        sapling: ACACIA_SAPLING
-  firemaking:
-    logRequirements:
-      OAK_LOG:
-        xp: 10
-        despawnTime: 1200  # 1200 ticks = 1 minute
-        requiredLevel: 1
-      SPRUCE_LOG:
-        xp: 12
-        despawnTime: 1200
-        requiredLevel: 15
-      BIRCH_LOG:
-        xp: 14
-        despawnTime: 1200
-        requiredLevel: 30
-      JUNGLE_LOG:
-        xp: 16
-        despawnTime: 1400
-        requiredLevel: 35
-      ACACIA_LOG:
-        xp: 18
-        despawnTime: 1600
-        requiredLevel: 45
-      DARK_OAK_LOG:
-        xp: 20
-        despawnTime: 1200
-        requiredLevel: 50
-      CRIMSON_STEM:
-        xp: 22
-        despawnTime: 1800
-        requiredLevel: 60
-      WARPED_STEM:
-        xp: 24
-        despawnTime: 2000
-        requiredLevel: 65
-  smithing:
-    smelting:
-      iron_ore:
-        requiredLevel: 15
-        xpValue: 15
-      gold_ore:
-        requiredLevel: 20
-        xpValue: 20
-      ancient_debris:
-        requiredLevel: 40
-        xpValue: 40
   mining:
     ores:
       COAL_ORE:
         requiredLevel: 1
-        xpValue: 10.0
-        respawnTime: 40
+        xpValue: 10
+        respawnTime: 60
         dropMaterial: COAL
       IRON_ORE:
         requiredLevel: 15
-        xpValue: 25.0
-        respawnTime: 60
-        dropMaterial: IRON_ORE
+        xpValue: 35
+        respawnTime: 90
+        dropMaterial: RAW_IRON
       GOLD_ORE:
         requiredLevel: 40
-        xpValue: 65.0
+        xpValue: 65
         respawnTime: 120
-        dropMaterial: GOLD_ORE
+        dropMaterial: RAW_GOLD
       DIAMOND_ORE:
         requiredLevel: 50
-        xpValue: 100.0
-        respawnTime: 300
+        xpValue: 100
+        respawnTime: 150
         dropMaterial: DIAMOND
       EMERALD_ORE:
         requiredLevel: 60
-        xpValue: 120.0
-        respawnTime: 350
-        dropMaterial: EMERALD
-      NETHER_GOLD_ORE:
-        requiredLevel: 45
-        xpValue: 60.0
-        respawnTime: 90
-        dropMaterial: GOLD_NUGGET
-      NETHER_QUARTZ_ORE:
-        requiredLevel: 40
-        xpValue: 70.0
+        xpValue: 125
         respawnTime: 180
-        dropMaterial: QUARTZ
+        dropMaterial: EMERALD
       ANCIENT_DEBRIS:
-        requiredLevel: 70
-        xpValue: 200.0
-        respawnTime: 600
+        requiredLevel: 85
+        xpValue: 150
+        respawnTime: 300
         dropMaterial: NETHERITE_SCRAP
     pickaxes:
       WOODEN_PICKAXE:
         requiredLevel: 1
       STONE_PICKAXE:
-        requiredLevel: 5
+        requiredLevel: 10
       IRON_PICKAXE:
-        requiredLevel: 15
-      GOLDEN_PICKAXE:
         requiredLevel: 20
-      DIAMOND_PICKAXE:
+      GOLDEN_PICKAXE:
         requiredLevel: 30
+      DIAMOND_PICKAXE:
+        requiredLevel: 40
       NETHERITE_PICKAXE:
         requiredLevel: 50
-  fishing:
-    fishTypes:
-      COD:
-        level: 1
-        xp: 10.0
-        equipment: FISHING_ROD
-      SALMON:
-        level: 30
-        xp: 70.0
-        equipment: FISHING_ROD
-      TROPICAL_FISH:
-        level: 20
-        xp: 50.0
-        equipment: FISHING_ROD
-      PUFFERFISH:
-        level: 50
-        xp: 100.0
-        equipment: FISHING_ROD
-    fishingSpots:
-      spot0:
-        world: "world"
-        x: 100
-        y: 65
-        z: 200
-      # Additional spots will be added dynamically
-    actionDelay: 5
+  cooking:
+    xpRewardPerItem: 10
+    burnChance:
+    base: 50 # Base burn chance
+    perLevel: -2 # Decrease burn chance by 2% per level
+  foods:
+    BEEF:
+      requiredLevel: 1
+      xpValue: 10
+    CHICKEN:
+      requiredLevel: 5
+      xpValue: 12
+    MUTTON:
+      requiredLevel: 10
+      xpValue: 15
+    SALMON:
+      requiredLevel: 15
+      xpValue: 20
+    RABBIT:
+      requiredLevel: 20
+      xpValue: 25
+    COD:
+      requiredLevel: 1
+      xpValue: 10
+    PORKCHOP:
+      requiredLevel: 7
+      xpValue: 15
+  strength:
+    weaponRequirements:
+      WOODEN_SWORD: 1
+      STONE_SWORD: 10
+      IRON_SWORD: 20
+      DIAMOND_SWORD: 30
+      NETHERITE_SWORD: 40
+    baseXp: 10
+    xpPerMobLevel: 1.5 # Extra XP based on the mob level
+  defense:
+    xpPerDamage: 5 # XP gained per damage taken
+    shieldXp: 20 # Extra XP gained for using shields
+  hitpoints:
+    xpPerDamageHealed: 2 # XP gained per damage healed
+  attack:
+    xpReward: 10
+    mobLevelMultiplier: 1.3 # XP scaling based on mob level
   prayer:
     bones:
-      regular_bone:
+      BONE:
         material: BONE
         displayName: "&fBone"
         xpValue: 10
+        effectType: REGENERATION
+        effectDuration: 5
+        effectAmplifier: 1
+        particleType: BLOCK_CRACK
+      WITHER_SKELETON_SKULL:
+        material: WITHER_SKELETON_SKULL
+        displayName: "&fWither Skeleton Skull"
+        xpValue: 50
+        effectType: REGENERATION
+        effectDuration: 10
+        effectAmplifier: 2
+        particleType: SOUL
+      DRAGON_BONE:
+        material: DRAGON_BREATH
+        displayName: "&fDragon Bone"
+        xpValue: 150
+        effectType: REGENERATION
+        effectDuration: 15
+        effectAmplifier: 3
+        particleType: DRAGON_BREATH
+
+# Agility skill configuration
+agility:
+  xpPerSprintDistance: 1 # XP per block sprinted
+  sprintDistanceForXp: 50 # Sprint 50 blocks to earn XP
+  foodLevelAdjustmentPerLevel: 0.02 # Reduce food depletion by 2% per agility level
+
+  woodcutting:
+    trees:
+      oak:
+        log: OAK_LOG          # The material of the log
+        sapling: OAK_SAPLING   # The sapling that will be planted after cutting the tree
+        requiredLevel: 1       # The level required to chop this tree
+        xpValue: 25.0          # The amount of XP gained for cutting this tree
+      birch:
+        log: BIRCH_LOG
+        sapling: BIRCH_SAPLING
+        requiredLevel: 10
+        xpValue: 40.0
+      spruce:
+        log: SPRUCE_LOG
+        sapling: SPRUCE_SAPLING
+        requiredLevel: 20
+        xpValue: 55.0
+      jungle:
+        log: JUNGLE_LOG
+        sapling: JUNGLE_SAPLING
+        requiredLevel: 30
+        xpValue: 70.0
+      acacia:
+        log: ACACIA_LOG
+        sapling: ACACIA_SAPLING
+        requiredLevel: 40
+        xpValue: 85.0
+      dark_oak:
+        log: DARK_OAK_LOG
+        sapling: DARK_OAK_SAPLING
+        requiredLevel: 50
+        xpValue: 100.0
+  axes:
+    wooden:
+      requiredLevel: 1
+    stone:
+      requiredLevel: 10
+    iron:
+      requiredLevel: 15
+    golden:
+      requiredLevel: 25
+    diamond:
+      requiredLevel: 35
+    netherite:
+      requiredLevel: 50
+  fishing:
+    fishTypes:
+      RAW_SALMON:
+        requiredLevel: 5
+        xpValue: 10
+      RAW_COD:
+        requiredLevel: 1
+        xpValue: 7
+      RAW_TROUT:
+        requiredLevel: 20
+        xpValue: 15
+      RAW_MACKEREL:
+        requiredLevel: 10
+        xpValue: 12
+      RAW_PUFFERFISH:
+        requiredLevel: 15
+        xpValue: 18
+      RAW_CLOWNFISH:
+        requiredLevel: 15
+        xpValue: 20
+      RAW_TROPICAL_FISH:
+        requiredLevel: 30
+        xpValue: 25

@@ -20,10 +20,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Mining implements Listener {
@@ -114,31 +111,47 @@ public class Mining implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (event.isCancelled()) {
-            return;
-        }
-
         Block block = event.getBlock();
         Material blockMaterial = block.getType();
         Player player = event.getPlayer();
         ItemStack heldItem = player.getInventory().getItemInMainHand();
         Material itemInHand = heldItem.getType();
 
-        // Cancel the block break immediately
-        event.setCancelled(true);
+        // Define the ores that you want to handle
+        Set<Material> oreMaterials = EnumSet.of(
+                Material.COAL_ORE, Material.IRON_ORE, Material.GOLD_ORE,
+                Material.DIAMOND_ORE, Material.EMERALD_ORE, Material.LAPIS_ORE,
+                Material.REDSTONE_ORE, Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_IRON_ORE,
+                Material.DEEPSLATE_GOLD_ORE, Material.DEEPSLATE_DIAMOND_ORE,
+                Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_LAPIS_ORE,
+                Material.DEEPSLATE_REDSTONE_ORE, Material.NETHER_QUARTZ_ORE,
+                Material.NETHER_GOLD_ORE, Material.ANCIENT_DEBRIS
+        );
 
-        // Check if the held item is a pickaxe
+        // Check if the block being broken is an ore
+        if (!oreMaterials.contains(blockMaterial)) {
+            // If it's not an ore, allow the block to be broken normally
+            return;
+        }
+
+        // Check if the player is holding a pickaxe
         if (isPickaxe(itemInHand)) {
+            // Handle ore mining logic
             OreData oreData = oreDataMap.get(blockMaterial);
             if (oreData != null) {
-                // Start the mining process with delay and animation
-                handleOreMining(player, heldItem, oreData, block);
+                // Player is using a pickaxe on a valid ore
+                handleOreBreak(event, player, heldItem, oreData, block);
             } else {
+                // Player is using a pickaxe on a non-ore block
+                event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
+        } else {
+            // If the player is not using a pickaxe, do nothing (allow other interactions)
+            return;
         }
     }
     private void handleOreMining(Player player, ItemStack heldItem, OreData oreData, Block block) {

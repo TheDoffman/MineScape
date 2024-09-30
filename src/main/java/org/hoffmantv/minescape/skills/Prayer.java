@@ -18,6 +18,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class Prayer implements Listener {
 
@@ -110,7 +111,7 @@ public class Prayer implements Listener {
             }
 
             // Award XP
-            skillManager.addXP(player, SkillManager.Skill.PRAYER, xpValue);
+            addPrayerXP(player, xpValue);
 
             // Provide feedback
             String usedBoneMessage = "You have used " + boneData.getDisplayName() + " and earned " + ChatColor.GOLD + xpValue + ChatColor.GREEN + " Prayer XP!";
@@ -132,6 +133,15 @@ public class Prayer implements Listener {
             // Schedule removal of cooldown
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> cooldowns.remove(player), COOLDOWN_TIME / 50);
         }
+    }
+
+    private void addPrayerXP(Player player, double xp) {
+        skillManager.addXP(player, SkillManager.Skill.PRAYER, xp);  // Add XP to prayer skill
+        UUID playerUUID = player.getUniqueId();
+
+        // Save XP to playerdata.yml
+        skillManager.getPlayerDataConfig().set(playerUUID.toString() + ".prayer.xp", skillManager.getXP(player, SkillManager.Skill.PRAYER));
+        skillManager.savePlayerDataAsync();  // Save asynchronously
     }
 
     private boolean isAltar(Block block) {
