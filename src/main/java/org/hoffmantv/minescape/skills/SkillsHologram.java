@@ -40,6 +40,7 @@ public class SkillsHologram {
     public void showSkillsHologram(Player player) {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) {
+            player.sendMessage(ChatColor.RED + "Error: Could not load the scoreboard manager.");
             return;
         }
 
@@ -104,13 +105,12 @@ public class SkillsHologram {
     }
 
     private void updateDynamicLine(Objective objective, Player player, String line, int score) {
-        // Reset the old entry first
         for (String entry : objective.getScoreboard().getEntries()) {
             if (entry.contains(line.split(":")[0])) {
                 objective.getScoreboard().resetScores(entry);
+                break;
             }
         }
-        // Add the updated entry
         addLineToObjective(objective, line, score);
     }
 
