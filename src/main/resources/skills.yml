@@ -125,69 +125,59 @@ skills:
         xpValue: 40
   mining:
     ores:
-      coal_ore:
-        requiredLevel: 1
-        xpValue: 5
-        respawnTime: 30  # Time in seconds before the ore respawns
-        dropMaterial: COAL  # Material dropped when mined
-      iron_ore:
+      COAL_ORE:
+        requiredLevel: 30
+        xpValue: 50.0
+        respawnTime: 40
+        dropMaterial: COAL
+      IRON_ORE:
         requiredLevel: 15
-        xpValue: 15
-        respawnTime: 30
+        xpValue: 25.0
+        respawnTime: 60
         dropMaterial: IRON_ORE
-      redstone_ore:
-        requiredLevel: 20
-        xpValue: 20
-        respawnTime: 30
-        dropMaterial: REDSTONE
-      lapis_ore:
-        requiredLevel: 25
-        xpValue: 25
-        respawnTime: 30
-        dropMaterial: LAPIS_LAZULI
-      gold_ore:
-        requiredLevel: 30
-        xpValue: 30
-        respawnTime: 30
-        dropMaterial: GOLD_ORE
-      diamond_ore:
+      GOLD_ORE:
         requiredLevel: 40
-        xpValue: 40
-        respawnTime: 60
-        dropMaterial: DIAMOND
-      emerald_ore:
+        xpValue: 65.0
+        respawnTime: 120
+        dropMaterial: GOLD_ORE
+      DIAMOND_ORE:
         requiredLevel: 50
-        xpValue: 50
-        respawnTime: 60
-        dropMaterial: EMERALD
-      ancient_debris:
+        xpValue: 100.0
+        respawnTime: 300
+        dropMaterial: DIAMOND
+      EMERALD_ORE:
         requiredLevel: 60
-        xpValue: 60
+        xpValue: 120.0
+        respawnTime: 350
+        dropMaterial: EMERALD
+      NETHER_GOLD_ORE:
+        requiredLevel: 45
+        xpValue: 60.0
         respawnTime: 90
-        dropMaterial: ANCIENT_DEBRIS
-      nether_quartz_ore:
-        requiredLevel: 10
-        xpValue: 10
-        respawnTime: 30
-        dropMaterial: QUARTZ
-      nether_gold_ore:
-        requiredLevel: 35
-        xpValue: 35
-        respawnTime: 60
         dropMaterial: GOLD_NUGGET
+      NETHER_QUARTZ_ORE:
+        requiredLevel: 40
+        xpValue: 70.0
+        respawnTime: 180
+        dropMaterial: QUARTZ
+      ANCIENT_DEBRIS:
+        requiredLevel: 70
+        xpValue: 200.0
+        respawnTime: 600
+        dropMaterial: NETHERITE_SCRAP
     pickaxes:
-      wooden_pickaxe:
+      WOODEN_PICKAXE:
         requiredLevel: 1
-      stone_pickaxe:
+      STONE_PICKAXE:
         requiredLevel: 5
-      iron_pickaxe:
-        requiredLevel: 10
-      golden_pickaxe:
+      IRON_PICKAXE:
         requiredLevel: 15
-      diamond_pickaxe:
+      GOLDEN_PICKAXE:
         requiredLevel: 20
-      netherite_pickaxe:
+      DIAMOND_PICKAXE:
         requiredLevel: 30
+      NETHERITE_PICKAXE:
+        requiredLevel: 50
   fishing:
     fishTypes:
       COD:

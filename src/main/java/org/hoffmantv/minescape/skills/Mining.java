@@ -3,6 +3,7 @@ package org.hoffmantv.minescape.skills;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -13,14 +14,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 
 public class Mining implements Listener {
 
@@ -110,15 +109,9 @@ public class Mining implements Listener {
         }
     }
 
-    /**
-     * Event handler for block breaking.
-     *
-     * @param event The BlockBreakEvent.
-     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockBreak(BlockBreakEvent event) {
         if (event.isCancelled()) {
-            plugin.getLogger().fine("BlockBreakEvent is cancelled. Skipping...");
             return;
         }
 
@@ -128,8 +121,6 @@ public class Mining implements Listener {
         ItemStack heldItem = player.getInventory().getItemInMainHand();
         Material itemInHand = heldItem.getType();
 
-        plugin.getLogger().fine("Player " + player.getName() + " is attempting to break block: " + blockMaterial + " with " + itemInHand);
-
         // Check if the held item is a pickaxe
         if (isPickaxe(itemInHand)) {
             OreData oreData = oreDataMap.get(blockMaterial);
@@ -137,164 +128,108 @@ public class Mining implements Listener {
                 // Player is using a pickaxe on a valid ore
                 handleOreBreak(event, player, heldItem, oreData, block);
             } else {
-                // Player is using a pickaxe on a non-ore block
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-                plugin.getLogger().info("Player " + player.getName() + " attempted to use a pickaxe on non-ore block: " + blockMaterial);
             }
         }
-        // If the player is not using a pickaxe, do nothing (allow other interactions)
     }
 
-    /**
-     * Handles the logic when a player breaks a valid ore.
-     *
-     * @param event     The BlockBreakEvent.
-     * @param player    The player breaking the block.
-     * @param heldItem  The pickaxe used.
-     * @param oreData   The OreData for the block.
-     * @param block     The block being broken.
-     */
     private void handleOreBreak(BlockBreakEvent event, Player player, ItemStack heldItem, OreData oreData, Block block) {
-        // Check player's Mining level for the ore
         int requiredOreLevel = oreData.getRequiredLevel();
         int playerMiningLevel = skillManager.getSkillLevel(player, SkillManager.Skill.MINING);
-
-        plugin.getLogger().fine("Player " + player.getName() + " has Mining level: " + playerMiningLevel + " | Required for ore: " + requiredOreLevel);
 
         if (playerMiningLevel < requiredOreLevel) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "You need Mining level " + requiredOreLevel + " to mine this ore.");
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-            plugin.getLogger().info("Player " + player.getName() + " has Mining level " + playerMiningLevel + " which is insufficient for ore " + block.getType());
             return;
         }
 
-        // Check pickaxe level requirement
         int requiredPickaxeLevel = getRequiredLevelForPickaxe(heldItem.getType());
-        plugin.getLogger().fine("Pickaxe " + heldItem.getType() + " requires Mining level: " + requiredPickaxeLevel);
 
         if (playerMiningLevel < requiredPickaxeLevel) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "You need Mining level " + requiredPickaxeLevel + " to use this pickaxe.");
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-            plugin.getLogger().info("Player " + player.getName() + " has Mining level " + playerMiningLevel + " which is insufficient for pickaxe " + heldItem.getType());
             return;
         }
 
-        // Award XP
+        double miningSuccessChance = calculateMiningSuccessChance(playerMiningLevel, oreData.getRequiredLevel(), heldItem.getType());
+        if (!(ThreadLocalRandom.current().nextDouble(100) < miningSuccessChance)) {
+            player.sendMessage(ChatColor.GRAY + "You failed to mine the ore.");
+            player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0f, 1.0f);
+            return;
+        }
+
         double xpEarned = oreData.getXpValue();
         skillManager.addXP(player, SkillManager.Skill.MINING, xpEarned);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
         player.sendActionBar(ChatColor.GOLD + "Mining +" + xpEarned);
-        plugin.getLogger().info("Player " + player.getName() + " mined " + block.getType() + " and earned " + xpEarned + " XP.");
 
-        // Prevent normal drops
         event.setDropItems(false);
 
-        // Create non-stackable item
-        ItemStack dropItem = createNonStackableItem(oreData.getDropMaterial());
-        Map<Integer, ItemStack> excess = player.getInventory().addItem(dropItem);
-        if (!excess.isEmpty()) {
-            // Handle excess items if inventory is full
-            for (ItemStack excessStack : excess.values()) {
-                player.getWorld().dropItemNaturally(player.getLocation(), excessStack);
-                plugin.getLogger().info("Dropped excess item " + excessStack.getType() + " for player " + player.getName());
-            }
-        } else {
-            plugin.getLogger().info("Dropped " + oreData.getDropMaterial() + " for player " + player.getName());
+        ItemStack dropItem = new ItemStack(oreData.getDropMaterial());
+        player.getInventory().addItem(dropItem);
+
+        block.setType(Material.AIR);
+        scheduleOreRespawn(block, oreData);
+
+        player.playSound(player.getLocation(), Sound.BLOCK_STONE_HIT, 1.0f, 1.0f);
+        block.getWorld().spawnParticle(Particle.BLOCK_CRACK, block.getLocation(), 10, block.getBlockData());
+    }
+
+    private double calculateMiningSuccessChance(int playerMiningLevel, int oreLevel, Material pickaxe) {
+        double baseChance = 50.0; // Base chance to mine at level equal to ore level
+        int pickaxeBonus = getPickaxeBonus(pickaxe);
+
+        if (playerMiningLevel > oreLevel) {
+            baseChance += (playerMiningLevel - oreLevel) * 2.0;
+        } else if (playerMiningLevel < oreLevel) {
+            baseChance -= (oreLevel - playerMiningLevel) * 2.0;
         }
 
-        // Set block to air
-        block.setType(Material.AIR);
+        return Math.min(100, baseChance + pickaxeBonus);
+    }
 
-        // Schedule ore respawn
+    private int getPickaxeBonus(Material pickaxe) {
+        switch (pickaxe) {
+            case NETHERITE_PICKAXE:
+                return 15;
+            case DIAMOND_PICKAXE:
+                return 10;
+            case IRON_PICKAXE:
+                return 5;
+            case STONE_PICKAXE:
+                return 2;
+            case GOLDEN_PICKAXE:
+                return 0;
+            case WOODEN_PICKAXE:
+            default:
+                return 0;
+        }
+    }
+
+    private void scheduleOreRespawn(Block block, OreData oreData) {
+        long baseRespawnTime = oreData.getRespawnTime();
+        long randomVariation = ThreadLocalRandom.current().nextLong(0, baseRespawnTime / 2);
+
+        long finalRespawnTime = baseRespawnTime + randomVariation;
         scheduler.runTaskLater(plugin, () -> {
             block.setType(oreData.getOreMaterial());
             plugin.getLogger().info("Respawned ore: " + oreData.getOreMaterial() + " at " + block.getLocation());
-        }, toTicks(TimeUnit.SECONDS, oreData.getRespawnTime()));
+        }, finalRespawnTime * 20); // Convert seconds to ticks
     }
 
-    /**
-     * Event handler to prevent pickaxes from damaging entities.
-     *
-     * @param event The EntityDamageByEntityEvent.
-     */
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player) {
-            Player player = (Player) event.getDamager();
-            ItemStack heldItem = player.getInventory().getItemInMainHand();
-            Material heldMaterial = heldItem.getType();
-
-            if (isPickaxe(heldMaterial)) {
-                event.setCancelled(true);
-                player.sendMessage(ChatColor.RED + "You cannot use a pickaxe to attack!");
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-                plugin.getLogger().info("Player " + player.getName() + " attempted to attack with a pickaxe: " + heldMaterial);
-            }
-        }
-    }
-
-    /**
-     * Checks if the given material is a registered pickaxe.
-     *
-     * @param material The material to check.
-     * @return True if it's a pickaxe, false otherwise.
-     */
     private boolean isPickaxe(Material material) {
-        boolean isPickaxe = pickaxeDataMap.containsKey(material);
-        plugin.getLogger().fine("Checking if material " + material + " is a pickaxe: " + isPickaxe);
-        return isPickaxe;
+        return pickaxeDataMap.containsKey(material);
     }
 
-    /**
-     * Retrieves the required Mining level for a given pickaxe.
-     *
-     * @param pickaxe The pickaxe material.
-     * @return The required Mining level, or Integer.MAX_VALUE if not found.
-     */
     private int getRequiredLevelForPickaxe(Material pickaxe) {
         PickaxeData data = pickaxeDataMap.get(pickaxe);
-        int level = data != null ? data.getRequiredLevel() : Integer.MAX_VALUE;
-        plugin.getLogger().fine("Required level for pickaxe " + pickaxe + ": " + level);
-        return level;
+        return data != null ? data.getRequiredLevel() : Integer.MAX_VALUE;
     }
 
-    /**
-     * Creates a non-stackable item by setting a unique CustomModelData.
-     *
-     * @param material The material of the item.
-     * @return The non-stackable ItemStack.
-     */
-    private ItemStack createNonStackableItem(Material material) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setCustomModelData(ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE));
-            item.setItemMeta(meta);
-        }
-        plugin.getLogger().fine("Created non-stackable item: " + material);
-        return item;
-    }
-
-    /**
-     * Converts a duration in the specified TimeUnit to ticks.
-     *
-     * @param timeUnit The time unit of the duration.
-     * @param duration The duration value.
-     * @return The duration converted to ticks.
-     */
-    private long toTicks(TimeUnit timeUnit, long duration) {
-        long ticks = timeUnit.toSeconds(duration) * 20;
-        plugin.getLogger().fine("Converted " + duration + " " + timeUnit + " to " + ticks + " ticks.");
-        return ticks;
-    }
-
-    /**
-     * Inner class to store ore-related data.
-     */
     private static class OreData {
         private final Material oreMaterial;
         private final Material dropMaterial;
@@ -331,9 +266,6 @@ public class Mining implements Listener {
         }
     }
 
-    /**
-     * Inner class to store pickaxe-related data.
-     */
     private static class PickaxeData {
         private final Material pickaxeMaterial;
         private final int requiredLevel;
