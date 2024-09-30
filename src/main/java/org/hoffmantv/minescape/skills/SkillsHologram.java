@@ -80,7 +80,8 @@ public class SkillsHologram {
                 {SkillManager.Skill.SMITHING, SkillManager.Skill.MINING, SkillManager.Skill.HERBLORE},
                 {SkillManager.Skill.AGILITY, SkillManager.Skill.THEVING, SkillManager.Skill.SLAYER},
                 {SkillManager.Skill.FARMING, SkillManager.Skill.RUNECRAFTING, SkillManager.Skill.HUNTER},
-                {SkillManager.Skill.CONSTRUCTION, SkillManager.Skill.ALCHEMY, SkillManager.Skill.COMBAT}
+                {SkillManager.Skill.CONSTRUCTION, SkillManager.Skill.ALCHEMY, SkillManager.Skill.COMBAT},
+                {SkillManager.Skill.FISHING}
         };
 
         for (SkillManager.Skill[] row : skillLayout) {
