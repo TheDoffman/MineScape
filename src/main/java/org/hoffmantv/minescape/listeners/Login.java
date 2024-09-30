@@ -13,11 +13,12 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.hoffmantv.minescape.MineScape;
+import org.hoffmantv.minescape.skills.SkillsHologram;
 
 import java.util.Map;
 
 public class Login implements Listener {
-
+    private final SkillsHologram skillsHologram;
     private final MineScape plugin;
     private final ConfigurationSection config;
 
@@ -25,7 +26,8 @@ public class Login implements Listener {
     private final Map<Player, Long> cooldowns;
     private final long COOLDOWN_TIME = 10 * 1000; // 10 seconds in milliseconds
 
-    public Login(MineScape plugin) {
+    public Login(SkillsHologram skillsHologram, MineScape plugin) {
+        this.skillsHologram = skillsHologram;
         this.plugin = plugin;
         this.config = plugin.getConfig().getConfigurationSection("loginFeature");
         this.cooldowns = new java.util.HashMap<>();
@@ -34,7 +36,7 @@ public class Login implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-
+        skillsHologram.toggleHologram(player);
         if (config == null || !config.getBoolean("enabled", true)) {
             return; // Feature is disabled or config section is missing
         }

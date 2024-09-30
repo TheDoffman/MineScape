@@ -11,8 +11,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
@@ -124,18 +126,49 @@ public class Mining implements Listener {
         ItemStack heldItem = player.getInventory().getItemInMainHand();
         Material itemInHand = heldItem.getType();
 
+        // Cancel the block break immediately
+        event.setCancelled(true);
+
         // Check if the held item is a pickaxe
         if (isPickaxe(itemInHand)) {
             OreData oreData = oreDataMap.get(blockMaterial);
             if (oreData != null) {
-                // Player is using a pickaxe on a valid ore
-                handleOreBreak(event, player, heldItem, oreData, block);
+                // Start the mining process with delay and animation
+                handleOreMining(player, heldItem, oreData, block);
             } else {
-                event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
         }
+    }
+    private void handleOreMining(Player player, ItemStack heldItem, OreData oreData, Block block) {
+        int requiredOreLevel = oreData.getRequiredLevel();
+        int playerMiningLevel = skillManager.getSkillLevel(player, SkillManager.Skill.MINING);
+
+        if (playerMiningLevel < requiredOreLevel) {
+            player.sendMessage(ChatColor.RED + "You need Mining level " + requiredOreLevel + " to mine this ore.");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            return;
+        }
+
+        int requiredPickaxeLevel = getRequiredLevelForPickaxe(heldItem.getType());
+
+        if (playerMiningLevel < requiredPickaxeLevel) {
+            player.sendMessage(ChatColor.RED + "You need Mining level " + requiredPickaxeLevel + " to use this pickaxe.");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            return;
+        }
+
+        // Randomized mining delay between 3 to 10 seconds
+        int miningDelay = ThreadLocalRandom.current().nextInt(3, 11) * 20; // Convert seconds to ticks (20 ticks = 1 second)
+
+        player.sendMessage(ChatColor.YELLOW + "You begin mining the " + oreData.getOreMaterial().name().toLowerCase().replace("_", " ") + "...");
+
+        // Start mining animation (particles and sounds)
+        startMiningAnimation(player, block, miningDelay / 20);
+
+        // Schedule the actual mining result after the delay
+        scheduler.runTaskLater(plugin, () -> completeMining(player, heldItem, oreData, block), miningDelay);
     }
 
     private void handleOreBreak(BlockBreakEvent event, Player player, ItemStack heldItem, OreData oreData, Block block) {
@@ -158,33 +191,94 @@ public class Mining implements Listener {
             return;
         }
 
-        double miningSuccessChance = calculateMiningSuccessChance(playerMiningLevel, oreData.getRequiredLevel(), heldItem.getType());
+        // Randomized mining delay between 3 to 10 seconds
+        int miningDelay = ThreadLocalRandom.current().nextInt(3, 11) * 20; // Convert seconds to ticks (20 ticks = 1 second)
+
+        player.sendMessage(ChatColor.YELLOW + "You begin mining the " + oreData.getOreMaterial().name().toLowerCase().replace("_", " ") + "...");
+
+        // Start mining animation (particles and sounds)
+        startMiningAnimation(player, block, miningDelay / 20);
+
+        // Schedule the actual mining result after the delay
+        scheduler.runTaskLater(plugin, () -> completeMining(player, heldItem, oreData, block), miningDelay);
+    }
+
+    /**
+     * Complete the mining process after the delay.
+     */
+    private void completeMining(Player player, ItemStack heldItem, OreData oreData, Block block) {
+        double miningSuccessChance = calculateMiningSuccessChance(skillManager.getSkillLevel(player, SkillManager.Skill.MINING), oreData.getRequiredLevel(), heldItem.getType());
+
+        // If the mining fails
         if (!(ThreadLocalRandom.current().nextDouble(100) < miningSuccessChance)) {
             player.sendMessage(ChatColor.GRAY + "You failed to mine the ore.");
             player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0f, 1.0f);
-            return;
+            return;  // Block remains intact, mining fails
         }
 
-        // Award XP
+        // If the mining succeeds, proceed with breaking the block and rewarding the player.
         double xpEarned = oreData.getXpValue();
         skillManager.addXP(player, SkillManager.Skill.MINING, xpEarned);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
         player.sendActionBar(ChatColor.GOLD + "Mining +" + xpEarned);
 
         // Prevent normal drops
-        event.setDropItems(false);
+        block.getWorld().dropItemNaturally(block.getLocation(), createNonStackableItem(oreData.getDropMaterial()));
 
-        // Create non-stackable OSRS-style item with custom lore
-        ItemStack dropItem = createNonStackableItem(oreData.getDropMaterial());
-        player.getInventory().addItem(dropItem);
-
+        // Break the block
         block.setType(Material.AIR);
+
+        // Schedule ore respawn
         scheduleOreRespawn(block, oreData);
 
         player.playSound(player.getLocation(), Sound.BLOCK_STONE_HIT, 1.0f, 1.0f);
         block.getWorld().spawnParticle(Particle.BLOCK_CRACK, block.getLocation(), 10, block.getBlockData());
     }
 
+    /**
+     * Starts the mining animation, displaying particles and sounds every second.
+     */
+    private void startMiningAnimation(Player player, Block block, int miningTimeSeconds) {
+        // Play animation every second until the mining process is completed
+        for (int i = 0; i < miningTimeSeconds; i++) {
+            final int delay = i;
+            scheduler.runTaskLater(plugin, () -> {
+                player.getWorld().spawnParticle(Particle.BLOCK_CRACK, block.getLocation().add(0.5, 0.5, 0.5), 10, block.getBlockData());
+                player.playSound(player.getLocation(), Sound.BLOCK_STONE_HIT, 1.0f, 1.0f);
+            }, delay * 20); // Schedule every second (20 ticks = 1 second)
+        }
+    }
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.LEFT_CLICK_BLOCK) {
+            return;  // Only proceed for left-click actions (simulating mining)
+        }
+
+        Block block = event.getClickedBlock();
+        if (block == null) {
+            return;  // Block must exist
+        }
+
+        Material blockMaterial = block.getType();
+        Player player = event.getPlayer();
+        ItemStack heldItem = player.getInventory().getItemInMainHand();
+        Material itemInHand = heldItem.getType();
+
+        // Cancel the block break immediately, so the ore doesn't break right away
+        event.setCancelled(true);
+
+        // Check if the held item is a pickaxe
+        if (isPickaxe(itemInHand)) {
+            OreData oreData = oreDataMap.get(blockMaterial);
+            if (oreData != null) {
+                // Start the mining process with delay and animation
+                handleOreMining(player, heldItem, oreData, block);
+            } else {
+                player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            }
+        }
+    }
     /**
      * Creates a non-stackable item by setting a unique CustomModelData.
      *
