@@ -14,10 +14,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -162,14 +165,17 @@ public class Mining implements Listener {
             return;
         }
 
+        // Award XP
         double xpEarned = oreData.getXpValue();
         skillManager.addXP(player, SkillManager.Skill.MINING, xpEarned);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
         player.sendActionBar(ChatColor.GOLD + "Mining +" + xpEarned);
 
+        // Prevent normal drops
         event.setDropItems(false);
 
-        ItemStack dropItem = new ItemStack(oreData.getDropMaterial());
+        // Create non-stackable OSRS-style item with custom lore
+        ItemStack dropItem = createNonStackableItem(oreData.getDropMaterial());
         player.getInventory().addItem(dropItem);
 
         block.setType(Material.AIR);
@@ -179,6 +185,120 @@ public class Mining implements Listener {
         block.getWorld().spawnParticle(Particle.BLOCK_CRACK, block.getLocation(), 10, block.getBlockData());
     }
 
+    /**
+     * Creates a non-stackable item by setting a unique CustomModelData.
+     *
+     * @param material The material of the item.
+     * @return The non-stackable ItemStack.
+     */
+    /**
+     * Creates a non-stackable item with custom OSRS-inspired item metadata.
+     *
+     * @param material The material of the item.
+     * @return The non-stackable ItemStack with OSRS-style lore and custom meta.
+     */
+    private ItemStack createNonStackableItem(Material material) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta != null) {
+            // Set a unique CustomModelData to ensure the item is non-stackable
+            meta.setCustomModelData(ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE));
+
+            // Set a custom display name based on OSRS items
+            String displayName = getCustomDisplayName(material);
+            meta.setDisplayName(ChatColor.GOLD + displayName);
+
+            // Add custom lore to fit OSRS mining lore
+            meta.setLore(getCustomLore(material));
+
+            // Optionally, add more metadata (e.g., enchantments or tags if needed)
+            item.setItemMeta(meta);
+        }
+
+        return item;
+    }
+    /**
+     * Get a custom OSRS-style display name for the mined item.
+     *
+     * @param material The material to give a name.
+     * @return The custom display name.
+     */
+    private String getCustomDisplayName(Material material) {
+        switch (material) {
+            case COAL:
+                return "Coal";
+            case IRON_ORE:
+                return "Iron Ore";
+            case GOLD_ORE:
+                return "Gold Ore";
+            case DIAMOND:
+                return "Uncut Diamond";
+            case EMERALD:
+                return "Uncut Emerald";
+            case NETHERITE_SCRAP:
+                return "Ancient Debris";
+            case QUARTZ:
+                return "Quartz Crystal";
+            case COPPER_ORE:
+                return "Copper Ore";
+            default:
+                return "Mined Resource";
+        }
+    }
+    /**
+     * Get a custom OSRS-style lore for the mined item.
+     *
+     * @param material The material for which to generate the lore.
+     * @return A list of lore lines fitting the OSRS theme.
+     */
+    private List<String> getCustomLore(Material material) {
+        List<String> lore = new ArrayList<>();
+
+        switch (material) {
+            case COAL:
+                lore.add(ChatColor.GRAY + "A piece of coal, used to fuel");
+                lore.add(ChatColor.GRAY + "forges and smelt ores.");
+                break;
+            case IRON_ORE:
+                lore.add(ChatColor.GRAY + "A lump of iron ore.");
+                lore.add(ChatColor.GRAY + "It can be smelted into iron bars.");
+                break;
+            case GOLD_ORE:
+                lore.add(ChatColor.YELLOW + "A chunk of gold ore.");
+                lore.add(ChatColor.GRAY + "Used in crafting valuable items.");
+                break;
+            case DIAMOND:
+                lore.add(ChatColor.AQUA + "An uncut diamond.");
+                lore.add(ChatColor.GRAY + "Can be cut into a gem for jewelry.");
+                break;
+            case EMERALD:
+                lore.add(ChatColor.GREEN + "An uncut emerald.");
+                lore.add(ChatColor.GRAY + "Valuable to traders.");
+                break;
+            case NETHERITE_SCRAP:
+                lore.add(ChatColor.DARK_PURPLE + "A fragment of ancient debris.");
+                lore.add(ChatColor.GRAY + "Used to forge netherite.");
+                break;
+            case QUARTZ:
+                lore.add(ChatColor.WHITE + "A quartz crystal from the Nether.");
+                lore.add(ChatColor.GRAY + "Often used in decorations.");
+                break;
+            case COPPER_ORE:
+                lore.add(ChatColor.GOLD + "A chunk of copper ore.");
+                lore.add(ChatColor.GRAY + "Used to create bronze items.");
+                break;
+            default:
+                lore.add(ChatColor.GRAY + "A resource mined from the earth.");
+                break;
+        }
+
+        // Add a timestamp or server-specific lore if desired
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + "Mined on: " + ChatColor.GOLD + java.time.LocalDate.now());
+
+        return lore;
+    }
     private double calculateMiningSuccessChance(int playerMiningLevel, int oreLevel, Material pickaxe) {
         double baseChance = 50.0; // Base chance to mine at level equal to ore level
         int pickaxeBonus = getPickaxeBonus(pickaxe);

@@ -126,8 +126,8 @@ skills:
   mining:
     ores:
       COAL_ORE:
-        requiredLevel: 30
-        xpValue: 50.0
+        requiredLevel: 1
+        xpValue: 10.0
         respawnTime: 40
         dropMaterial: COAL
       IRON_ORE:
