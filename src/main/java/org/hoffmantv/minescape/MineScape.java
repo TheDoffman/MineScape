@@ -38,7 +38,6 @@ public class MineScape extends JavaPlugin {
         // Register Commands
         registerCommands();
 
-        // Load or create the skills.yml configuration file
         // Access skillsConfig directly from skillManager
         ConfigurationSection skillsConfig = skillManager.getSkillsConfig();
 
@@ -61,7 +60,7 @@ public class MineScape extends JavaPlugin {
     private void registerSkills(ConfigurationSection skillsConfig) {
         // Register each skill by checking if the configuration section exists
         for (SkillManager.Skill skill : SkillManager.Skill.values()) {
-            ConfigurationSection skillConfig = skillsConfig.getConfigurationSection("skills." + skill.name().toLowerCase());
+            ConfigurationSection skillConfig = skillsConfig.getConfigurationSection(skill.name().toLowerCase());
             if (skillConfig != null) {
                 switch (skill) {
                     case STRENGTH:

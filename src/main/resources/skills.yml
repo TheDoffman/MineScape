@@ -1,209 +1,274 @@
 skills:
-  strength:
-    baseXp: 10
-    weaponRequirements:
-      WOODEN_SWORD: 1
-      STONE_SWORD: 5
-      IRON_SWORD: 10
-      GOLDEN_SWORD: 8
-      DIAMOND_SWORD: 15
-      NETHERITE_SWORD: 20
-
-  defence:
-    baseXp: 10
-    armorRequirements:
-      IRON_HELMET: 5
-      DIAMOND_HELMET: 20
-      NETHERITE_HELMET: 40
-
-  woodcutting:
-    trees:
+  firemaking:
+    logRequirements:
       OAK_LOG:
-        log: OAK_LOG
+        xp: 30
+        despawnTime: 300 # Time in ticks (15 seconds)
         requiredLevel: 1
-        xpValue: 10
-        sapling: OAK_SAPLING
       SPRUCE_LOG:
-        log: SPRUCE_LOG
-        requiredLevel: 2
-        xpValue: 15
-        sapling: SPRUCE_SAPLING
+        xp: 35
+        despawnTime: 300 # Time in ticks (15 seconds)
+        requiredLevel: 1
       BIRCH_LOG:
-        log: BIRCH_LOG
-        requiredLevel: 3
-        xpValue: 12
-        sapling: BIRCH_SAPLING
+        xp: 30
+        despawnTime: 300 # Time in ticks (15 seconds)
+        requiredLevel: 1
       JUNGLE_LOG:
-        log: JUNGLE_LOG
-        requiredLevel: 4
-        xpValue: 20
-        sapling: JUNGLE_SAPLING
+        xp: 40
+        despawnTime: 300 # Time in ticks (15 seconds)
+        requiredLevel: 1
       ACACIA_LOG:
-        log: ACACIA_LOG
-        requiredLevel: 5
-        xpValue: 25
-        sapling: ACACIA_SAPLING
+        xp: 45
+        despawnTime: 300 # Time in ticks (15 seconds)
+        requiredLevel: 1
       DARK_OAK_LOG:
-        log: DARK_OAK_LOG
-        requiredLevel: 6
-        xpValue: 30
-        sapling: DARK_OAK_SAPLING
-
-  fishing:
-    fishTypes:
-      COD:
-        xp: 10
-        bait: "RAW_FISH"
+        xp: 50
+        despawnTime: 300 # Time in ticks (15 seconds)
+        requiredLevel: 1
+  cooking:
+    foods:
+      BEEF:
+        requiredLevel: 1
+        xpReward: 30
+        burnStopLevel: 10
+      CHICKEN:
+        requiredLevel: 1
+        xpReward: 25
+        burnStopLevel: 8
+      MUTTON:
+        requiredLevel: 1
+        xpReward: 35
+        burnStopLevel: 12
+      PORKCHOP:
+        requiredLevel: 1
+        xpReward: 40
+        burnStopLevel: 15
       SALMON:
-        xp: 15
-        bait: "SALMON"
-      TROPICAL_FISH:
-        xp: 20
-        bait: "TROPICAL_FISH"
-      PUFFERFISH:
-        xp: 25
-        bait: "PUFFERFISH"
-    fishingSpots:
-      spot1:
-        world: world
-        x: 100
-        y: 64
-        z: -100
         requiredLevel: 5
-        fishTypes:
-          - COD
-          - SALMON
-
+        xpReward: 50
+        burnStopLevel: 20
+      COD:
+        requiredLevel: 5
+        xpReward: 50
+        burnStopLevel: 20
+      RABBIT:
+        requiredLevel: 7
+        xpReward: 45
+        burnStopLevel: 22
+      POTATO:
+        requiredLevel: 1
+        xpReward: 20
+        burnStopLevel: 5
+      KELP:
+        requiredLevel: 1
+        xpReward: 10
+        burnStopLevel: 5
+  agility:
+    level: 1  # Starting level for agility
+    xp: 0  # Starting experience points
+    # Define agility obstacles with their required level and XP rewards
+    obstacles:
+      # Each entry represents an obstacle
+      obstacle_1:
+        location:
+          world: world
+          x: 100
+          y: 65
+          z: 200
+        xpReward: 15
+        requiredLevel: 1
+      obstacle_2:
+        location:
+          world: world
+          x: 105
+          y: 65
+          z: 205
+        xpReward: 25
+        requiredLevel: 5  # Example for different level requirement
+    # Configurations for sprinting rewards
+    sprinting:
+      distanceReward: 50  # Distance in blocks for XP rewards
+      xpPerDistance: 10  # XP awarded for covering the defined distance
+    # Food level change configuration
+    foodLevelChange:
+      hungerReductionMultiplier: 0.02
+  attack:
+    # Configuration for the attack skill
+    xpPerDamage: 4  # XP awarded per point of damage dealt
+    weaponRequirements:
+      DIAMOND_SWORD:
+        requiredLevel: 20
+        # Other attributes for this weapon can be defined here
+      IRON_SWORD:
+        requiredLevel: 10
+        # Other attributes for this weapon can be defined here
+      WOODEN_SWORD:
+        requiredLevel: 1
+        # Other attributes for this weapon can be defined here
+      BOW:
+        requiredLevel: 5
+        # Other attributes for this weapon can be defined here
+  hitpoints:
+    # Hitpoints skill configuration
+    baseXp: 10  # Base XP gained for actions related to hitpoints
+    # This section can include configurations related to health regeneration or effects
+    regenRate: 1  # Health regeneration rate
+  combat:
+    # General combat skill configuration
+    baseXp: 10  # Base XP gained for combat-related actions
+    combatLevelCalculation: # Configuration for calculating combat levels
+      factors:
+        attack: 1  # Weight for attack level in combat level calculation
+        strength: 1 # Weight for strength level in combat level calculation
+        defence: 1  # Weight for defence level in combat level calculation
+        hitpoints: 1 # Weight for hitpoints level in combat level calculation
+        prayer: 0.5 # Weight for prayer level in combat level calculation
+        ranged: 1   # Weight for ranged level in combat level calculation
+        magic: 1    # Weight for magic level in combat level calculation
+  defense:
+    requiredLevel: 1
+    description: "The Defense skill allows players to reduce damage taken from enemies."
+    # The following section defines armor-related bonuses
+    armorBonuses:
+      DIAMOND_HELMET:
+        mitigation: 0.2 # 20% mitigation
+      DIAMOND_CHESTPLATE:
+        mitigation: 0.2 # 20% mitigation
+      DIAMOND_LEGGINGS:
+        mitigation: 0.2 # 20% mitigation
+      DIAMOND_BOOTS:
+        mitigation: 0.2 # 20% mitigation
+      IRON_HELMET:
+        mitigation: 0.15 # 15% mitigation
+      IRON_CHESTPLATE:
+        mitigation: 0.15 # 15% mitigation
+      IRON_LEGGINGS:
+        mitigation: 0.15 # 15% mitigation
+      IRON_BOOTS:
+        mitigation: 0.15 # 15% mitigation
+      LEATHER_HELMET:
+        mitigation: 0.05 # 5% mitigation
+      LEATHER_CHESTPLATE:
+        mitigation: 0.05 # 5% mitigation
+      LEATHER_LEGGINGS:
+        mitigation: 0.05 # 5% mitigation
+      LEATHER_BOOTS:
+        mitigation: 0.05 # 5% mitigation
+    # Damage calculation configuration
+    damage:
+      baseMissChance: 20 # 20% chance to miss an attack
+      xpPerDamage: 5 # XP earned per point of damage taken
+    # Placeholder for possible defense stances
+    defensiveStance:
+      active: true # Can be a flag if you implement different stances
+  prayer:
+    bones:
+      bone_name:
+        material: "BONE"  # The type of bone, e.g., BONE
+        displayName: "&fBone"  # Display name in chat (color codes can be used)
+        xpValue: 10.0  # XP awarded for using the bone
+        effectType: "HEALING"  # Type of effect the bone provides
+        effectDuration: 5  # Duration of the effect in seconds
+        effectAmplifier: 1  # Amplifier for the effect (e.g., 1 for level 1)
+        particleType: "BLOCK_CRACK"  # Particle effect displayed when using the bone
+      # You can define more bones here following the same structure
   mining:
     ores:
       COAL_ORE:
         requiredLevel: 1
-        xpValue: 7
+        xpValue: 10
+        respawnTime: 30 # seconds
         dropMaterial: COAL
-        respawnTime: 30
       IRON_ORE:
-        requiredLevel: 10
+        requiredLevel: 15
         xpValue: 15
+        respawnTime: 60 # seconds
         dropMaterial: IRON_INGOT
-        respawnTime: 30
       GOLD_ORE:
-        requiredLevel: 15
+        requiredLevel: 30
         xpValue: 20
+        respawnTime: 120 # seconds
         dropMaterial: GOLD_INGOT
-        respawnTime: 30
       DIAMOND_ORE:
-        requiredLevel: 20
+        requiredLevel: 60
         xpValue: 30
+        respawnTime: 180 # seconds
         dropMaterial: DIAMOND
-        respawnTime: 30
       EMERALD_ORE:
-        requiredLevel: 25
-        xpValue: 40
+        requiredLevel: 60
+        xpValue: 30
+        respawnTime: 180 # seconds
         dropMaterial: EMERALD
-        respawnTime: 30
-
-  smithing:
-    smelting:
-      IRON_ORE:
-        requiredLevel: 10
-        xpValue: 15
-      GOLD_ORE:
-        requiredLevel: 15
-        xpValue: 20
-      ANCIENT_DEBRIS:
+      LAPIS_ORE:
         requiredLevel: 30
-        xpValue: 50
-    crafting:
-      IRON_SWORD:
-        requiredLevel: 15
-        xpValue: 25
-      DIAMOND_SWORD:
-        requiredLevel: 30
-        xpValue: 50
-
-  cooking:
-    foods:
-      COOKED_BEEF:
-        requiredLevel: 5
-        xpReward: 15
-        burnStopLevel: 20
-      COOKED_CHICKEN:
-        requiredLevel: 3
-        xpReward: 10
-        burnStopLevel: 15
-      BAKED_POTATO:
-        requiredLevel: 2
-        xpReward: 8
-        burnStopLevel: 10
-      CAKE:
-        requiredLevel: 10
-        xpReward: 30
-        burnStopLevel: 15
-
-  crafting:
-    items:
-      IRON_INGOT:
-        requiredLevel: 5
-        xpValue: 10
-      DIAMOND:
-        requiredLevel: 10
         xpValue: 20
-      GOLD_INGOT:
+        respawnTime: 120 # seconds
+        dropMaterial: LAPIS_LAZULI
+      REDSTONE_ORE:
+        requiredLevel: 25
+        xpValue: 15
+        respawnTime: 90 # seconds
+        dropMaterial: REDSTONE
+      DEEPSLATE_COAL_ORE:
+        requiredLevel: 1
+        xpValue: 10
+        respawnTime: 30 # seconds
+        dropMaterial: COAL
+      DEEPSLATE_IRON_ORE:
         requiredLevel: 15
         xpValue: 15
-      BREAD:
-        requiredLevel: 2
-        xpValue: 5
-
-  agility:
-    obstacles:
-      SIMPLE_OBSTACLE:
-        requiredLevel: 1
-        xpValue: 5
-      MEDIUM_OBSTACLE:
-        requiredLevel: 10
-        xpValue: 10
-      COMPLEX_OBSTACLE:
-        requiredLevel: 20
+        respawnTime: 60 # seconds
+        dropMaterial: IRON_INGOT
+      DEEPSLATE_GOLD_ORE:
+        requiredLevel: 30
+        xpValue: 20
+        respawnTime: 120 # seconds
+        dropMaterial: GOLD_INGOT
+      DEEPSLATE_DIAMOND_ORE:
+        requiredLevel: 60
+        xpValue: 30
+        respawnTime: 180 # seconds
+        dropMaterial: DIAMOND
+      DEEPSLATE_EMERALD_ORE:
+        requiredLevel: 60
+        xpValue: 30
+        respawnTime: 180 # seconds
+        dropMaterial: EMERALD
+      DEEPSLATE_LAPIS_ORE:
+        requiredLevel: 30
+        xpValue: 20
+        respawnTime: 120 # seconds
+        dropMaterial: LAPIS_LAZULI
+      DEEPSLATE_REDSTONE_ORE:
+        requiredLevel: 25
         xpValue: 15
-
-  firemaking:
-    logs:
-      OAK_LOG:
-        requiredLevel: 1
-        xpValue: 5
-      SPRUCE_LOG:
-        requiredLevel: 2
-        xpValue: 7
-      BIRCH_LOG:
-        requiredLevel: 3
-        xpValue: 10
-      JUNGLE_LOG:
-        requiredLevel: 4
+        respawnTime: 90 # seconds
+        dropMaterial: REDSTONE
+      NETHER_QUARTZ_ORE:
+        requiredLevel: 10
         xpValue: 12
-
-  prayer:
-    bones:
-      BONES:
-        displayName: "Bone"
-        xpValue: 4
-        effectType: "HEALING"
-        effectDuration: 5
-        effectAmplifier: 1
-        particleType: "BLOCK_CRACK"
-      SUPER_BONES:
-        displayName: "Super Bone"
-        xpValue: 10
-        effectType: "HEALING"
-        effectDuration: 10
-        effectAmplifier: 2
-        particleType: "HEART"
-
-  thieving:
-    loot:
-      LOOT_BOX:
+        respawnTime: 45 # seconds
+        dropMaterial: QUARTZ
+      NETHER_GOLD_ORE:
+        requiredLevel: 10
+        xpValue: 12
+        respawnTime: 45 # seconds
+        dropMaterial: GOLD_NUGGET
+      ANCIENT_DEBRIS:
+        requiredLevel: 60
+        xpValue: 50
+        respawnTime: 180 # seconds
+        dropMaterial: NETHERITE_SCRAP
+    pickaxes:
+      WOODEN_PICKAXE:
+        requiredLevel: 1
+      STONE_PICKAXE:
         requiredLevel: 5
-        xpValue: 10
-      TREASURE_CHEST:
-        requiredLevel: 15
-        xpValue: 20
+      IRON_PICKAXE:
+        requiredLevel: 10
+      GOLDEN_PICKAXE:
+        requiredLevel: 25
+      DIAMOND_PICKAXE:
+        requiredLevel: 40
+      NETHERITE_PICKAXE:
+        requiredLevel: 60

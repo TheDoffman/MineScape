@@ -347,9 +347,8 @@ public class SkillManager implements Listener {
             }
         }
     }
-    // Method to get skills configuration section
     public ConfigurationSection getSkillsConfig() {
-        return skillsConfig.getConfigurationSection("skills"); // Adjust this if your structure differs
+        return skillsConfig.getConfigurationSection("skills");
     }
 
     // Utility method to get all skill levels for a player
