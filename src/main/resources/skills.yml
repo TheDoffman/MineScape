@@ -1,192 +1,209 @@
-# Mining skill configuration
 skills:
+  strength:
+    baseXp: 10
+    weaponRequirements:
+      WOODEN_SWORD: 1
+      STONE_SWORD: 5
+      IRON_SWORD: 10
+      GOLDEN_SWORD: 8
+      DIAMOND_SWORD: 15
+      NETHERITE_SWORD: 20
+
+  defence:
+    baseXp: 10
+    armorRequirements:
+      IRON_HELMET: 5
+      DIAMOND_HELMET: 20
+      NETHERITE_HELMET: 40
+
+  woodcutting:
+    trees:
+      OAK_LOG:
+        log: OAK_LOG
+        requiredLevel: 1
+        xpValue: 10
+        sapling: OAK_SAPLING
+      SPRUCE_LOG:
+        log: SPRUCE_LOG
+        requiredLevel: 2
+        xpValue: 15
+        sapling: SPRUCE_SAPLING
+      BIRCH_LOG:
+        log: BIRCH_LOG
+        requiredLevel: 3
+        xpValue: 12
+        sapling: BIRCH_SAPLING
+      JUNGLE_LOG:
+        log: JUNGLE_LOG
+        requiredLevel: 4
+        xpValue: 20
+        sapling: JUNGLE_SAPLING
+      ACACIA_LOG:
+        log: ACACIA_LOG
+        requiredLevel: 5
+        xpValue: 25
+        sapling: ACACIA_SAPLING
+      DARK_OAK_LOG:
+        log: DARK_OAK_LOG
+        requiredLevel: 6
+        xpValue: 30
+        sapling: DARK_OAK_SAPLING
+
+  fishing:
+    fishTypes:
+      COD:
+        xp: 10
+        bait: "RAW_FISH"
+      SALMON:
+        xp: 15
+        bait: "SALMON"
+      TROPICAL_FISH:
+        xp: 20
+        bait: "TROPICAL_FISH"
+      PUFFERFISH:
+        xp: 25
+        bait: "PUFFERFISH"
+    fishingSpots:
+      spot1:
+        world: world
+        x: 100
+        y: 64
+        z: -100
+        requiredLevel: 5
+        fishTypes:
+          - COD
+          - SALMON
+
   mining:
     ores:
       COAL_ORE:
         requiredLevel: 1
-        xpValue: 10
-        respawnTime: 60
-        dropMaterial: COAL
-      IRON_ORE:
-        requiredLevel: 15
-        xpValue: 35
-        respawnTime: 90
-        dropMaterial: RAW_IRON
-      GOLD_ORE:
-        requiredLevel: 40
-        xpValue: 65
-        respawnTime: 120
-        dropMaterial: RAW_GOLD
-      DIAMOND_ORE:
-        requiredLevel: 50
-        xpValue: 100
-        respawnTime: 150
-        dropMaterial: DIAMOND
-      EMERALD_ORE:
-        requiredLevel: 60
-        xpValue: 125
-        respawnTime: 180
-        dropMaterial: EMERALD
-      ANCIENT_DEBRIS:
-        requiredLevel: 85
-        xpValue: 150
-        respawnTime: 300
-        dropMaterial: NETHERITE_SCRAP
-    pickaxes:
-      WOODEN_PICKAXE:
-        requiredLevel: 1
-      STONE_PICKAXE:
-        requiredLevel: 10
-      IRON_PICKAXE:
-        requiredLevel: 20
-      GOLDEN_PICKAXE:
-        requiredLevel: 30
-      DIAMOND_PICKAXE:
-        requiredLevel: 40
-      NETHERITE_PICKAXE:
-        requiredLevel: 50
-  cooking:
-    xpRewardPerItem: 10
-    burnChance:
-    base: 50 # Base burn chance
-    perLevel: -2 # Decrease burn chance by 2% per level
-  foods:
-    BEEF:
-      requiredLevel: 1
-      xpValue: 10
-    CHICKEN:
-      requiredLevel: 5
-      xpValue: 12
-    MUTTON:
-      requiredLevel: 10
-      xpValue: 15
-    SALMON:
-      requiredLevel: 15
-      xpValue: 20
-    RABBIT:
-      requiredLevel: 20
-      xpValue: 25
-    COD:
-      requiredLevel: 1
-      xpValue: 10
-    PORKCHOP:
-      requiredLevel: 7
-      xpValue: 15
-  strength:
-    weaponRequirements:
-      WOODEN_SWORD: 1
-      STONE_SWORD: 10
-      IRON_SWORD: 20
-      DIAMOND_SWORD: 30
-      NETHERITE_SWORD: 40
-    baseXp: 10
-    xpPerMobLevel: 1.5 # Extra XP based on the mob level
-  defense:
-    xpPerDamage: 5 # XP gained per damage taken
-    shieldXp: 20 # Extra XP gained for using shields
-  hitpoints:
-    xpPerDamageHealed: 2 # XP gained per damage healed
-  attack:
-    xpReward: 10
-    mobLevelMultiplier: 1.3 # XP scaling based on mob level
-  prayer:
-    bones:
-      BONE:
-        material: BONE
-        displayName: "&fBone"
-        xpValue: 10
-        effectType: REGENERATION
-        effectDuration: 5
-        effectAmplifier: 1
-        particleType: BLOCK_CRACK
-      WITHER_SKELETON_SKULL:
-        material: WITHER_SKELETON_SKULL
-        displayName: "&fWither Skeleton Skull"
-        xpValue: 50
-        effectType: REGENERATION
-        effectDuration: 10
-        effectAmplifier: 2
-        particleType: SOUL
-      DRAGON_BONE:
-        material: DRAGON_BREATH
-        displayName: "&fDragon Bone"
-        xpValue: 150
-        effectType: REGENERATION
-        effectDuration: 15
-        effectAmplifier: 3
-        particleType: DRAGON_BREATH
-
-# Agility skill configuration
-agility:
-  xpPerSprintDistance: 1 # XP per block sprinted
-  sprintDistanceForXp: 50 # Sprint 50 blocks to earn XP
-  foodLevelAdjustmentPerLevel: 0.02 # Reduce food depletion by 2% per agility level
-
-  woodcutting:
-    trees:
-      oak:
-        log: OAK_LOG          # The material of the log
-        sapling: OAK_SAPLING   # The sapling that will be planted after cutting the tree
-        requiredLevel: 1       # The level required to chop this tree
-        xpValue: 25.0          # The amount of XP gained for cutting this tree
-      birch:
-        log: BIRCH_LOG
-        sapling: BIRCH_SAPLING
-        requiredLevel: 10
-        xpValue: 40.0
-      spruce:
-        log: SPRUCE_LOG
-        sapling: SPRUCE_SAPLING
-        requiredLevel: 20
-        xpValue: 55.0
-      jungle:
-        log: JUNGLE_LOG
-        sapling: JUNGLE_SAPLING
-        requiredLevel: 30
-        xpValue: 70.0
-      acacia:
-        log: ACACIA_LOG
-        sapling: ACACIA_SAPLING
-        requiredLevel: 40
-        xpValue: 85.0
-      dark_oak:
-        log: DARK_OAK_LOG
-        sapling: DARK_OAK_SAPLING
-        requiredLevel: 50
-        xpValue: 100.0
-  axes:
-    wooden:
-      requiredLevel: 1
-    stone:
-      requiredLevel: 10
-    iron:
-      requiredLevel: 15
-    golden:
-      requiredLevel: 25
-    diamond:
-      requiredLevel: 35
-    netherite:
-      requiredLevel: 50
-  fishing:
-    fishTypes:
-      RAW_SALMON:
-        requiredLevel: 5
-        xpValue: 10
-      RAW_COD:
-        requiredLevel: 1
         xpValue: 7
-      RAW_TROUT:
-        requiredLevel: 20
-        xpValue: 15
-      RAW_MACKEREL:
+        dropMaterial: COAL
+        respawnTime: 30
+      IRON_ORE:
         requiredLevel: 10
-        xpValue: 12
-      RAW_PUFFERFISH:
-        requiredLevel: 15
-        xpValue: 18
-      RAW_CLOWNFISH:
+        xpValue: 15
+        dropMaterial: IRON_INGOT
+        respawnTime: 30
+      GOLD_ORE:
         requiredLevel: 15
         xpValue: 20
-      RAW_TROPICAL_FISH:
+        dropMaterial: GOLD_INGOT
+        respawnTime: 30
+      DIAMOND_ORE:
+        requiredLevel: 20
+        xpValue: 30
+        dropMaterial: DIAMOND
+        respawnTime: 30
+      EMERALD_ORE:
+        requiredLevel: 25
+        xpValue: 40
+        dropMaterial: EMERALD
+        respawnTime: 30
+
+  smithing:
+    smelting:
+      IRON_ORE:
+        requiredLevel: 10
+        xpValue: 15
+      GOLD_ORE:
+        requiredLevel: 15
+        xpValue: 20
+      ANCIENT_DEBRIS:
         requiredLevel: 30
+        xpValue: 50
+    crafting:
+      IRON_SWORD:
+        requiredLevel: 15
         xpValue: 25
+      DIAMOND_SWORD:
+        requiredLevel: 30
+        xpValue: 50
+
+  cooking:
+    foods:
+      COOKED_BEEF:
+        requiredLevel: 5
+        xpReward: 15
+        burnStopLevel: 20
+      COOKED_CHICKEN:
+        requiredLevel: 3
+        xpReward: 10
+        burnStopLevel: 15
+      BAKED_POTATO:
+        requiredLevel: 2
+        xpReward: 8
+        burnStopLevel: 10
+      CAKE:
+        requiredLevel: 10
+        xpReward: 30
+        burnStopLevel: 15
+
+  crafting:
+    items:
+      IRON_INGOT:
+        requiredLevel: 5
+        xpValue: 10
+      DIAMOND:
+        requiredLevel: 10
+        xpValue: 20
+      GOLD_INGOT:
+        requiredLevel: 15
+        xpValue: 15
+      BREAD:
+        requiredLevel: 2
+        xpValue: 5
+
+  agility:
+    obstacles:
+      SIMPLE_OBSTACLE:
+        requiredLevel: 1
+        xpValue: 5
+      MEDIUM_OBSTACLE:
+        requiredLevel: 10
+        xpValue: 10
+      COMPLEX_OBSTACLE:
+        requiredLevel: 20
+        xpValue: 15
+
+  firemaking:
+    logs:
+      OAK_LOG:
+        requiredLevel: 1
+        xpValue: 5
+      SPRUCE_LOG:
+        requiredLevel: 2
+        xpValue: 7
+      BIRCH_LOG:
+        requiredLevel: 3
+        xpValue: 10
+      JUNGLE_LOG:
+        requiredLevel: 4
+        xpValue: 12
+
+  prayer:
+    bones:
+      BONES:
+        displayName: "Bone"
+        xpValue: 4
+        effectType: "HEALING"
+        effectDuration: 5
+        effectAmplifier: 1
+        particleType: "BLOCK_CRACK"
+      SUPER_BONES:
+        displayName: "Super Bone"
+        xpValue: 10
+        effectType: "HEALING"
+        effectDuration: 10
+        effectAmplifier: 2
+        particleType: "HEART"
+
+  thieving:
+    loot:
+      LOOT_BOX:
+        requiredLevel: 5
+        xpValue: 10
+      TREASURE_CHEST:
+        requiredLevel: 15
+        xpValue: 20

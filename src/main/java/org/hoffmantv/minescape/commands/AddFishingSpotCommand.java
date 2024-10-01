@@ -7,25 +7,24 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.hoffmantv.minescape.managers.ConfigurationManager;
 import org.hoffmantv.minescape.skills.FishingSkill;
+import org.hoffmantv.minescape.skills.SkillManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AddFishingSpotCommand implements CommandExecutor {
 
-    private final ConfigurationManager configManager;
     private final FishingSkill fishingSkill;
+    private final SkillManager skillManager;
 
-    public AddFishingSpotCommand(ConfigurationManager configManager, FishingSkill fishingSkill) {
-        this.configManager = configManager;
+    public AddFishingSpotCommand(SkillManager skillManager, FishingSkill fishingSkill) {
+        this.skillManager = skillManager;
         this.fishingSkill = fishingSkill;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
         // Ensure the sender is a player
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED + "Only players can execute this command.");
@@ -65,7 +64,7 @@ public class AddFishingSpotCommand implements CommandExecutor {
         }
 
         // Validate fish types against defined fishTypes in skills.yml
-        ConfigurationSection fishTypesSection = configManager.getSkillsConfig().getConfigurationSection("skills.fishing.fishTypes");
+        ConfigurationSection fishTypesSection = skillManager.getSkillsConfig().getConfigurationSection("skills.fishing.fishTypes");
         if (fishTypesSection == null) {
             player.sendMessage(ChatColor.RED + "No 'fishTypes' defined in skills.yml.");
             return true;
@@ -89,7 +88,7 @@ public class AddFishingSpotCommand implements CommandExecutor {
         }
 
         // Save the fishing spot to skills.yml under fishingSpots
-        ConfigurationSection skillsConfig = configManager.getSkillsConfig();
+        ConfigurationSection skillsConfig = skillManager.getSkillsConfig();
         ConfigurationSection fishingConfig = skillsConfig.getConfigurationSection("skills.fishing");
         if (fishingConfig == null) {
             fishingConfig = skillsConfig.createSection("skills.fishing");
@@ -116,8 +115,8 @@ public class AddFishingSpotCommand implements CommandExecutor {
         spotsSection.set(spotKey + ".requiredLevel", requiredLevel);
         spotsSection.set(spotKey + ".fishTypes", validFishTypes);
 
-        // Save the skills configuration
-        configManager.saveSkillsConfig();
+        // Log XP gain in player data
+        skillManager.addXP(player, SkillManager.Skill.FISHING, (int) validFishTypes.size()); // Adjust this if you have a specific XP gain method.
 
         // Reload fishing spots in FishingSkill
         fishingSkill.reloadFishingSpots();

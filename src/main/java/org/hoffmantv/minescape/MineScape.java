@@ -1,13 +1,11 @@
 package org.hoffmantv.minescape;
 
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.*;
-import org.hoffmantv.minescape.commands.AlwaysDay;
 import org.hoffmantv.minescape.listeners.*;
-import org.hoffmantv.minescape.managers.*;
+import org.hoffmantv.minescape.managers.CombatLevelSystem;
 import org.hoffmantv.minescape.mobs.*;
 import org.hoffmantv.minescape.skills.*;
 import org.hoffmantv.minescape.trade.AcceptTrade;
@@ -15,104 +13,99 @@ import org.hoffmantv.minescape.trade.Trade;
 import org.hoffmantv.minescape.trade.TradeMenu;
 
 public class MineScape extends JavaPlugin {
-    private ConfigurationManager configManager;
     private SkillManager skillManager;
     private SkillsHologram skillsHologram;
     private CombatLevelSystem combatLevelSystem;
     private FishingSkill fishingSkill;
     private TradeMenu tradeMenu;
 
-
     @Override
     public void onEnable() {
         getLogger().info("MineScape Alpha Version 0.2 has been enabled!");
 
-        // Initialize ConfigurationManager
-        configManager = new ConfigurationManager(this);
-
-        // Initialize Configuration Files
-        setupConfiguration();
-
         // Initialize SkillManager
-        skillManager = new SkillManager(this, configManager);
+        skillManager = new SkillManager(this);
 
-        // Initialize CombatLevel (if applicable)
-        CombatLevel combatLevel = new CombatLevel(skillManager);
+        // Initialize CombatLevelSystem
+        combatLevelSystem = new CombatLevelSystem(this, new CombatLevel(skillManager), skillManager);
 
-        // Initialize SkillsHologram with SkillManager
+        // Initialize SkillsHologram
         skillsHologram = new SkillsHologram(skillManager);
 
         // Initialize FishingSkill
-        fishingSkill = new FishingSkill(this, skillManager, configManager);
-
-        tradeMenu = new TradeMenu(this);
+        fishingSkill = new FishingSkill(this, skillManager);
 
         // Register Commands
-        registerCommands(skillManager);
+        registerCommands();
 
         // Load or create the skills.yml configuration file
-        FileConfiguration skillsConfig = configManager.getConfig("skills.yml");
+        // Access skillsConfig directly from skillManager
+        ConfigurationSection skillsConfig = skillManager.getSkillsConfig();
 
-        // Initialize CombatLevelSystem
-        combatLevelSystem = new CombatLevelSystem(this, combatLevel, skillManager);
+        // Register Skills with their corresponding configuration sections
+        registerSkills(skillsConfig);
 
+        // Register all other listeners
+        registerAllListeners();
 
-        // Register Skills with proper configuration sections
-        ConfigurationSection strengthConfig = skillsConfig.getConfigurationSection("skills.strength");
-        ConfigurationSection defenseConfig = skillsConfig.getConfigurationSection("skills.defense");
-        ConfigurationSection woodcuttingConfig = skillsConfig.getConfigurationSection("skills.woodcutting");
-        ConfigurationSection prayerConfig = skillsConfig.getConfigurationSection("skills.prayer");
-        ConfigurationSection miningConfig = skillsConfig.getConfigurationSection("skills.mining");
-        ConfigurationSection smithingConfig = skillsConfig.getConfigurationSection("skills.smithing");
+        // Log plugin enabled successfully
+        getLogger().info("MineScape has been enabled successfully.");
+    }
 
-        if (strengthConfig != null) {
-            registerListener(new Strength(skillManager, strengthConfig, configManager));
-        } else {
-            getLogger().warning("No 'strength' section found in skills.yml under 'skills'");
+    @Override
+    public void onDisable() {
+        skillManager.savePlayerData(); // Ensure data is saved when the plugin is disabled
+        getLogger().info("MineScape has been disabled!");
+    }
+
+    private void registerSkills(ConfigurationSection skillsConfig) {
+        // Register each skill by checking if the configuration section exists
+        for (SkillManager.Skill skill : SkillManager.Skill.values()) {
+            ConfigurationSection skillConfig = skillsConfig.getConfigurationSection("skills." + skill.name().toLowerCase());
+            if (skillConfig != null) {
+                switch (skill) {
+                    case STRENGTH:
+                        registerListener(new Strength(skillManager)); // No config needed
+                        break;
+                    case DEFENCE:
+                        registerListener(new Defense(skillManager)); // No config needed
+                        break;
+                    case WOODCUTTING:
+                        registerListener(new Woodcutting(skillManager, this)); // Pass JavaPlugin
+                        break;
+                    case PRAYER:
+                        registerListener(new Prayer(skillManager, skillConfig, this)); // Pass config and plugin
+                        break;
+                    case MINING:
+                        registerListener(new Mining(skillManager, skillConfig, this)); // Pass config and plugin
+                        break;
+                    case SMITHING:
+                        registerListener(new Smithing(skillManager, this)); // No config needed
+                        break;
+                    case COOKING:
+                        registerListener(new Cooking(skillManager, skillConfig)); // Pass config
+                        break;
+                    // Add other skills as needed
+                    default:
+                        getLogger().warning("No configuration found for skill: " + skill);
+                }
+            } else {
+                getLogger().warning("No '" + skill.name().toLowerCase() + "' section found in skills.yml under 'skills'");
+            }
         }
+    }
 
-        if (defenseConfig != null) {
-            registerListener(new Defense(skillManager, defenseConfig, configManager));
-        } else {
-            getLogger().warning("No 'defense' section found in skills.yml under 'skills'");
-        }
-
-        if (woodcuttingConfig != null) {
-            registerListener(new Woodcutting(skillManager, configManager, this));
-        } else {
-            getLogger().warning("No 'woodcutting' section found in skills.yml under 'skills'");
-        }
-
-        if (prayerConfig != null) {
-            registerListener(new Prayer(skillManager, prayerConfig, this));
-        } else {
-            getLogger().warning("No 'prayer' section found in skills.yml under 'skills'");
-        }
-
-        if (miningConfig != null) {
-            registerListener(new Mining(skillManager, miningConfig, this));
-        } else {
-            getLogger().warning("No 'mining' section found in skills.yml under 'skills'");
-        }
-
-        if (smithingConfig != null) {
-            registerListener(new Smithing(skillManager, configManager, this));
-        } else {
-            getLogger().warning("No 'smithing' section found in skills.yml under 'skills'");
-        }
-
-        // Register other listeners
+    private void registerAllListeners() {
         registerListener(new Water(this));
-        registerListener(skillManager); // Assuming SkillManager implements Listener
+        registerListener(skillManager); // Register SkillManager as a listener
         registerListener(combatLevelSystem);
-        registerListener(new Firemaking(skillManager, this, configManager));
-        registerListener(new Hitpoints(skillManager, this));
-        registerListener(new Range(this, skillManager));
-        registerListener(new Agility(skillManager));
-        registerListener(new Cooking(skillManager));
-        registerListener(new Crafting(skillManager));
+        registerListener(new Firemaking(skillManager, this)); // Pass plugin
+        registerListener(new Hitpoints(skillManager, this)); // Pass plugin
+        registerListener(new Range(this, skillManager)); // Pass plugin
+        registerListener(new Agility(skillManager)); // No config needed
+        registerListener(new Crafting(skillManager)); // No config needed
         registerListener(new MobListener());
-        registerListener(new ChickenListener(this));
+        registerListener(new ChickenListener(this)); // Pass plugin
         registerListener(new ZombieListener());
         registerListener(new SpiderListener());
         registerListener(new SkeletonListener());
@@ -122,54 +115,25 @@ public class MineScape extends JavaPlugin {
         registerListener(new HorseListener());
         registerListener(new PigListener());
         registerListener(new EndermenListener());
-        registerListener(new VilligerListener()); // Corrected spelling
-        registerListener(new org.hoffmantv.minescape.listeners.AlwaysDay(this));
+        registerListener(new VilligerListener());
         getServer().getPluginManager().registerEvents(new Login(skillsHologram, this, skillManager), this);
 
         // Register ResourcePack listener
         getServer().getPluginManager().registerEvents(new ResourcePack(this), this);
-
-        // Log plugin enabled successfully
-        getLogger().info("MineScape has been enabled successfully.");
     }
 
-    @Override
-    public void onDisable() {
-        getLogger().info("MineScape has been disabled!");
-    }
-
-    private void setupConfiguration() {
-        getConfig().options().copyDefaults(true);
-        saveConfig();
-
-        // Save default skills.yml if it doesn't exist
-        configManager.saveDefaultConfig("skills.yml");
-
-        // Save default playerdata.yml if it doesn't exist
-        configManager.saveDefaultConfig("playerdata.yml"); // Assuming this method handles any config
-    }
-
-    // Getter for CombatLevelSystem
-    public CombatLevelSystem getCombatLevelSystem() {
-        return combatLevelSystem;
-    }
-
-    // Getter for SkillsHologram
-    public SkillsHologram getSkillsHologram() {
-        return skillsHologram;
-    }
-
-    private void registerCommands(SkillManager skillManager) {
+    private void registerCommands() {
         this.getCommand("help").setExecutor(new Help(this));
-        getCommand("alwaysday").setExecutor(new AlwaysDay(this));
         getCommand("togglehologram").setExecutor(new ToggleSkillsMenu(skillsHologram));
         getCommand("serverreload").setExecutor(new Reload(this));
         getCommand("accepttrade").setExecutor(new AcceptTrade(tradeMenu));
         this.getCommand("trade").setExecutor(new Trade(tradeMenu));
-        this.getCommand("setspawn").setExecutor(new SetSpawn(this));
-        this.getCommand("spawn").setExecutor(new Spawn(this));
-        this.getCommand("reloadfishing").setExecutor(new ReloadFishingConfigCommand(configManager, fishingSkill));
-        this.getCommand("addfishingspot").setExecutor(new AddFishingSpotCommand(configManager, fishingSkill));
+        getCommand("setspawn").setExecutor(new SetSpawn(this));
+        getCommand("spawn").setExecutor(new Spawn(this));
+
+        // Adjusting the command registration for ReloadFishingConfigCommand
+        getCommand("reloadfishing").setExecutor(new ReloadFishingConfigCommand(skillManager, fishingSkill)); // Pass skillManager and fishingSkill
+        getCommand("addfishingspot").setExecutor(new AddFishingSpotCommand(skillManager, fishingSkill)); // Pass skillManager and fishingSkill
     }
 
     private void registerListener(Listener listener) {

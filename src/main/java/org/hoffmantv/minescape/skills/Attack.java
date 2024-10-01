@@ -1,6 +1,7 @@
 package org.hoffmantv.minescape.skills;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.LivingEntity;
@@ -10,7 +11,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
-import org.bukkit.Material;
 
 import java.util.Random;
 

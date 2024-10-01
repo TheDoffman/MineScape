@@ -10,11 +10,6 @@ commands:
   togglehologram:
     description: Allows player to turn on and off the skills menu
     usage: /togglehologram
-  alwaysday:
-    description: Toggle the always day feature.
-    usage: /alwaysday <enable|disable>
-    aliases: [ ad ]
-    permission: minescape.alwaysday
   serverreload:
     description: Reloads the server without confirmation.
     usage: /serverreload
@@ -54,9 +49,3 @@ permissions:
   minescape.skills:
     description: Opens the skills menu.
     default: not op
-  minescape.alwaysday:
-    description: Allows the user to toggle the always day feature.
-    default: op
-  minescape.createnpcAM:
-    description: Allows the user to setup and NPC
-    default: op

@@ -11,7 +11,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
-import org.hoffmantv.minescape.managers.ConfigurationManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,14 +20,12 @@ public class Strength implements Listener {
 
     private final SkillManager skillManager;
     private final ConfigurationSection strengthConfig;
-    private final ConfigurationManager configManager;
     private final Map<Material, Integer> weaponStrengthRequirements = new HashMap<>();
     private final Random random = new Random();
 
-    public Strength(SkillManager skillManager, ConfigurationSection strengthConfig, ConfigurationManager configManager) {
+    public Strength(SkillManager skillManager) {
         this.skillManager = skillManager;
-        this.strengthConfig = strengthConfig;
-        this.configManager = configManager;
+        this.strengthConfig = skillManager.getSkillsConfig().getConfigurationSection("skills.strength");
         loadWeaponRequirements();
     }
 
@@ -115,18 +112,15 @@ public class Strength implements Listener {
         // XP on mob death
         int xpAmount = calculateXpReward(mobLevel);
         skillManager.addXP(player, SkillManager.Skill.STRENGTH, xpAmount);
-        configManager.logXpGain(player, "strength", xpAmount);
 
         player.sendActionBar(ChatColor.GOLD + "Strength +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
     }
 
     private boolean doesPlayerHit(int playerLevel, int mobLevel) {
-        // OSRS-like hit chance: As the player's level increases, they are more likely to hit
         int baseHitChance = 70; // Base hit chance is 70%
         int levelDifference = playerLevel - mobLevel;
 
-        // Adjust hit chance based on level difference
         baseHitChance += levelDifference * 2; // Increase hit chance by 2% for each level higher than mob
         baseHitChance = Math.max(5, baseHitChance); // Minimum hit chance is 5%
         baseHitChance = Math.min(95, baseHitChance); // Maximum hit chance is 95%
@@ -135,12 +129,10 @@ public class Strength implements Listener {
     }
 
     private double calculateMaxHit(int strengthLevel) {
-        // OSRS-like max hit formula: Higher strength level = higher max hit
         return 1 + (strengthLevel / 10.0); // Example: Strength 50 would have max hit of 6.0
     }
 
     private int calculateXpFromDamage(double damageDealt) {
-        // OSRS-like XP calculation: 4 XP per point of damage dealt
         return (int) (damageDealt * 4);
     }
 

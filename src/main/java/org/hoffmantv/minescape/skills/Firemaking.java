@@ -11,7 +11,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.hoffmantv.minescape.managers.ConfigurationManager;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,10 +22,10 @@ public class Firemaking implements Listener {
     private final ConfigurationSection firemakingConfig;
     private final Map<Material, LogProperties> logPropertiesMap = new HashMap<>();
 
-    public Firemaking(SkillManager skillManager, JavaPlugin plugin, ConfigurationManager configManager) {
+    public Firemaking(SkillManager skillManager, JavaPlugin plugin) {
         this.skillManager = skillManager;
         this.plugin = plugin;
-        this.firemakingConfig = configManager.getConfigSection("skills.yml", "skills.firemaking.logRequirements");
+        this.firemakingConfig = skillManager.getSkillsConfig().getConfigurationSection("firemaking.logRequirements");
         loadLogProperties();
     }
 
@@ -65,7 +64,7 @@ public class Firemaking implements Listener {
         int requiredLevel = logProperties.getRequiredLevel();
         int playerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.FIREMAKING);
 
-        // 1. If hand item isn't a log, exit immediately
+        // If hand item isn't a log, exit immediately
         if (handItem == null || !isLogType(handItem.getType())) {
             return;
         }
@@ -80,26 +79,26 @@ public class Firemaking implements Listener {
             return;
         }
 
-        // 2. If clicked block isn't valid ground, exit
+        // If clicked block isn't valid ground, exit
         if (!isValidGround(clickedBlock.getType())) {
             return;
         }
 
         Block blockAbove = clickedBlock.getRelative(event.getBlockFace());
 
-        // 3. If block above isn't air, exit
+        // If block above isn't air, exit
         if (blockAbove.getType() != Material.AIR) {
             return;
         }
 
-        // 4. If player doesn't have the required level, notify and exit
+        // If player doesn't have the required level, notify and exit
         if (playerLevel < requiredLevel) {
             player.sendMessage(ChatColor.RED + "You need a firemaking level of " + requiredLevel + " to burn this log.");
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             return;
         }
 
-        // 5. Start the log ignition animation
+        // Start the log ignition animation
         startIgnitionAnimation(blockAbove, player, logProperties);
 
         // Remove the log from player's hand
@@ -181,23 +180,24 @@ public class Firemaking implements Listener {
         }.runTaskTimer(plugin, 0L, 1L); // Run every tick (0.05 seconds)
     }
 
-    // Place the bonfire after the ignition animation
     private void placeBonfire(Block block, Player player, LogProperties logProperties) {
-        block.setType(Material.CAMPFIRE);
-        block.getWorld().spawnParticle(Particle.SMOKE_LARGE, block.getLocation().add(0.5, 0.5, 0.5), 30, 0.5, 0.5, 0.5, 0.05);
-        player.playSound(player.getLocation(), Sound.BLOCK_FIRE_AMBIENT, 1.0f, 1.0f);
+        if (block.getType() != Material.CAMPFIRE) { // Prevent placing if it's already a campfire
+            block.setType(Material.CAMPFIRE);
+            block.getWorld().spawnParticle(Particle.SMOKE_LARGE, block.getLocation().add(0.5, 0.5, 0.5), 30, 0.5, 0.5, 0.5, 0.05);
+            player.playSound(player.getLocation(), Sound.BLOCK_FIRE_AMBIENT, 1.0f, 1.0f);
 
-        // Give the player XP
-        grantXp(player, logProperties.getXpValue());
+            // Give the player XP
+            grantXp(player, logProperties.getXpValue());
 
-        // Set a timer to remove the bonfire after a log-specific time
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                block.setType(Material.AIR);
-                dropAsh(block.getLocation());
-            }
-        }.runTaskLater(plugin, logProperties.getDespawnTime());
+            // Set a timer to remove the bonfire after a log-specific time
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    block.setType(Material.AIR);
+                    dropAsh(block.getLocation());
+                }
+            }.runTaskLater(plugin, logProperties.getDespawnTime());
+        }
     }
 
     // Grant XP to the player

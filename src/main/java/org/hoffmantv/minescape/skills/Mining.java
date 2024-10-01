@@ -13,7 +13,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -31,24 +30,12 @@ public class Mining implements Listener {
     private final Map<Material, OreData> oreDataMap = new EnumMap<>(Material.class);
     private final Map<Material, PickaxeData> pickaxeDataMap = new EnumMap<>(Material.class);
 
-    /**
-     * Constructor for Mining.
-     *
-     * @param skillManager The SkillManager instance.
-     * @param miningConfig The ConfigurationSection for mining from skills.yml.
-     * @param plugin       The main plugin instance.
-     */
     public Mining(SkillManager skillManager, ConfigurationSection miningConfig, Plugin plugin) {
         this.skillManager = skillManager;
         this.plugin = plugin;
         loadMiningConfigs(miningConfig);
     }
 
-    /**
-     * Loads mining configurations for ores and pickaxes.
-     *
-     * @param miningConfig The ConfigurationSection for mining.
-     */
     private void loadMiningConfigs(ConfigurationSection miningConfig) {
         if (miningConfig != null) {
             plugin.getLogger().info("Loading Mining Skill configurations...");
@@ -119,7 +106,6 @@ public class Mining implements Listener {
         ItemStack heldItem = player.getInventory().getItemInMainHand();
         Material itemInHand = heldItem.getType();
 
-        // Define the ores that you want to handle
         Set<Material> oreMaterials = EnumSet.of(
                 Material.COAL_ORE, Material.IRON_ORE, Material.GOLD_ORE,
                 Material.DIAMOND_ORE, Material.EMERALD_ORE, Material.LAPIS_ORE,
@@ -130,58 +116,26 @@ public class Mining implements Listener {
                 Material.NETHER_GOLD_ORE, Material.ANCIENT_DEBRIS
         );
 
-        // Check if the block being broken is an ore
         if (!oreMaterials.contains(blockMaterial)) {
-            // If it's not an ore, allow the block to be broken normally
             return;
         }
 
-        // Check if the player is holding a pickaxe
         if (isPickaxe(itemInHand)) {
-            // Handle ore mining logic
             OreData oreData = oreDataMap.get(blockMaterial);
             if (oreData != null) {
-                // Player is using a pickaxe on a valid ore
                 handleOreBreak(event, player, heldItem, oreData, block);
             } else {
-                // Player is using a pickaxe on a non-ore block
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
         } else {
-            // If the player is not using a pickaxe, do nothing (allow other interactions)
-            return;
+            if (oreMaterials.contains(blockMaterial)) {
+                event.setCancelled(true);
+                player.sendMessage(ChatColor.RED + "You must use a pickaxe to mine ores!");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            }
         }
-    }
-    private void handleOreMining(Player player, ItemStack heldItem, OreData oreData, Block block) {
-        int requiredOreLevel = oreData.getRequiredLevel();
-        int playerMiningLevel = skillManager.getSkillLevel(player, SkillManager.Skill.MINING);
-
-        if (playerMiningLevel < requiredOreLevel) {
-            player.sendMessage(ChatColor.RED + "You need Mining level " + requiredOreLevel + " to mine this ore.");
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-            return;
-        }
-
-        int requiredPickaxeLevel = getRequiredLevelForPickaxe(heldItem.getType());
-
-        if (playerMiningLevel < requiredPickaxeLevel) {
-            player.sendMessage(ChatColor.RED + "You need Mining level " + requiredPickaxeLevel + " to use this pickaxe.");
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-            return;
-        }
-
-        // Randomized mining delay between 3 to 10 seconds
-        int miningDelay = ThreadLocalRandom.current().nextInt(3, 11) * 20; // Convert seconds to ticks (20 ticks = 1 second)
-
-        player.sendMessage(ChatColor.YELLOW + "You begin mining the " + oreData.getOreMaterial().name().toLowerCase().replace("_", " ") + "...");
-
-        // Start mining animation (particles and sounds)
-        startMiningAnimation(player, block, miningDelay / 20);
-
-        // Schedule the actual mining result after the delay
-        scheduler.runTaskLater(plugin, () -> completeMining(player, heldItem, oreData, block), miningDelay);
     }
 
     private void handleOreBreak(BlockBreakEvent event, Player player, ItemStack heldItem, OreData oreData, Block block) {
@@ -204,55 +158,37 @@ public class Mining implements Listener {
             return;
         }
 
-        // Randomized mining delay between 3 to 10 seconds
         int miningDelay = ThreadLocalRandom.current().nextInt(3, 11) * 20; // Convert seconds to ticks (20 ticks = 1 second)
 
         player.sendMessage(ChatColor.YELLOW + "You begin mining the " + oreData.getOreMaterial().name().toLowerCase().replace("_", " ") + "...");
 
-        // Start mining animation (particles and sounds)
         startMiningAnimation(player, block, miningDelay / 20);
 
-        // Schedule the actual mining result after the delay
         scheduler.runTaskLater(plugin, () -> completeMining(player, heldItem, oreData, block), miningDelay);
     }
 
-    /**
-     * Complete the mining process after the delay.
-     */
     private void completeMining(Player player, ItemStack heldItem, OreData oreData, Block block) {
         double miningSuccessChance = calculateMiningSuccessChance(skillManager.getSkillLevel(player, SkillManager.Skill.MINING), oreData.getRequiredLevel(), heldItem.getType());
 
-        // If the mining fails
         if (!(ThreadLocalRandom.current().nextDouble(100) < miningSuccessChance)) {
             player.sendMessage(ChatColor.GRAY + "You failed to mine the ore.");
             player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0f, 1.0f);
             return;  // Block remains intact, mining fails
         }
 
-        // If the mining succeeds, proceed with breaking the block and rewarding the player.
         double xpEarned = oreData.getXpValue();
         skillManager.addXP(player, SkillManager.Skill.MINING, xpEarned);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
         player.sendActionBar(ChatColor.GOLD + "Mining +" + xpEarned);
 
-        // Prevent normal drops
         block.getWorld().dropItemNaturally(block.getLocation(), createNonStackableItem(oreData.getDropMaterial()));
-
-        // Break the block
         block.setType(Material.AIR);
-
-        // Schedule ore respawn
         scheduleOreRespawn(block, oreData);
-
         player.playSound(player.getLocation(), Sound.BLOCK_STONE_HIT, 1.0f, 1.0f);
         block.getWorld().spawnParticle(Particle.BLOCK_CRACK, block.getLocation(), 10, block.getBlockData());
     }
 
-    /**
-     * Starts the mining animation, displaying particles and sounds every second.
-     */
     private void startMiningAnimation(Player player, Block block, int miningTimeSeconds) {
-        // Play animation every second until the mining process is completed
         for (int i = 0; i < miningTimeSeconds; i++) {
             final int delay = i;
             scheduler.runTaskLater(plugin, () -> {
@@ -261,7 +197,8 @@ public class Mining implements Listener {
             }, delay * 20); // Schedule every second (20 ticks = 1 second)
         }
     }
-    @EventHandler(priority = EventPriority.HIGHEST)
+
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.LEFT_CLICK_BLOCK) {
             return;  // Only proceed for left-click actions (simulating mining)
@@ -277,14 +214,11 @@ public class Mining implements Listener {
         ItemStack heldItem = player.getInventory().getItemInMainHand();
         Material itemInHand = heldItem.getType();
 
-        // Cancel the block break immediately, so the ore doesn't break right away
         event.setCancelled(true);
 
-        // Check if the held item is a pickaxe
         if (isPickaxe(itemInHand)) {
             OreData oreData = oreDataMap.get(blockMaterial);
             if (oreData != null) {
-                // Start the mining process with delay and animation
                 handleOreMining(player, heldItem, oreData, block);
             } else {
                 player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
@@ -292,45 +226,49 @@ public class Mining implements Listener {
             }
         }
     }
-    /**
-     * Creates a non-stackable item by setting a unique CustomModelData.
-     *
-     * @param material The material of the item.
-     * @return The non-stackable ItemStack.
-     */
-    /**
-     * Creates a non-stackable item with custom OSRS-inspired item metadata.
-     *
-     * @param material The material of the item.
-     * @return The non-stackable ItemStack with OSRS-style lore and custom meta.
-     */
+
+    private void handleOreMining(Player player, ItemStack heldItem, OreData oreData, Block block) {
+        int requiredOreLevel = oreData.getRequiredLevel();
+        int playerMiningLevel = skillManager.getSkillLevel(player, SkillManager.Skill.MINING);
+
+        if (playerMiningLevel < requiredOreLevel) {
+            player.sendMessage(ChatColor.RED + "You need Mining level " + requiredOreLevel + " to mine this ore.");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            return;
+        }
+
+        int requiredPickaxeLevel = getRequiredLevelForPickaxe(heldItem.getType());
+
+        if (playerMiningLevel < requiredPickaxeLevel) {
+            player.sendMessage(ChatColor.RED + "You need Mining level " + requiredPickaxeLevel + " to use this pickaxe.");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            return;
+        }
+
+        int miningDelay = ThreadLocalRandom.current().nextInt(3, 11) * 20; // Convert seconds to ticks (20 ticks = 1 second)
+
+        player.sendMessage(ChatColor.YELLOW + "You begin mining the " + oreData.getOreMaterial().name().toLowerCase().replace("_", " ") + "...");
+
+        startMiningAnimation(player, block, miningDelay / 20);
+
+        scheduler.runTaskLater(plugin, () -> completeMining(player, heldItem, oreData, block), miningDelay);
+    }
+
     private ItemStack createNonStackableItem(Material material) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            // Set a unique CustomModelData to ensure the item is non-stackable
             meta.setCustomModelData(ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE));
-
-            // Set a custom display name based on OSRS items
             String displayName = getCustomDisplayName(material);
             meta.setDisplayName(ChatColor.GOLD + displayName);
-
-            // Add custom lore to fit OSRS mining lore
             meta.setLore(getCustomLore(material));
-
-            // Optionally, add more metadata (e.g., enchantments or tags if needed)
             item.setItemMeta(meta);
         }
 
         return item;
     }
-    /**
-     * Get a custom OSRS-style display name for the mined item.
-     *
-     * @param material The material to give a name.
-     * @return The custom display name.
-     */
+
     private String getCustomDisplayName(Material material) {
         switch (material) {
             case COAL:
@@ -353,12 +291,7 @@ public class Mining implements Listener {
                 return "Mined Resource";
         }
     }
-    /**
-     * Get a custom OSRS-style lore for the mined item.
-     *
-     * @param material The material for which to generate the lore.
-     * @return A list of lore lines fitting the OSRS theme.
-     */
+
     private List<String> getCustomLore(Material material) {
         List<String> lore = new ArrayList<>();
 
@@ -400,14 +333,14 @@ public class Mining implements Listener {
                 break;
         }
 
-        // Add a timestamp or server-specific lore if desired
         lore.add("");
         lore.add(ChatColor.DARK_GRAY + "Mined on: " + ChatColor.GOLD + java.time.LocalDate.now());
 
         return lore;
     }
+
     private double calculateMiningSuccessChance(int playerMiningLevel, int oreLevel, Material pickaxe) {
-        double baseChance = 50.0; // Base chance to mine at level equal to ore level
+        double baseChance = 50.0;
         int pickaxeBonus = getPickaxeBonus(pickaxe);
 
         if (playerMiningLevel > oreLevel) {

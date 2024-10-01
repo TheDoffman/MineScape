@@ -1,11 +1,7 @@
 package org.hoffmantv.minescape.skills;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,7 +11,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.hoffmantv.minescape.managers.ConfigurationManager;
 
 import java.util.*;
 
@@ -23,7 +18,6 @@ public class FishingSkill implements Listener {
 
     private final JavaPlugin plugin;
     private final SkillManager skillManager;
-    private final ConfigurationManager configManager;
     private ConfigurationSection fishingConfig;
 
     // List of fishing spots
@@ -35,13 +29,12 @@ public class FishingSkill implements Listener {
     // BukkitTask for particle effects
     private BukkitTask particleTask = null;
 
-    public FishingSkill(JavaPlugin plugin, SkillManager skillManager, ConfigurationManager configManager) {
+    public FishingSkill(JavaPlugin plugin, SkillManager skillManager) {
         this.plugin = plugin;
         this.skillManager = skillManager;
-        this.configManager = configManager;
 
         // Load fishing configurations from skills.yml
-        this.fishingConfig = configManager.getSkillsConfig().getConfigurationSection("skills.fishing");
+        this.fishingConfig = skillManager.getSkillsConfig().getConfigurationSection("skills.fishing");
         if (fishingConfig == null) {
             plugin.getLogger().warning("No 'fishing' section found in skills.yml under 'skills'");
         } else {
@@ -117,7 +110,7 @@ public class FishingSkill implements Listener {
 
     // Method to reload fishing spots
     public void reloadFishingSpots() {
-        this.fishingConfig = configManager.getSkillsConfig().getConfigurationSection("skills.fishing");
+        this.fishingConfig = skillManager.getSkillsConfig().getConfigurationSection("skills.fishing");
         if (this.fishingConfig == null) {
             plugin.getLogger().warning("No 'fishing' section found in skills.yml under 'skills'");
             return;
@@ -238,11 +231,6 @@ public class FishingSkill implements Listener {
         }.runTaskTimer(plugin, actionDelay * 20L, actionDelay * 20L); // Convert seconds to ticks
     }
 
-    private List<FishType> getAvailableFish(int fishingLevel, Material equipment, Player player) {
-        // This method is no longer necessary since fish types are specific to fishing spots
-        return Collections.emptyList();
-    }
-
     private FishType getRandomFish(List<FishType> availableFish) {
         Random random = new Random();
         return availableFish.get(random.nextInt(availableFish.size()));
@@ -333,58 +321,11 @@ public class FishingSkill implements Listener {
                         continue; // Skip particle effects for this spot if no players are nearby
                     }
 
-                    // Retrieve effect configurations
-                    ConfigurationSection spotSection = fishingConfig.getConfigurationSection("fishingSpots").getConfigurationSection(getSpotKey(spot));
-                    if (spotSection == null) {
-                        continue;
-                    }
-
-                    ConfigurationSection effectsSection = spotSection.getConfigurationSection("effects");
-                    if (effectsSection == null) {
-                        // Use default effect if none specified
-                        world.spawnParticle(Particle.WATER_SPLASH, loc.clone().add(0, 1, 0), 10, 0.5, 0.5, 0.5, 0.02);
-                        continue;
-                    }
-
-                    String particleTypeName = effectsSection.getString("particleType", "WATER_SPLASH");
-                    Particle particleType;
-                    try {
-                        particleType = Particle.valueOf(particleTypeName.toUpperCase());
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().warning("Invalid particle type '" + particleTypeName + "' for fishing spot. Using WATER_SPLASH.");
-                        particleType = Particle.WATER_SPLASH;
-                    }
-
-                    int particleCount = effectsSection.getInt("particleCount", 10);
-                    double offsetX = effectsSection.getDouble("particleOffsetX", 0.5);
-                    double offsetY = effectsSection.getDouble("particleOffsetY", 0.5);
-                    double offsetZ = effectsSection.getDouble("particleOffsetZ", 0.5);
-                    double particleSpeed = effectsSection.getDouble("particleSpeed", 0.02);
-
-                    // Spawn the configured particle
-                    world.spawnParticle(particleType, loc.clone().add(0, 1, 0), particleCount, offsetX, offsetY, offsetZ, particleSpeed);
+                    // Spawn water splash particles
+                    world.spawnParticle(Particle.WATER_SPLASH, loc.clone().add(0, 1, 0), 10, 0.5, 0.5, 0.5, 0.02);
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L); // Runs every second (20 ticks)
-    }
-
-    // Helper method to get the spot key based on location
-    private String getSpotKey(FishingSpot spot) {
-        ConfigurationSection spotsSection = fishingConfig.getConfigurationSection("fishingSpots");
-        for (String key : spotsSection.getKeys(false)) {
-            ConfigurationSection spotSection = spotsSection.getConfigurationSection(key);
-            if (spotSection != null) {
-                String world = spotSection.getString("world");
-                double x = spotSection.getDouble("x");
-                double y = spotSection.getDouble("y");
-                double z = spotSection.getDouble("z");
-                Location loc = new Location(plugin.getServer().getWorld(world), x, y, z);
-                if (loc.equals(spot.getLocation())) {
-                    return key;
-                }
-            }
-        }
-        return null;
     }
 
     // Method to stop particle effects when plugin is disabled

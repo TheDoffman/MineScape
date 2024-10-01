@@ -2,25 +2,19 @@ package org.hoffmantv.minescape.skills;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.hoffmantv.minescape.managers.CombatLevelSystem;
-import org.hoffmantv.minescape.managers.ConfigurationManager;
 
 public class Defense implements Listener {
 
     private final SkillManager skillManager;
-    private final ConfigurationSection defenseConfig;
-    private final ConfigurationManager configManager;
 
-    public Defense(SkillManager skillManager, ConfigurationSection defenseConfig, ConfigurationManager configManager) {
+    public Defense(SkillManager skillManager) {
         this.skillManager = skillManager;
-        this.defenseConfig = defenseConfig;
-        this.configManager = configManager;
     }
 
     @EventHandler
@@ -71,9 +65,6 @@ public class Defense implements Listener {
         // Notify the player
         player.sendActionBar(ChatColor.GOLD + "Defense +" + xpAmount);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
-
-        // Log XP gain to playerdata.yml using ConfigurationManager
-        configManager.logXpGain(player, "Defense", xpAmount);
     }
 
     /**
@@ -83,8 +74,8 @@ public class Defense implements Listener {
      * @return the XP amount to be rewarded
      */
     private int calculateXpReward(double damageTaken) {
-        // Fetch XP per damage value from skills.yml
-        int xpPerDamage = defenseConfig.getInt("xpPerDamage", 5); // Default XP per heart of damage taken is 5
+        // Assume a default XP reward formula
+        int xpPerDamage = 5; // Default XP per point of damage
         return (int) (damageTaken * xpPerDamage);
     }
 
@@ -97,7 +88,7 @@ public class Defense implements Listener {
      * @return the reduced damage value
      */
     private double mitigateDamage(double originalDamage, int defenseLevel, double armorRating) {
-        // Use a formula similar to OSRS to mitigate damage based on defense level and armor
+        // Use a formula to mitigate damage based on defense level and armor
         double defenseFactor = 1 - (defenseLevel / 100.0); // Defense reduces damage by up to 100%
         return originalDamage * defenseFactor * (1 - armorRating); // Combine defense and armor mitigation
     }
@@ -158,15 +149,12 @@ public class Defense implements Listener {
 
     /**
      * Check if the player is in a defensive stance.
-     * In OSRS, the player must select a combat style that trains defense.
      *
      * @param player the player whose stance is being checked
      * @return true if the player is in a defensive stance, false otherwise
      */
     private boolean isInDefensiveStance(Player player) {
-        // You can add logic to check the player's current combat style
-        // For example, you could check for custom item meta or a specific attack mode
-        // This is a placeholder and should be implemented based on your combat system
-        return true; // Assuming the player is in a defensive stance for now
+        // Placeholder: Assume the player is always in a defensive stance
+        return true;
     }
 }

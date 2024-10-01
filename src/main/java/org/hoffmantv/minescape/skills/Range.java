@@ -18,9 +18,9 @@ public class Range implements Listener {
     private final JavaPlugin plugin;
     private final SkillManager skillManager;
 
-    public Range(JavaPlugin plugin, SkillManager skillsManager) {
+    public Range(JavaPlugin plugin, SkillManager skillManager) {
         this.plugin = plugin;
-        this.skillManager = skillsManager;
+        this.skillManager = skillManager;
     }
 
     @EventHandler
@@ -29,31 +29,34 @@ public class Range implements Listener {
         Player killer = entity.getKiller();
 
         // Check if the killer exists and if the last damage cause was an arrow.
-        if (entity.getLastDamageCause() instanceof EntityDamageByEntityEvent) {
+        if (killer != null && entity.getLastDamageCause() instanceof EntityDamageByEntityEvent) {
             EntityDamageEvent.DamageCause cause = entity.getLastDamageCause().getCause();
 
             if (cause == EntityDamageEvent.DamageCause.PROJECTILE) {
                 Entity damager = ((EntityDamageByEntityEvent) entity.getLastDamageCause()).getDamager();
-                Arrow arrow = (Arrow) damager;
+                if (damager instanceof Arrow) {
+                    Arrow arrow = (Arrow) damager;
 
-                if (arrow.getShooter() instanceof Player) {
-                    double distance = arrow.getLocation().distance(killer.getLocation());
-                    grantXPBasedOnDistance(killer, distance);
+                    if (arrow.getShooter() instanceof Player) {
+                        double distance = arrow.getLocation().distance(killer.getLocation());
+                        grantXPBasedOnDistance(killer, distance);
+                    }
                 }
             }
         }
     }
-            private void grantXPBasedOnDistance (Player killer,double distance){
-                int baseXP = 10; // Base XP for killing with a bow
 
-                // We'll use a simple linear formula: additionalXP = distance/5.
-                int additionalXP = (int) (distance / 2);
-                int xpEarned = baseXP + additionalXP;
+    private void grantXPBasedOnDistance(Player killer, double distance) {
+        int baseXP = 10; // Base XP for killing with a bow
 
-                // Using SkillsManager to add the XP to the player's skills in the skills.yml file
-                skillManager.addXP(killer, SkillManager.Skill.RANGE, xpEarned);
+        // Use a simple linear formula: additionalXP = distance / 2.
+        int additionalXP = (int) (distance / 2);
+        int xpEarned = baseXP + additionalXP;
 
-                killer.playSound(killer.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
-                killer.sendActionBar(ChatColor.GOLD + "Range +" + xpEarned);
-            }
-        }
+        // Use the SkillsManager to add the XP to the player's skills
+        skillManager.addXP(killer, SkillManager.Skill.RANGE, xpEarned);
+
+        killer.playSound(killer.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+        killer.sendActionBar(ChatColor.GOLD + "Range +" + xpEarned);
+    }
+}

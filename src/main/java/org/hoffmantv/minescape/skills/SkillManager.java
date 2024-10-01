@@ -3,6 +3,7 @@ package org.hoffmantv.minescape.skills;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
@@ -13,40 +14,51 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.hoffmantv.minescape.managers.ConfigurationManager;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 
 public class SkillManager implements Listener {
 
     private final JavaPlugin plugin;
-    private final ConfigurationManager configManager;
-    private final FileConfiguration playerDataConfig;
-    private final FileConfiguration skillsConfig;
-    private final CombatLevel combatLevel;
+    private final File dataFolder;
 
+    private FileConfiguration playerDataConfig; // Player data config
+    private File playerDataFile; // Player data file
+
+    private FileConfiguration skillsConfig; // Skills config
+    private File skillsFile; // Skills file
+
+    private final CombatLevel combatLevel;
     private static final int MAX_LEVEL = 99;
 
     // Maps to store player levels and XP
     private final Map<UUID, Map<Skill, Integer>> playerLevels = new HashMap<>();
     private final Map<UUID, Map<Skill, Double>> playerXP = new HashMap<>();
-
-    // Weapon strength requirements
     private final Map<Material, Integer> weaponStrengthRequirements = new HashMap<>();
 
-    public SkillManager(JavaPlugin plugin, ConfigurationManager configManager) {
+    public SkillManager(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.configManager = configManager;
-
-        this.combatLevel = new CombatLevel(this);
+        this.dataFolder = plugin.getDataFolder();
+        if (!dataFolder.exists()) {
+            dataFolder.mkdirs(); // Create the data folder if it doesn't exist
+        }
 
         // Load player data and skills configuration
-        this.playerDataConfig = configManager.getPlayerDataConfig();
-        this.skillsConfig = configManager.getSkillsConfig();
-
+        loadPlayerDataFile();
+        loadSkillsFile();
+        this.combatLevel = new CombatLevel(this);
         loadSkillsFromConfig();
         loadWeaponRequirements();
+    }
+    public int getRequiredLevelForWeapon(Material weapon) {
+        ConfigurationSection weaponRequirements = skillsConfig.getConfigurationSection("skills.strength.weaponRequirements");
+        if (weaponRequirements != null && weaponRequirements.isSet(weapon.name())) {
+            return weaponRequirements.getInt(weapon.name());
+        }
+        return Integer.MAX_VALUE; // Return a high value if not found (indicating it can't be used)
     }
 
     // Enum to represent different skills
@@ -58,17 +70,8 @@ public class SkillManager implements Listener {
         COMBAT
     }
 
-    // XP formula
-    public double xpRequiredForLevelUp(int currentLevel) {
-        double totalXp = 0;
-        for (int i = 1; i <= currentLevel; i++) {
-            totalXp += Math.floor(i + 300 * Math.pow(2, i / 7.0));
-        }
-        return Math.floor(totalXp / 4);
-    }
-
     // Load player skills from config
-    public void loadSkillsFromConfig() {
+    private void loadSkillsFromConfig() {
         Set<String> uuidStrings = playerDataConfig.getKeys(false);
         for (String uuidString : uuidStrings) {
             try {
@@ -93,6 +96,24 @@ public class SkillManager implements Listener {
         }
     }
 
+    // Load player data file
+    private void loadPlayerDataFile() {
+        playerDataFile = new File(dataFolder, "playerdata.yml");
+        if (!playerDataFile.exists()) {
+            plugin.saveResource("playerdata.yml", false); // Save default resource if file doesn't exist
+        }
+        playerDataConfig = YamlConfiguration.loadConfiguration(playerDataFile); // Load configuration
+    }
+
+    // Load skills configuration file
+    private void loadSkillsFile() {
+        skillsFile = new File(dataFolder, "skills.yml");
+        if (!skillsFile.exists()) {
+            plugin.saveResource("skills.yml", false); // Create from resources if not present
+        }
+        skillsConfig = YamlConfiguration.loadConfiguration(skillsFile); // Load configuration
+    }
+
     // Load weapon requirements from config
     private void loadWeaponRequirements() {
         ConfigurationSection strengthConfig = skillsConfig.getConfigurationSection("strength");
@@ -112,27 +133,13 @@ public class SkillManager implements Listener {
         }
     }
 
-    // Get the required Strength level for a weapon
-    public int getRequiredStrengthLevel(Material weaponType) {
-        return weaponStrengthRequirements.getOrDefault(weaponType, 1);
-    }
-
-    // Set player skill level
-    public void setSkillLevel(Player player, Skill skill, int level) {
-        UUID playerUUID = player.getUniqueId();
-        initializePlayerData(playerUUID);
-        int cappedLevel = Math.min(level, MAX_LEVEL);
-
-        playerLevels.get(playerUUID).put(skill, cappedLevel);
-        playerDataConfig.set(playerUUID.toString() + "." + skill.name() + ".level", cappedLevel);
-        savePlayerDataAsync();
-    }
-
-    // Get player skill level
-    public int getSkillLevel(Player player, Skill skill) {
-        UUID playerUUID = player.getUniqueId();
-        initializePlayerData(playerUUID);
-        return playerLevels.get(playerUUID).getOrDefault(skill, skill == Skill.COMBAT ? 3 : 1);
+    // XP formula
+    public double xpRequiredForLevelUp(int currentLevel) {
+        double totalXp = 0;
+        for (int i = 1; i <= currentLevel; i++) {
+            totalXp += Math.floor(i + 300 * Math.pow(2, i / 7.0));
+        }
+        return Math.floor(totalXp / 4);
     }
 
     // Add XP to player skill
@@ -174,19 +181,22 @@ public class SkillManager implements Listener {
         launchFirework(player.getLocation());
     }
 
-    // Get XP for specific skill
-    public double getXP(Player player, Skill skill) {
+    // Get player skill level
+    public int getSkillLevel(Player player, Skill skill) {
         UUID playerUUID = player.getUniqueId();
         initializePlayerData(playerUUID);
-        return playerXP.get(playerUUID).getOrDefault(skill, 0.0);
+        return playerLevels.get(playerUUID).getOrDefault(skill, skill == Skill.COMBAT ? 3 : 1);
     }
 
-    // Calculate remaining XP for next level
-    public double xpNeededForNextLevel(Player player, Skill skill) {
-        int currentLevel = getSkillLevel(player, skill);
-        if (currentLevel >= MAX_LEVEL) return 0.0;
-        double currentXP = getXP(player, skill);
-        return xpRequiredForLevelUp(currentLevel) - currentXP;
+    // Set player skill level
+    public void setSkillLevel(Player player, Skill skill, int level) {
+        UUID playerUUID = player.getUniqueId();
+        initializePlayerData(playerUUID);
+        int cappedLevel = Math.min(level, MAX_LEVEL);
+
+        playerLevels.get(playerUUID).put(skill, cappedLevel);
+        playerDataConfig.set(playerUUID.toString() + "." + skill.name() + ".level", cappedLevel);
+        savePlayerDataAsync();
     }
 
     // Player join event
@@ -207,7 +217,6 @@ public class SkillManager implements Listener {
         savePlayerDataAsync();
     }
 
-    // Initialize player data
     private void initializePlayer(Player player) {
         UUID playerUUID = player.getUniqueId();
         initializePlayerData(playerUUID);
@@ -217,11 +226,11 @@ public class SkillManager implements Listener {
             if (!playerDataConfig.contains(playerUUID.toString() + "." + skill.name())) {
                 int defaultLevel = (skill == Skill.COMBAT) ? 3 : 1;
                 playerDataConfig.set(playerUUID.toString() + "." + skill.name() + ".level", defaultLevel);
-                playerDataConfig.set(playerUUID.toString() + "." + skill.name() + ".xp", 0.0);
+                playerDataConfig.set(playerUUID.toString() + "." + skill.name() + ".xp", 0.0); // Set default XP
             }
         }
 
-        savePlayerDataAsync();
+        savePlayerDataAsync(); // Save the player data after initialization
 
         // Start tracking playtime and update combat level
         startPlaytimeTracking(player);
@@ -273,7 +282,29 @@ public class SkillManager implements Listener {
 
     // Save player data asynchronously
     public void savePlayerDataAsync() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, configManager::savePlayerData);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, this::savePlayerData);
+    }
+
+    // Save method to write player data to playerdata.yml
+    public void savePlayerData() {
+        try {
+            // Loop through each player in the map
+            for (UUID uuid : playerLevels.keySet()) {
+                Map<Skill, Integer> levels = playerLevels.get(uuid);
+                Map<Skill, Double> xpMap = playerXP.get(uuid);
+
+                // Save levels and XP for each skill
+                for (Skill skill : Skill.values()) {
+                    playerDataConfig.set(uuid.toString() + "." + skill.name() + ".level", levels.getOrDefault(skill, 1));
+                    playerDataConfig.set(uuid.toString() + "." + skill.name() + ".xp", xpMap.getOrDefault(skill, 0.0));
+                }
+            }
+            // Save the configuration file
+            playerDataConfig.save(playerDataFile); // Save the player data configuration
+        } catch (IOException e) {
+            plugin.getLogger().severe("Could not save player data!");
+            e.printStackTrace();
+        }
     }
 
     // Get player playtime in ticks
@@ -315,6 +346,10 @@ public class SkillManager implements Listener {
                 return -1;
             }
         }
+    }
+    // Method to get skills configuration section
+    public ConfigurationSection getSkillsConfig() {
+        return skillsConfig.getConfigurationSection("skills"); // Adjust this if your structure differs
     }
 
     // Utility method to get all skill levels for a player

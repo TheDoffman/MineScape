@@ -1,9 +1,10 @@
-package org.hoffmantv.minescape.skills;
+package org.hoffmantv.minescape.commands;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.hoffmantv.minescape.skills.SkillsHologram;
 
 public class ToggleSkillsMenu implements CommandExecutor {
     private final SkillsHologram skillsHologram;

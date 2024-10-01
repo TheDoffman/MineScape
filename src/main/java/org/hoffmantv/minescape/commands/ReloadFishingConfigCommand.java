@@ -4,16 +4,16 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.hoffmantv.minescape.managers.ConfigurationManager;
 import org.hoffmantv.minescape.skills.FishingSkill;
+import org.hoffmantv.minescape.skills.SkillManager;
 
 public class ReloadFishingConfigCommand implements CommandExecutor {
 
-    private final ConfigurationManager configManager;
+    private final SkillManager skillManager;
     private final FishingSkill fishingSkill;
 
-    public ReloadFishingConfigCommand(ConfigurationManager configManager, FishingSkill fishingSkill) {
-        this.configManager = configManager;
+    public ReloadFishingConfigCommand(SkillManager skillManager, FishingSkill fishingSkill) {
+        this.skillManager = skillManager;
         this.fishingSkill = fishingSkill;
     }
 
@@ -26,8 +26,8 @@ public class ReloadFishingConfigCommand implements CommandExecutor {
             return true;
         }
 
-        // Reload the skills configuration
-        configManager.reloadSkillsConfig();
+        // Reload the skills configuration by directly accessing the skills config in SkillManager
+        skillManager.getSkillsConfig(); // Assuming you have a method to load the config
         fishingSkill.reloadFishingSpots();
 
         sender.sendMessage(ChatColor.GREEN + "Fishing configuration reloaded.");

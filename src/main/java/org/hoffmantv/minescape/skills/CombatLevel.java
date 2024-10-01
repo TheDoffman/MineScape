@@ -2,6 +2,7 @@ package org.hoffmantv.minescape.skills;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -11,7 +12,7 @@ public class CombatLevel {
     private final SkillManager skillManager;
 
     public CombatLevel(SkillManager skillManager) {
-        if(skillManager == null) {
+        if (skillManager == null) {
             throw new IllegalArgumentException("SkillManager cannot be null");
         }
         this.skillManager = skillManager;

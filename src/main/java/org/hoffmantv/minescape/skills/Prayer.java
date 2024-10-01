@@ -14,7 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +23,7 @@ import java.util.UUID;
 public class Prayer implements Listener {
 
     private final SkillManager skillManager;
-    private final Plugin plugin;
+    private final JavaPlugin plugin;
     private final Map<Material, BoneData> boneDataMap = new HashMap<>();
 
     // Cooldown map to prevent spamming
@@ -33,7 +33,7 @@ public class Prayer implements Listener {
     // XP multiplier for using bones on altars
     private final double ALTAR_XP_MULTIPLIER = 2.5;
 
-    public Prayer(SkillManager skillManager, ConfigurationSection prayerConfig, Plugin plugin) {
+    public Prayer(SkillManager skillManager, ConfigurationSection prayerConfig, JavaPlugin plugin) {
         this.skillManager = skillManager;
         this.plugin = plugin;
         loadPrayerConfigs(prayerConfig);
@@ -137,11 +137,7 @@ public class Prayer implements Listener {
 
     private void addPrayerXP(Player player, double xp) {
         skillManager.addXP(player, SkillManager.Skill.PRAYER, xp);  // Add XP to prayer skill
-        UUID playerUUID = player.getUniqueId();
-
-        // Save XP to playerdata.yml
-        skillManager.getPlayerDataConfig().set(playerUUID.toString() + ".prayer.xp", skillManager.getXP(player, SkillManager.Skill.PRAYER));
-        skillManager.savePlayerDataAsync();  // Save asynchronously
+        skillManager.savePlayerData();  // Call savePlayerData() without parameters, assuming it handles all player data
     }
 
     private boolean isAltar(Block block) {

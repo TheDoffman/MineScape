@@ -11,23 +11,20 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.hoffmantv.minescape.managers.ConfigurationManager;
 
 import java.util.*;
 
 public class Woodcutting implements Listener {
 
     private final SkillManager skillManager;
-    private final ConfigurationManager configManager;
     private final JavaPlugin plugin;
     private final Random random = new Random();
 
     // Configurable tree settings
     private final Map<Material, TreeType> treeTypes = new HashMap<>();
 
-    public Woodcutting(SkillManager skillManager, ConfigurationManager configManager, JavaPlugin plugin) {
+    public Woodcutting(SkillManager skillManager, JavaPlugin plugin) {
         this.skillManager = skillManager;
-        this.configManager = configManager;
         this.plugin = plugin;
 
         loadTreeTypesFromConfig();
@@ -35,7 +32,7 @@ public class Woodcutting implements Listener {
 
     private void loadTreeTypesFromConfig() {
         // Load the tree types configuration from skills.yml
-        ConfigurationSection treeSection = configManager.getConfig("skills.yml").getConfigurationSection("skills.woodcutting.trees");
+        ConfigurationSection treeSection = skillManager.getSkillsConfig().getConfigurationSection("skills.woodcutting.trees");
 
         if (treeSection != null) {
             for (String key : treeSection.getKeys(false)) {
@@ -275,9 +272,6 @@ public class Woodcutting implements Listener {
         skillManager.addXP(player, SkillManager.Skill.WOODCUTTING, xpValue);
         player.sendActionBar(ChatColor.GOLD + "Woodcutting +" + xpValue);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
-
-        // Log XP gain in player data
-        configManager.logXpGain(player, "woodcutting", (int) xpValue);
     }
 
     private boolean isAxe(Material material) {

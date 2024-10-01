@@ -36,7 +36,7 @@ public class CombatSession {
         this.plugin = plugin;
         this.skillManager = skillManager;
         this.combatLevelSystem = combatLevelSystem;
-        this.playerMaxHealth = player.getHealth();
+        this.playerMaxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
         this.mobMaxHealth = mob.getHealth();
         this.playerHealth = playerMaxHealth;
         this.mobHealth = mobMaxHealth;
@@ -173,7 +173,7 @@ public class CombatSession {
         Material weaponType = weapon.getType();
 
         // Get the required Strength level for the weapon
-        int requiredStrengthLevel = skillManager.getRequiredStrengthLevel(weaponType);
+        int requiredStrengthLevel = skillManager.getRequiredLevelForWeapon(weaponType); // Update this line
 
         // Get the player's Strength level
         int playerStrengthLevel = skillManager.getSkillLevel(player, SkillManager.Skill.STRENGTH);
@@ -214,6 +214,8 @@ public class CombatSession {
             case GOLDEN_SWORD:
                 return 4.0;
             case DIAMOND_SWORD:
+
+
                 return 7.0;
             case NETHERITE_SWORD:
                 return 8.0;

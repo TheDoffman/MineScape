@@ -1,8 +1,6 @@
 package org.hoffmantv.minescape.skills;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,7 +19,6 @@ public class Agility implements Listener {
 
     private final SkillManager skillManager;
     private final Map<UUID, Location> playerStartingPositions = new HashMap<>();
-    private final Map<UUID, Boolean> playerOnAgilityCourse = new HashMap<>();  // Track if a player is on an agility course
 
     // Define custom obstacle points (agility obstacles in a course)
     private final Map<Location, Integer> agilityObstacles = new HashMap<>(); // Obstacle location and corresponding XP reward
@@ -33,8 +30,6 @@ public class Agility implements Listener {
 
     // Setup OSRS-like agility obstacles with specific XP rewards
     private void setupAgilityObstacles() {
-        // Example: Define some obstacles with locations and XP rewards
-        // You'd need to adjust these locations based on your Minecraft world
         agilityObstacles.put(new Location(Bukkit.getWorld("world"), 100, 65, 200), 15); // Example obstacle 1
         agilityObstacles.put(new Location(Bukkit.getWorld("world"), 105, 65, 205), 25); // Example obstacle 2
     }
@@ -57,6 +52,7 @@ public class Agility implements Listener {
                     skillManager.addXP(player, SkillManager.Skill.AGILITY, xpAmount);
 
                     player.sendMessage("You gained " + xpAmount + " agility XP for running!");
+                    skillManager.savePlayerDataAsync();  // Save player data asynchronously
 
                     // Reset the starting position to track another 50 blocks
                     playerStartingPositions.put(playerId, player.getLocation());
@@ -67,7 +63,6 @@ public class Agility implements Listener {
         }
     }
 
-    // Handle interaction with agility obstacles
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
@@ -83,12 +78,12 @@ public class Agility implements Listener {
             // Award XP for completing the obstacle
             skillManager.addXP(player, SkillManager.Skill.AGILITY, xpReward);
             player.sendMessage("You gained " + xpReward + " agility XP for completing the obstacle!");
+            skillManager.savePlayerDataAsync();  // Save player data asynchronously
         }
     }
 
-    // Custom agility action (e.g., jump boost, launch player forward, etc.)
     private void performAgilityAction(Player player) {
-        // Example: Give the player a small velocity boost to simulate a jump/climb
+        // Give the player a small velocity boost to simulate a jump/climb
         Vector jumpBoost = new Vector(0, 1, 0.5);
         player.setVelocity(jumpBoost);
 
@@ -96,7 +91,6 @@ public class Agility implements Listener {
         player.playSound(player.getLocation(), "minecraft:block.wooden_trapdoor.open", 1.0F, 1.0F);
     }
 
-    // Calculate XP reward for running distance
     private int calculateDistanceXpReward() {
         return 10;  // Example: reward 10 XP for every 50 blocks sprinted
     }
@@ -121,11 +115,9 @@ public class Agility implements Listener {
         }
     }
 
-    // Example method for stamina regeneration based on agility level
     public void regenerateStamina(Player player) {
         int agilityLevel = skillManager.getSkillLevel(player, SkillManager.Skill.AGILITY);
 
-        // Regenerate hunger/stamina more quickly if not sprinting
         new BukkitRunnable() {
             @Override
             public void run() {
