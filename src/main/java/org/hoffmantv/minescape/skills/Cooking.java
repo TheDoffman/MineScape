@@ -1,5 +1,6 @@
 package org.hoffmantv.minescape.skills;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -30,7 +31,7 @@ public class Cooking implements Listener {
     }
 
     private void loadFoodData(ConfigurationSection cookingConfig) {
-        ConfigurationSection foodSection = cookingConfig.getConfigurationSection("foods");
+        ConfigurationSection foodSection = cookingConfig.getConfigurationSection("skills.cooking.foods");
         if (foodSection != null) {
             for (String key : foodSection.getKeys(false)) {
                 ConfigurationSection foodConfig = foodSection.getConfigurationSection(key);

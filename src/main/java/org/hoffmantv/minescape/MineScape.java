@@ -64,26 +64,20 @@ public class MineScape extends JavaPlugin {
             ConfigurationSection skillConfig = skillsConfig.getConfigurationSection("skills." + skill.name().toLowerCase());
             if (skillConfig != null) {
                 switch (skill) {
-                    case STRENGTH:
-                        registerListener(new Strength(skillManager)); // No config needed
-                        break;
-                    case DEFENCE:
-                        registerListener(new Defense(skillManager)); // No config needed
-                        break;
-                    case WOODCUTTING:
-                        registerListener(new Woodcutting(skillManager, this)); // Pass JavaPlugin
-                        break;
                     case PRAYER:
                         registerListener(new Prayer(skillManager, skillConfig, this)); // Pass config and plugin
                         break;
-                    case MINING:
-                        registerListener(new Mining(skillManager, skillConfig, this)); // Pass config and plugin
+                    case AGILITY:
+                        registerListener(new Agility(skillManager,this)); // Pass config
                         break;
-                    case SMITHING:
-                        registerListener(new Smithing(skillManager, this)); // No config needed
+                    case MINING:
+                        registerListener(new Mining(skillManager, skillConfig, this)); // Pass config
                         break;
                     case COOKING:
                         registerListener(new Cooking(skillManager, skillConfig)); // Pass config
+                        break;
+                    case FIREMAKING:
+                        registerListener(new Firemaking(skillManager, this)); // Pass config
                         break;
                     // Add other skills as needed
                     default:
@@ -99,11 +93,10 @@ public class MineScape extends JavaPlugin {
         registerListener(new Water(this));
         registerListener(skillManager); // Register SkillManager as a listener
         registerListener(combatLevelSystem);
-        registerListener(new Firemaking(skillManager, this)); // Pass plugin
         registerListener(new Hitpoints(skillManager, this)); // Pass plugin
         registerListener(new Range(this, skillManager)); // Pass plugin
-        registerListener(new Agility(skillManager)); // No config needed
         registerListener(new Crafting(skillManager)); // No config needed
+        getServer().getPluginManager().registerEvents(new Cooking(skillManager, skillManager.getSkillsConfig()), this);
         registerListener(new MobListener());
         registerListener(new ChickenListener(this)); // Pass plugin
         registerListener(new ZombieListener());

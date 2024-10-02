@@ -23,7 +23,7 @@ public class Agility implements Listener {
     // Define custom obstacle points (agility obstacles in a course)
     private final Map<Location, Integer> agilityObstacles = new HashMap<>(); // Obstacle location and corresponding XP reward
 
-    public Agility(SkillManager skillManager) {
+    public Agility(SkillManager skillManager,  JavaPlugin plugin) {
         this.skillManager = skillManager;
         setupAgilityObstacles();  // Define the obstacle locations and XP rewards
     }

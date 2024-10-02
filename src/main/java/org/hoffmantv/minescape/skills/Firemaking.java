@@ -25,7 +25,7 @@ public class Firemaking implements Listener {
     public Firemaking(SkillManager skillManager, JavaPlugin plugin) {
         this.skillManager = skillManager;
         this.plugin = plugin;
-        this.firemakingConfig = skillManager.getSkillsConfig().getConfigurationSection("firemaking.logRequirements");
+        this.firemakingConfig = skillManager.getSkillsConfig().getConfigurationSection("skills.firemaking.logRequirements");
         loadLogProperties();
     }
 
@@ -46,7 +46,7 @@ public class Firemaking implements Listener {
                 logPropertiesMap.put(material, new LogProperties(material, xp, despawnTime, requiredLevel));
             }
         } else {
-            plugin.getLogger().warning("Firemaking configuration section not found in skills.yml.");
+            plugin.getLogger().warning("firemaking configuration section not found in skills.yml.");
         }
     }
 
