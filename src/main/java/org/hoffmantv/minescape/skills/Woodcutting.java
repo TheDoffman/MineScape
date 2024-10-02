@@ -22,14 +22,16 @@ public class Woodcutting implements Listener {
 
     // Configurable tree settings
     private final Map<Material, TreeType> treeTypes = new HashMap<>();
+    // Configurable axe settings
+    private final Map<Material, Integer> axeRequirements = new HashMap<>();
 
     public Woodcutting(SkillManager skillManager, JavaPlugin plugin) {
         this.skillManager = skillManager;
         this.plugin = plugin;
 
         loadTreeTypesFromConfig();
+        loadAxesFromConfig(); // Load axes here
     }
-
     private void loadTreeTypesFromConfig() {
         // Load the tree types configuration from skills.yml
         ConfigurationSection treeSection = skillManager.getSkillsConfig().getConfigurationSection("skills.woodcutting.trees");
@@ -39,19 +41,59 @@ public class Woodcutting implements Listener {
                 ConfigurationSection treeConfig = treeSection.getConfigurationSection(key);
 
                 if (treeConfig != null) {
-                    Material logMaterial = Material.getMaterial(treeConfig.getString("log", "OAK_LOG"));
+                    String logName = treeConfig.getString("log");
+                    String saplingName = treeConfig.getString("sapling");
                     int requiredLevel = treeConfig.getInt("requiredLevel", 1);
-                    double xpValue = treeConfig.getDouble("xpValue", 10);
-                    Material sapling = Material.getMaterial(treeConfig.getString("sapling", "OAK_SAPLING"));
+                    double xpValue = treeConfig.getDouble("xpValue", 10.0);
 
-                    if (logMaterial != null && sapling != null) {
-                        TreeType treeType = new TreeType(logMaterial, requiredLevel, xpValue, sapling);
-                        treeTypes.put(logMaterial, treeType);
+                    if (logName != null && saplingName != null) {
+                        Material logMaterial = Material.getMaterial(logName.toUpperCase());
+                        Material saplingMaterial = Material.getMaterial(saplingName.toUpperCase());
+
+                        if (logMaterial != null && saplingMaterial != null) {
+                            TreeType treeType = new TreeType(logMaterial, requiredLevel, xpValue, saplingMaterial);
+                            treeTypes.put(logMaterial, treeType);
+                            plugin.getLogger().info("Loaded tree type: " + key);
+                        } else {
+                            plugin.getLogger().warning("Invalid material names for tree: " + key);
+                        }
                     } else {
-                        plugin.getLogger().warning("Invalid material specified in skills.yml for tree: " + key);
+                        plugin.getLogger().warning("Missing log or sapling for tree: " + key);
                     }
+                } else {
+                    plugin.getLogger().warning("Tree configuration is null for key: " + key);
                 }
             }
+        } else {
+            plugin.getLogger().warning("No tree configuration found in skills.yml");
+        }
+    }
+
+    private void loadAxesFromConfig() {
+        ConfigurationSection axesSection = skillManager.getSkillsConfig().getConfigurationSection("skills.woodcutting.axes");
+
+        if (axesSection != null) {
+            for (String key : axesSection.getKeys(false)) {
+                ConfigurationSection axeConfig = axesSection.getConfigurationSection(key);
+
+                if (axeConfig != null) {
+                    String axeName = key.toUpperCase();
+                    int requiredLevel = axeConfig.getInt("requiredLevel", 1);
+
+                    Material axeMaterial = Material.getMaterial(axeName);
+
+                    if (axeMaterial != null) {
+                        axeRequirements.put(axeMaterial, requiredLevel);
+                        plugin.getLogger().info("Loaded axe: " + axeName);
+                    } else {
+                        plugin.getLogger().warning("Invalid axe material specified in skills.yml: " + key);
+                    }
+                } else {
+                    plugin.getLogger().warning("Axe configuration is null for key: " + key);
+                }
+            }
+        } else {
+            plugin.getLogger().warning("No axe configuration found in skills.yml");
         }
     }
 
@@ -182,9 +224,10 @@ public class Woodcutting implements Listener {
 
         return logCount;
     }
-
     private boolean isLog(Material material) {
-        return treeTypes.containsKey(material);
+        boolean result = treeTypes.containsKey(material);
+        plugin.getLogger().info("Checking if material is a log: " + material + " - " + (result ? "Yes" : "No"));
+        return result;
     }
 
     private boolean isLeaf(Material material) {
@@ -249,6 +292,11 @@ public class Woodcutting implements Listener {
     }
 
     private org.bukkit.TreeType convertToBukkitTreeType(TreeType treeType) {
+        if (treeType == null || treeType.getMaterial() == null) {
+            // If the treeType is null or doesn't have a material, return a default tree type
+            return org.bukkit.TreeType.TREE;
+        }
+
         switch (treeType.getMaterial()) {
             case OAK_LOG:
                 return org.bukkit.TreeType.TREE;
@@ -262,7 +310,12 @@ public class Woodcutting implements Listener {
                 return org.bukkit.TreeType.ACACIA;
             case DARK_OAK_LOG:
                 return org.bukkit.TreeType.DARK_OAK;
+            case MANGROVE_LOG:  // New tree type from Minecraft 1.19
+                return org.bukkit.TreeType.MANGROVE;
+            case CHERRY_LOG:    // New tree type from Minecraft 1.20
+                return org.bukkit.TreeType.CHERRY;
             default:
+                // If an unrecognized material is provided, default to a basic tree
                 return org.bukkit.TreeType.TREE;
         }
     }
@@ -275,9 +328,19 @@ public class Woodcutting implements Listener {
     }
 
     private boolean isAxe(Material material) {
-        return AxeType.fromMaterial(material) != null;
+        return axeRequirements.containsKey(material);
     }
-
+    private boolean isSapling(Material material) {
+        return material == Material.OAK_SAPLING ||
+                material == Material.SPRUCE_SAPLING ||
+                material == Material.BIRCH_SAPLING ||
+                material == Material.JUNGLE_SAPLING ||
+                material == Material.ACACIA_SAPLING ||
+                material == Material.DARK_OAK_SAPLING ||
+                material == Material.MANGROVE_PROPAGULE ||
+                material == Material.CHERRY_SAPLING;
+    }
+    // Event handler for block breaking (woodcutting)
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -285,8 +348,14 @@ public class Woodcutting implements Listener {
         ItemStack heldItem = player.getInventory().getItemInMainHand();
         Material heldMaterial = heldItem.getType();
 
+        // Debugging log
+        plugin.getLogger().info("Player: " + player.getName() + " is attempting to break: " + block.getType());
+        plugin.getLogger().info("Held material: " + heldMaterial);
+
         // Check if the player is using an axe
         if (isAxe(heldMaterial)) {
+            plugin.getLogger().info("Player is holding an axe: " + heldMaterial);
+
             // Prevent axes from breaking non-log blocks
             if (!isLog(block.getType())) {
                 event.setCancelled(true);
@@ -296,12 +365,12 @@ public class Woodcutting implements Listener {
             }
 
             // Ensure the player meets the axe's level requirement
-            AxeType axeType = AxeType.fromMaterial(heldMaterial);
-            if (axeType != null) {
+            Integer requiredLevel = axeRequirements.get(heldMaterial);
+            if (requiredLevel != null) {
                 int playerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.WOODCUTTING);
-                if (playerLevel < axeType.getRequiredLevel()) {
+                if (playerLevel < requiredLevel) {
                     event.setCancelled(true);
-                    player.sendMessage(ChatColor.RED + "You need a woodcutting level of " + axeType.getRequiredLevel() + " to use this " + axeType.name().toLowerCase() + " axe.");
+                    player.sendMessage(ChatColor.RED + "You need a woodcutting level of " + requiredLevel + " to use this " + heldMaterial.name().toLowerCase().replace("_", " ") + "!");
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                     return;
                 }
@@ -330,7 +399,7 @@ public class Woodcutting implements Listener {
             int playerLevel = skillManager.getSkillLevel(player, SkillManager.Skill.WOODCUTTING);
             if (playerLevel < treeType.getRequiredLevel()) {
                 event.setCancelled(true);
-                player.sendMessage(ChatColor.RED + "You need a woodcutting level of " + treeType.getRequiredLevel() + " to chop " + treeType.getMaterial().name().toLowerCase() + "!");
+                player.sendMessage(ChatColor.RED + "You need a woodcutting level of " + treeType.getRequiredLevel() + " to chop " + treeType.getMaterial().name().toLowerCase().replace("_", " ") + "!");
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 return;
             }
@@ -364,15 +433,5 @@ public class Woodcutting implements Listener {
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
         }
-    }
-
-    // Helper method to check if a material is a sapling
-    private boolean isSapling(Material material) {
-        return material == Material.OAK_SAPLING ||
-                material == Material.SPRUCE_SAPLING ||
-                material == Material.BIRCH_SAPLING ||
-                material == Material.JUNGLE_SAPLING ||
-                material == Material.ACACIA_SAPLING ||
-                material == Material.DARK_OAK_SAPLING;
     }
 }

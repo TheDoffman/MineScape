@@ -214,7 +214,7 @@ public class Mining implements Listener {
         ItemStack heldItem = player.getInventory().getItemInMainHand();
         Material itemInHand = heldItem.getType();
 
-        event.setCancelled(true);
+        event.setCancelled(false);
 
         if (isPickaxe(itemInHand)) {
             OreData oreData = oreDataMap.get(blockMaterial);

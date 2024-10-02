@@ -66,9 +66,7 @@ skills:
   agility:
     level: 1  # Starting level for agility
     xp: 0  # Starting experience points
-    # Define agility obstacles with their required level and XP rewards
     obstacles:
-      # Each entry represents an obstacle
       obstacle_1:
         location:
           world: world
@@ -85,36 +83,26 @@ skills:
           z: 205
         xpReward: 25
         requiredLevel: 5  # Example for different level requirement
-    # Configurations for sprinting rewards
     sprinting:
       distanceReward: 50  # Distance in blocks for XP rewards
       xpPerDistance: 10  # XP awarded for covering the defined distance
-    # Food level change configuration
     foodLevelChange:
       hungerReductionMultiplier: 0.02
   attack:
-    # Configuration for the attack skill
     xpPerDamage: 4  # XP awarded per point of damage dealt
     weaponRequirements:
       DIAMOND_SWORD:
         requiredLevel: 20
-        # Other attributes for this weapon can be defined here
       IRON_SWORD:
         requiredLevel: 10
-        # Other attributes for this weapon can be defined here
       WOODEN_SWORD:
         requiredLevel: 1
-        # Other attributes for this weapon can be defined here
       BOW:
         requiredLevel: 5
-        # Other attributes for this weapon can be defined here
   hitpoints:
-    # Hitpoints skill configuration
     baseXp: 10  # Base XP gained for actions related to hitpoints
-    # This section can include configurations related to health regeneration or effects
     regenRate: 1  # Health regeneration rate
   combat:
-    # General combat skill configuration
     baseXp: 10  # Base XP gained for combat-related actions
     combatLevelCalculation: # Configuration for calculating combat levels
       factors:
@@ -128,7 +116,6 @@ skills:
   defense:
     requiredLevel: 1
     description: "The Defense skill allows players to reduce damage taken from enemies."
-    # The following section defines armor-related bonuses
     armorBonuses:
       DIAMOND_HELMET:
         mitigation: 0.2 # 20% mitigation
@@ -154,11 +141,9 @@ skills:
         mitigation: 0.05 # 5% mitigation
       LEATHER_BOOTS:
         mitigation: 0.05 # 5% mitigation
-    # Damage calculation configuration
     damage:
       baseMissChance: 20 # 20% chance to miss an attack
       xpPerDamage: 5 # XP earned per point of damage taken
-    # Placeholder for possible defense stances
     defensiveStance:
       active: true # Can be a flag if you implement different stances
   prayer:
@@ -171,7 +156,6 @@ skills:
         effectDuration: 5  # Duration of the effect in seconds
         effectAmplifier: 1  # Amplifier for the effect (e.g., 1 for level 1)
         particleType: "BLOCK_CRACK"  # Particle effect displayed when using the bone
-      # You can define more bones here following the same structure
   mining:
     ores:
       COAL_ORE:
