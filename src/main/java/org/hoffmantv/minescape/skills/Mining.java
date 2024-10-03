@@ -56,19 +56,13 @@ public class Mining implements Listener {
 
                             if (dropMaterial == null) {
                                 dropMaterial = oreMaterial; // Default to ore material if dropMaterial is invalid
-                                plugin.getLogger().warning("Invalid dropMaterial for " + key + ". Defaulting to " + oreMaterial);
                             }
 
                             OreData oreData = new OreData(oreMaterial, dropMaterial, requiredLevel, xpValue, respawnTime);
                             oreDataMap.put(oreMaterial, oreData);
-                            plugin.getLogger().info("Loaded Ore: " + oreMaterial + " | Required Level: " + requiredLevel + " | XP: " + xpValue + " | Respawn Time: " + respawnTime + "s | Drop: " + dropMaterial);
-                        } else {
-                            plugin.getLogger().warning("Invalid ore material in mining config: " + key);
                         }
                     }
                 }
-            } else {
-                plugin.getLogger().warning("No 'ores' section found in skills.yml under 'skills.mining'");
             }
 
             // Load pickaxes
@@ -82,14 +76,9 @@ public class Mining implements Listener {
                             int requiredLevel = pickaxeConfig.getInt("requiredLevel", 1);
                             PickaxeData pickaxeData = new PickaxeData(pickaxeMaterial, requiredLevel);
                             pickaxeDataMap.put(pickaxeMaterial, pickaxeData);
-                            plugin.getLogger().info("Loaded Pickaxe: " + pickaxeMaterial + " | Required Level: " + requiredLevel);
-                        } else {
-                            plugin.getLogger().warning("Invalid pickaxe material in mining config: " + key);
                         }
                     }
                 }
-            } else {
-                plugin.getLogger().warning("No 'pickaxes' section found in skills.yml under 'skills.mining'");
             }
 
             plugin.getLogger().info("Mining Skill configurations loaded successfully.");
@@ -116,26 +105,24 @@ public class Mining implements Listener {
                 Material.NETHER_GOLD_ORE, Material.ANCIENT_DEBRIS
         );
 
-        if (!oreMaterials.contains(blockMaterial)) {
-            return;
-        }
-
-        if (isPickaxe(itemInHand)) {
-            OreData oreData = oreDataMap.get(blockMaterial);
-            if (oreData != null) {
-                handleOreBreak(event, player, heldItem, oreData, block);
+        // Only apply the restriction if the block is an ore
+        if (oreMaterials.contains(blockMaterial)) {
+            if (isPickaxe(itemInHand)) {
+                OreData oreData = oreDataMap.get(blockMaterial);
+                if (oreData != null) {
+                    handleOreBreak(event, player, heldItem, oreData, block);
+                } else {
+                    event.setCancelled(true);
+                    player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                }
             } else {
-                event.setCancelled(true);
-                player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-            }
-        } else {
-            if (oreMaterials.contains(blockMaterial)) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You must use a pickaxe to mine ores!");
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
         }
+        // If the block is not an ore, allow it to be broken
     }
 
     private void handleOreBreak(BlockBreakEvent event, Player player, ItemStack heldItem, OreData oreData, Block block) {
@@ -190,11 +177,10 @@ public class Mining implements Listener {
 
     private void startMiningAnimation(Player player, Block block, int miningTimeSeconds) {
         for (int i = 0; i < miningTimeSeconds; i++) {
-            final int delay = i;
             scheduler.runTaskLater(plugin, () -> {
                 player.getWorld().spawnParticle(Particle.BLOCK_CRACK, block.getLocation().add(0.5, 0.5, 0.5), 10, block.getBlockData());
                 player.playSound(player.getLocation(), Sound.BLOCK_STONE_HIT, 1.0f, 1.0f);
-            }, delay * 20); // Schedule every second (20 ticks = 1 second)
+            }, i * 20L); // Schedule every second (20 ticks = 1 second)
         }
     }
 
@@ -214,14 +200,30 @@ public class Mining implements Listener {
         ItemStack heldItem = player.getInventory().getItemInMainHand();
         Material itemInHand = heldItem.getType();
 
-        event.setCancelled(true);
+        Set<Material> oreMaterials = EnumSet.of(
+                Material.COAL_ORE, Material.IRON_ORE, Material.GOLD_ORE,
+                Material.DIAMOND_ORE, Material.EMERALD_ORE, Material.LAPIS_ORE,
+                Material.REDSTONE_ORE, Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_IRON_ORE,
+                Material.DEEPSLATE_GOLD_ORE, Material.DEEPSLATE_DIAMOND_ORE,
+                Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_LAPIS_ORE,
+                Material.DEEPSLATE_REDSTONE_ORE, Material.NETHER_QUARTZ_ORE,
+                Material.NETHER_GOLD_ORE, Material.ANCIENT_DEBRIS
+        );
 
-        if (isPickaxe(itemInHand)) {
-            OreData oreData = oreDataMap.get(blockMaterial);
-            if (oreData != null) {
-                handleOreMining(player, heldItem, oreData, block);
+        // Only cancel the event if the block is an ore
+        if (oreMaterials.contains(blockMaterial)) {
+            event.setCancelled(true);
+
+            if (isPickaxe(itemInHand)) {
+                OreData oreData = oreDataMap.get(blockMaterial);
+                if (oreData != null) {
+                    handleOreMining(player, heldItem, oreData, block);
+                } else {
+                    player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                }
             } else {
-                player.sendMessage(ChatColor.RED + "You can only use a pickaxe on ores.");
+                player.sendMessage(ChatColor.RED + "You must use a pickaxe to mine ores!");
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
         }
@@ -270,26 +272,17 @@ public class Mining implements Listener {
     }
 
     private String getCustomDisplayName(Material material) {
-        switch (material) {
-            case COAL:
-                return "Coal";
-            case IRON_ORE:
-                return "Iron Ore";
-            case GOLD_ORE:
-                return "Gold Ore";
-            case DIAMOND:
-                return "Uncut Diamond";
-            case EMERALD:
-                return "Uncut Emerald";
-            case NETHERITE_SCRAP:
-                return "Ancient Debris";
-            case QUARTZ:
-                return "Quartz Crystal";
-            case COPPER_ORE:
-                return "Copper Ore";
-            default:
-                return "Mined Resource";
-        }
+        return switch (material) {
+            case COAL -> "Coal";
+            case IRON_ORE -> "Iron Ore";
+            case GOLD_ORE -> "Gold Ore";
+            case DIAMOND -> "Uncut Diamond";
+            case EMERALD -> "Uncut Emerald";
+            case NETHERITE_SCRAP -> "Ancient Debris";
+            case QUARTZ -> "Quartz Crystal";
+            case COPPER_ORE -> "Copper Ore";
+            default -> "Mined Resource";
+        };
     }
 
     private List<String> getCustomLore(Material material) {
@@ -353,21 +346,14 @@ public class Mining implements Listener {
     }
 
     private int getPickaxeBonus(Material pickaxe) {
-        switch (pickaxe) {
-            case NETHERITE_PICKAXE:
-                return 15;
-            case DIAMOND_PICKAXE:
-                return 10;
-            case IRON_PICKAXE:
-                return 5;
-            case STONE_PICKAXE:
-                return 2;
-            case GOLDEN_PICKAXE:
-                return 0;
-            case WOODEN_PICKAXE:
-            default:
-                return 0;
-        }
+        return switch (pickaxe) {
+            case NETHERITE_PICKAXE -> 15;
+            case DIAMOND_PICKAXE -> 10;
+            case IRON_PICKAXE -> 5;
+            case STONE_PICKAXE -> 2;
+            case GOLDEN_PICKAXE -> 0;
+            default -> 0;
+        };
     }
 
     private void scheduleOreRespawn(Block block, OreData oreData) {

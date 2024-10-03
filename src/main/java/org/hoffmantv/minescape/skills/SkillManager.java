@@ -107,13 +107,16 @@ public class SkillManager implements Listener {
 
     // Load skills configuration file
     private void loadSkillsFile() {
-        skillsFile = new File(dataFolder, "skills.yml");
+        skillsFile = new File(plugin.getDataFolder(), "skills.yml");
         if (!skillsFile.exists()) {
-            plugin.saveResource("skills.yml", false); // Create from resources if not present
+            plugin.saveResource("skills.yml", false); // This will create the file from the plugin's resources
         }
-        skillsConfig = YamlConfiguration.loadConfiguration(skillsFile); // Load configuration
+        skillsConfig = YamlConfiguration.loadConfiguration(skillsFile);
     }
 
+    public ConfigurationSection getSkillsConfig() {
+        return skillsConfig.getConfigurationSection("skills");
+    }
     // Load weapon requirements from config
     private void loadWeaponRequirements() {
         ConfigurationSection strengthConfig = skillsConfig.getConfigurationSection("strength");
@@ -142,7 +145,6 @@ public class SkillManager implements Listener {
         return Math.floor(totalXp / 4);
     }
 
-    // Add XP to player skill
     public boolean addXP(Player player, Skill skill, double xp) {
         UUID playerUUID = player.getUniqueId();
         initializePlayerData(playerUUID);
@@ -170,7 +172,18 @@ public class SkillManager implements Listener {
         playerDataConfig.set(playerUUID.toString() + "." + skill.name() + ".xp", newXP);
         savePlayerDataAsync();
 
+        // Recalculate combat level if the skill is related to combat
+        if (isCombatSkill(skill)) {
+            combatLevel.updateCombatLevel(player);
+        }
+
         return leveledUp;
+    }
+
+    private boolean isCombatSkill(Skill skill) {
+        return skill == Skill.ATTACK || skill == Skill.STRENGTH || skill == Skill.DEFENCE ||
+                skill == Skill.HITPOINTS || skill == Skill.PRAYER || skill == Skill.RANGE ||
+                skill == Skill.MAGIC;
     }
 
     private void notifyPlayerLevelUp(Player player, Skill skill, int level) {
@@ -234,7 +247,7 @@ public class SkillManager implements Listener {
 
         // Start tracking playtime and update combat level
         startPlaytimeTracking(player);
-        combatLevel.updateCombatLevel(player, player);
+        combatLevel.updateCombatLevel(player);
         combatLevel.updatePlayerNametag(player);
         combatLevel.updatePlayerHeadDisplay(player);
     }
@@ -347,10 +360,6 @@ public class SkillManager implements Listener {
             }
         }
     }
-    public FileConfiguration getSkillsConfig() {
-        return skillsConfig;
-    }
-
     // Utility method to get all skill levels for a player
     public Map<Skill, Integer> getAllSkillLevels(Player player) {
         UUID playerUUID = player.getUniqueId();

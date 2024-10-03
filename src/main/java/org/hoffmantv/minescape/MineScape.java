@@ -1,6 +1,8 @@
 package org.hoffmantv.minescape;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hoffmantv.minescape.commands.*;
@@ -18,81 +20,87 @@ public class MineScape extends JavaPlugin {
     private CombatLevelSystem combatLevelSystem;
     private FishingSkill fishingSkill;
     private TradeMenu tradeMenu;
+    private CombatLevel combatLevel;
 
     @Override
     public void onEnable() {
-        getLogger().info("MineScape Alpha Version 0.2 has been enabled!");
-
         // Initialize SkillManager
         skillManager = new SkillManager(this);
 
-        // Initialize CombatLevelSystem
-        combatLevelSystem = new CombatLevelSystem(this, new CombatLevel(skillManager), skillManager);
+        ConfigurationSection woodcuttingConfig = skillManager.getSkillsConfig().getConfigurationSection("woodcutting");
+        ConfigurationSection agilityConfig = skillManager.getSkillsConfig().getConfigurationSection("agility");
+        ConfigurationSection miningConfig = skillManager.getSkillsConfig().getConfigurationSection("mining");
 
         // Initialize SkillsHologram
         skillsHologram = new SkillsHologram(skillManager);
 
-        // Initialize FishingSkill
-        fishingSkill = new FishingSkill(this, skillManager);
+        // Initialize CombatLevel
+        combatLevel = new CombatLevel(skillManager);
+
+        // Initialize CombatLevelSystem
+        combatLevelSystem = new CombatLevelSystem(this, combatLevel, skillManager);
 
         // Register Commands
         registerCommands();
-
-        // Load or create the skills.yml configuration file
-        // Access skillsConfig directly from skillManager
-        ConfigurationSection skillsConfig = skillManager.getSkillsConfig();
-
-        // Register Skills with their corresponding configuration sections
-        registerSkills(skillsConfig);
 
         // Register all other listeners
         registerAllListeners();
 
         // Log plugin enabled successfully
         getLogger().info("MineScape has been enabled successfully.");
+
+        getServer().getPluginManager().registerEvents(combatLevelSystem, this);
+
+        // Register the Agility listener
+        if (agilityConfig != null) {
+            getServer().getPluginManager().registerEvents(new Agility(skillManager, this), this);
+        } else {
+            getLogger().warning("Agility configuration section is missing in skills.yml!");
+        }
+        // Register the Woodcutting listener
+        Woodcutting woodcutting = new Woodcutting(skillManager, woodcuttingConfig, this);
+        if(woodcuttingConfig != null)
+        getServer().getPluginManager().registerEvents(woodcutting, this);
+        else {
+            getLogger().warning("Woodcutting configuration section is missing in skills.yml!");
+        }
+        // Register the Mining listener
+        Mining mining = new Mining(skillManager, miningConfig, this);
+        if(miningConfig != null)
+            getServer().getPluginManager().registerEvents(mining, this);
+        else {
+            getLogger().warning("Mining configuration section is missing in skills.yml!");
+        }
+
+
+        getLogger().info("MineScape Alpha Version 0.2 has been enabled!");
+    }
+
+    private void registerCombatLevel() {
+        // Register any combat-related event listeners (if any)
+        // If you have events related to combat that need to trigger CombatLevel updates,
+        // register those listeners here.
+
+        // Example: Update all player combat levels when the server starts
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                // Update the player's combat level when they join the server
+                combatLevel.updateCombatLevel(player);  // Self-update for combat level
+            }
+        }, 20L);  // Delay of 1 second after startup (20 ticks = 1 second)
     }
 
     @Override
     public void onDisable() {
         skillManager.savePlayerData(); // Ensure data is saved when the plugin is disabled
-        getLogger().info("MineScape has been disabled!");
-    }
 
-    private void registerSkills(ConfigurationSection skillsConfig) {
-        // Register each skill by checking if the configuration section exists
-        for (SkillManager.Skill skill : SkillManager.Skill.values()) {
-            ConfigurationSection skillConfig = skillsConfig.getConfigurationSection("skills." + skill.name().toLowerCase());
-            if (skillConfig != null) {
-                switch (skill) {
-                    case PRAYER:
-                        registerListener(new Prayer(skillManager, skillConfig, this)); // Pass config and plugin
-                        break;
-                    case AGILITY:
-                        registerListener(new Agility(skillManager,this)); // Pass config
-                        break;
-                    case MINING:
-                        registerListener(new Mining(skillManager, skillConfig, this)); // Pass config
-                        break;
-                    case COOKING:
-                        registerListener(new Cooking(skillManager, skillConfig)); // Pass config
-                        break;
-                    case FIREMAKING:
-                        registerListener(new Firemaking(skillManager, this)); // Pass config
-                        break;
-                    // Add other skills as needed
-                    default:
-                        getLogger().warning("No configuration found for skill: " + skill);
-                }
-            } else {
-                getLogger().warning("No '" + skill.name().toLowerCase() + "' section found in skills.yml under 'skills'");
-            }
-        }
+        getLogger().info("MineScape has been disabled!");
+
     }
 
     private void registerAllListeners() {
         registerListener(new Water(this));
         registerListener(skillManager); // Register SkillManager as a listener
-        registerListener(combatLevelSystem);
         registerListener(new Hitpoints(skillManager, this)); // Pass plugin
         registerListener(new Range(this, skillManager)); // Pass plugin
         registerListener(new Crafting(skillManager)); // No config needed

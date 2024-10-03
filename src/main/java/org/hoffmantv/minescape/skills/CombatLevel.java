@@ -2,7 +2,6 @@ package org.hoffmantv.minescape.skills;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -18,12 +17,9 @@ public class CombatLevel {
         this.skillManager = skillManager;
     }
 
-    public enum Skill {
-        COMBAT
-    }
-
-    // OSRS-like combat level calculation
+    // OSRS-like combat level calculation, reading from playerdata.yml
     public int calculateCombatLevel(Player player) {
+        // Get skill levels from playerdata.yml through SkillManager
         int attack = skillManager.getSkillLevel(player, SkillManager.Skill.ATTACK);
         int strength = skillManager.getSkillLevel(player, SkillManager.Skill.STRENGTH);
         int defence = skillManager.getSkillLevel(player, SkillManager.Skill.DEFENCE);
@@ -32,31 +28,32 @@ public class CombatLevel {
         int ranged = skillManager.getSkillLevel(player, SkillManager.Skill.RANGE);
         int magic = skillManager.getSkillLevel(player, SkillManager.Skill.MAGIC);
 
-        // Calculate OSRS combat level
+        // Base combat level (Defence + Hitpoints + floor(Prayer / 2))
         double baseCombat = 0.25 * (defence + hitpoints + Math.floor(prayer / 2));
+
+        // Melee combat (Attack + Strength)
         double meleeCombat = 0.325 * (attack + strength);
+
+        // Ranged combat (floor(Ranged / 2) + Ranged)
         double rangedCombat = 0.325 * (Math.floor(ranged / 2) + ranged);
+
+        // Magic combat (floor(Magic / 2) + Magic)
         double magicCombat = 0.325 * (Math.floor(magic / 2) + magic);
 
-        // Choose the highest combat level (melee, ranged, or magic)
+        // Return the highest value between melee, ranged, and magic combat
         return (int) Math.floor(baseCombat + Math.max(meleeCombat, Math.max(rangedCombat, magicCombat)));
     }
 
-    // Update combat level with OSRS mechanics
-    public void updateCombatLevel(Player player, Player opponent) {
+    // Update combat level and store it in playerdata.yml
+    public void updateCombatLevel(Player player) {
         int playerCombatLevel = calculateCombatLevel(player);
-        int opponentCombatLevel = calculateCombatLevel(opponent);
 
-        // Get colored combat level based on level difference
-        String coloredCombatLevel = getColoredCombatLevel(playerCombatLevel, opponentCombatLevel);
-        String nameTag = formatNameTag(player, coloredCombatLevel);
-
-        // Set player's combat skill level in SkillManager
+        // Set player's combat skill level in SkillManager and save it to playerdata.yml
         skillManager.setSkillLevel(player, SkillManager.Skill.COMBAT, playerCombatLevel);
 
-        // Update the player's custom name with combat level and health
-        player.setCustomName(nameTag);
-        player.setCustomNameVisible(true);
+        // Update player name tag to show combat level
+        updatePlayerNametag(player);
+        updatePlayerHeadDisplay(player);  // For scoreboard display, if required
     }
 
     // Update the player's display name to show combat level and health
@@ -72,7 +69,7 @@ public class CombatLevel {
         player.setPlayerListName(nameTag);
     }
 
-    // Update the player's head display with combat level and health
+    // Update the player's head display with combat level and health (for scoreboard)
     public void updatePlayerHeadDisplay(Player player) {
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         Team team = scoreboard.getTeam(player.getName());
@@ -92,22 +89,4 @@ public class CombatLevel {
         player.setScoreboard(scoreboard);
     }
 
-    // Get the colored combat level based on the difference between the player and opponent
-    public String getColoredCombatLevel(int playerCombatLevel, int opponentCombatLevel) {
-        int difference = playerCombatLevel - opponentCombatLevel;
-
-        if (Math.abs(difference) <= 5) {
-            return ChatColor.GREEN + String.valueOf(playerCombatLevel);
-        } else if (difference > 5) {
-            return ChatColor.RED + String.valueOf(playerCombatLevel);
-        } else {
-            return ChatColor.BLUE + String.valueOf(playerCombatLevel);
-        }
-    }
-
-    // Format the name tag with combat level and health
-    private String formatNameTag(Player player, String combatLevel) {
-        double health = player.getHealth(); // Get the player's current health
-        return combatLevel + " " + player.getName() + " " + ChatColor.RED + "[" + String.format("%.0f", health) + "]";
-    }
 }

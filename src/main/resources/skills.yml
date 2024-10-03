@@ -1,39 +1,9 @@
 skills:
   agility:
-    level: 1  # Starting level for agility
-    xp: 0  # Starting experience points
-    obstacles:
-      obstacle_1:
-        location:
-          world: world
-          x: 100
-          y: 65
-          z: 200
-        xpReward: 15
-        requiredLevel: 1
-      obstacle_2:
-        location:
-          world: world
-          x: 105
-          y: 65
-          z: 205
-        xpReward: 25
-        requiredLevel: 5  # Example for different level requirement
-    sprinting:
-      distanceReward: 50  # Distance in blocks for XP rewards
-      xpPerDistance: 10  # XP awarded for covering the defined distance
-    foodLevelChange:
-      hungerReductionMultiplier: 0.02
-  prayer:
-    bones:
-      bone_name:
-        material: "BONE"  # The type of bone, e.g., BONE
-        displayName: "&fBone"  # Display name in chat (color codes can be used)
-        xpValue: 10.0  # XP awarded for using the bone
-        effectType: "HEALING"  # Type of effect the bone provides
-        effectDuration: 5  # Duration of the effect in seconds
-        effectAmplifier: 1  # Amplifier for the effect (e.g., 1 for level 1)
-        particleType: "BLOCK_CRACK"  # Particle effect displayed when using the bone
+    sprintXpPer50Blocks: 10      # XP reward for sprinting 50 blocks
+    staminaRegenRate: 5          # How fast stamina regenerates (e.g., food level increments every X seconds)
+    hungerReductionPerLevel: 0.02 # 2% less hunger depletion per agility level
+    maxStaminaLevelBonus: 20      # Maximum additional stamina regeneration based on level
   mining:
     ores:
       COAL_ORE:
@@ -134,75 +104,28 @@ skills:
         requiredLevel: 40
       NETHERITE_PICKAXE:
         requiredLevel: 60
-  firemaking:
-    logRequirements:
+  woodcutting:
+    trees:
       OAK_LOG:
-        xp: 40          # XP rewarded for burning an oak log
-        despawnTime: 1200 # Time in ticks before the fire despawns (1200 ticks = 1 minute)
-        requiredLevel: 1  # Firemaking level required to burn an oak log
+        requiredLevel: 1
+        xp: 25.0
+        respawnTime: 60
       BIRCH_LOG:
-        xp: 50
-        despawnTime: 1300
-        requiredLevel: 5
+        requiredLevel: 15
+        xp: 37.5
+        respawnTime: 75
       SPRUCE_LOG:
-        xp: 55
-        despawnTime: 1300
-        requiredLevel: 10
-      JUNGLE_LOG:
-        xp: 65
-        despawnTime: 1400
-        requiredLevel: 15
-      ACACIA_LOG:
-        xp: 75
-        despawnTime: 1500
-        requiredLevel: 20
-      DARK_OAK_LOG:
-        xp: 85
-        despawnTime: 1500
-        requiredLevel: 25
-      MANGROVE_LOG:
-        xp: 90
-        despawnTime: 1600
         requiredLevel: 30
-      CHERRY_LOG:
-        xp: 95
-        despawnTime: 1600
-        requiredLevel: 35
-  cooking:
-    foods:
-      BEEF:
-        requiredLevel: 5
-        xpReward: 30
-        burnStopLevel: 35
-      CHICKEN:
+        xp: 50.0
+        respawnTime: 90
+    axes:
+      WOODEN_AXE:
         requiredLevel: 1
-        xpReward: 20
-        burnStopLevel: 25
-      MUTTON:
+      STONE_AXE:
         requiredLevel: 10
-        xpReward: 35
-        burnStopLevel: 40
-      PORKCHOP:
-        requiredLevel: 15
-        xpReward: 40
-        burnStopLevel: 45
-      SALMON:
+      IRON_AXE:
         requiredLevel: 20
-        xpReward: 50
-        burnStopLevel: 50
-      COD:
-        requiredLevel: 10
-        xpReward: 30
-        burnStopLevel: 30
-      RABBIT:
-        requiredLevel: 5
-        xpReward: 25
-        burnStopLevel: 25
-      POTATO:
-        requiredLevel: 1
-        xpReward: 10
-        burnStopLevel: 15
-      KELP:
-        requiredLevel: 1
-        xpReward: 5
-        burnStopLevel: 10
+      DIAMOND_AXE:
+        requiredLevel: 30
+      NETHERITE_AXE:
+        requiredLevel: 50
