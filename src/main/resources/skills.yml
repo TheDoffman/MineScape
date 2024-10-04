@@ -105,27 +105,51 @@ skills:
       NETHERITE_PICKAXE:
         requiredLevel: 60
   woodcutting:
+    levelCap: 99
+    xpMultiplier: 1.0
     trees:
       OAK_LOG:
         requiredLevel: 1
         xp: 25.0
         respawnTime: 60
       BIRCH_LOG:
-        requiredLevel: 15
-        xp: 37.5
-        respawnTime: 75
-      SPRUCE_LOG:
-        requiredLevel: 30
-        xp: 50.0
+        requiredLevel: 5
+        xp: 35.0
         respawnTime: 90
+      SPRUCE_LOG:
+        requiredLevel: 10
+        xp: 50.0
+        respawnTime: 120
+      JUNGLE_LOG:
+        requiredLevel: 15
+        xp: 55.0
+        respawnTime: 150
+      ACACIA_LOG:
+        requiredLevel: 20
+        xp: 70.0
+        respawnTime: 180
+      DARK_OAK_LOG:
+        requiredLevel: 30
+        xp: 100.0
+        respawnTime: 240
+      MANGROVE_LOG:
+        requiredLevel: 40
+        xp: 120.0
+        respawnTime: 300
+      CHERRY_LOG:
+        requiredLevel: 50
+        xp: 150.0
+        respawnTime: 360
     axes:
       WOODEN_AXE:
         requiredLevel: 1
       STONE_AXE:
-        requiredLevel: 10
+        requiredLevel: 5
       IRON_AXE:
-        requiredLevel: 20
+        requiredLevel: 10
+      GOLDEN_AXE:
+        requiredLevel: 15
       DIAMOND_AXE:
         requiredLevel: 30
       NETHERITE_AXE:
-        requiredLevel: 50
+        requiredLevel: 40

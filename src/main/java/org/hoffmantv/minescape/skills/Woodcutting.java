@@ -1,6 +1,5 @@
 package org.hoffmantv.minescape.skills;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -139,32 +138,14 @@ public class Woodcutting implements Listener {
     }
 
     private void chopTreeAndLeaves(Player player, Block block, TreeData treeData) {
-        // Capture the correct log type from the original block
-        Material logType = block.getType();
+        List<ChoppedTreeData> choppedTreeData = getTreeAndLeaves(block);
 
         // Store tree data for respawning later
-        List<ChoppedTreeData> choppedTreeData = getTreeAndLeaves(block);
         choppedTrees.put(block, choppedTreeData);
 
-        // Remove logs and leaves (set them to AIR)
+        // Remove logs and leaves
         for (ChoppedTreeData treeDataBlock : choppedTreeData) {
             treeDataBlock.getBlock().setType(Material.AIR);  // Remove block
-        }
-
-        // Now, create the non-stackable log with the captured log type
-        ItemStack logItem = createNonStackableLog(logType);
-
-        // Debugging: Log message to confirm log item creation
-        plugin.getLogger().info("Created log item: " + logItem.getType().toString() + " for player: " + player.getName());
-
-        // Add the log to the player's inventory, or drop it if inventory is full
-        Map<Integer, ItemStack> leftoverItems = player.getInventory().addItem(logItem);
-        if (!leftoverItems.isEmpty()) {
-            // Drop the item if the inventory is full
-            plugin.getLogger().info("Inventory full for player: " + player.getName() + ", dropping log.");
-            player.getWorld().dropItemNaturally(player.getLocation(), logItem);
-        } else {
-            plugin.getLogger().info("Log added to inventory for player: " + player.getName());
         }
 
         // Grant XP and show in action bar
@@ -186,7 +167,7 @@ public class Woodcutting implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                Material saplingType = getSaplingTypeForLog(logType);
+                Material saplingType = getSaplingTypeForLog(block.getType());
                 if (saplingType != null) {
                     dirtBlock.setType(saplingType);  // Place sapling on the dirt block
                 }
@@ -194,7 +175,26 @@ public class Woodcutting implements Listener {
         }.runTaskLater(plugin, 20L);  // 20 ticks = 1 second delay
 
         // Respawn the tree after the specified respawn time
-        scheduleTreeRespawn(block, treeData);
+        scheduleTreeRespawn(block, treeData, dirtBlock);
+    }
+
+    private void scheduleTreeRespawn(Block block, TreeData treeData, Block dirtBlock) {
+        long respawnTimeTicks = treeData.getRespawnTime() * 20; // Convert seconds to ticks
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                List<ChoppedTreeData> originalTree = choppedTrees.get(block);
+                if (originalTree != null) {
+                    for (ChoppedTreeData treeDataBlock : originalTree) {
+                        Block treeBlock = treeDataBlock.getBlock();
+                        treeBlock.setType(treeDataBlock.getMaterial());
+                        treeBlock.setBlockData(treeDataBlock.getBlockData());
+                    }
+                    choppedTrees.remove(block); // Clean up after respawn
+                }
+            }
+        }.runTaskLater(plugin, respawnTimeTicks);
     }
 
     private ItemStack createNonStackableLog(Material logType) {
