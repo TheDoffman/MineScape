@@ -17,9 +17,8 @@ public class CombatLevel {
         this.skillManager = skillManager;
     }
 
-    // OSRS-like combat level calculation, reading from playerdata.yml
+    // OSRS-like combat level calculation
     public int calculateCombatLevel(Player player) {
-        // Get skill levels from playerdata.yml through SkillManager
         int attack = skillManager.getSkillLevel(player, SkillManager.Skill.ATTACK);
         int strength = skillManager.getSkillLevel(player, SkillManager.Skill.STRENGTH);
         int defence = skillManager.getSkillLevel(player, SkillManager.Skill.DEFENCE);
@@ -28,37 +27,25 @@ public class CombatLevel {
         int ranged = skillManager.getSkillLevel(player, SkillManager.Skill.RANGE);
         int magic = skillManager.getSkillLevel(player, SkillManager.Skill.MAGIC);
 
-        // Base combat level (Defence + Hitpoints + floor(Prayer / 2))
+        // Calculate OSRS combat level
         double baseCombat = 0.25 * (defence + hitpoints + Math.floor(prayer / 2));
-
-        // Melee combat (Attack + Strength)
         double meleeCombat = 0.325 * (attack + strength);
-
-        // Ranged combat (floor(Ranged / 2) + Ranged)
         double rangedCombat = 0.325 * (Math.floor(ranged / 2) + ranged);
-
-        // Magic combat (floor(Magic / 2) + Magic)
         double magicCombat = 0.325 * (Math.floor(magic / 2) + magic);
 
-        // Return the highest value between melee, ranged, and magic combat
+        // Choose the highest combat level (melee, ranged, or magic)
         return (int) Math.floor(baseCombat + Math.max(meleeCombat, Math.max(rangedCombat, magicCombat)));
     }
 
-    // Update combat level and store it in playerdata.yml
+    // Update combat level with OSRS mechanics
     public void updateCombatLevel(Player player) {
         int playerCombatLevel = calculateCombatLevel(player);
-
-        // Set player's combat skill level in SkillManager and save it to playerdata.yml
-        skillManager.setSkillLevel(player, SkillManager.Skill.COMBAT, playerCombatLevel);
-
-        // Update player name tag to show combat level
         updatePlayerNametag(player);
-        updatePlayerHeadDisplay(player);  // For scoreboard display, if required
     }
 
     // Update the player's display name to show combat level and health
     public void updatePlayerNametag(Player player) {
-        int combatLevel = skillManager.getSkillLevel(player, SkillManager.Skill.COMBAT);
+        int combatLevel = calculateCombatLevel(player); // Calculate the combat level inside this method
         double health = player.getHealth(); // Get the player's current health
 
         String nameTag = ChatColor.GRAY + "[" + ChatColor.GREEN + combatLevel + ChatColor.GRAY + "] " +
@@ -69,7 +56,7 @@ public class CombatLevel {
         player.setPlayerListName(nameTag);
     }
 
-    // Update the player's head display with combat level and health (for scoreboard)
+    // Update the player's head display with combat level and health
     public void updatePlayerHeadDisplay(Player player) {
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         Team team = scoreboard.getTeam(player.getName());
@@ -79,7 +66,7 @@ public class CombatLevel {
             team.addEntry(player.getName());
         }
 
-        int combatLevel = skillManager.getSkillLevel(player, SkillManager.Skill.COMBAT);
+        int combatLevel = calculateCombatLevel(player);
         double health = player.getHealth(); // Get player's current health
 
         // Format the player's name to show combat level and health
@@ -89,4 +76,16 @@ public class CombatLevel {
         player.setScoreboard(scoreboard);
     }
 
+    // Get the colored combat level based on the difference between the player and another opponent
+    public String getColoredCombatLevel(int playerCombatLevel, int opponentCombatLevel) {
+        int difference = playerCombatLevel - opponentCombatLevel;
+
+        if (Math.abs(difference) <= 5) {
+            return ChatColor.GREEN + String.valueOf(playerCombatLevel);
+        } else if (difference > 5) {
+            return ChatColor.RED + String.valueOf(playerCombatLevel);
+        } else {
+            return ChatColor.BLUE + String.valueOf(playerCombatLevel);
+        }
+    }
 }
